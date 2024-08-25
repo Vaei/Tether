@@ -16,6 +16,7 @@ class UTetherShapeObject;
  *
  * Clone() is the exception, effectively implementing manual polymorphism.
  *
+ * @TODO actually prevent copying
  * We prevent copying because :
  *		There is no need to copy this base type as it isn't used - other than for passing around
  *		We do not pass around derived types, we only pass this type
@@ -28,23 +29,14 @@ struct TETHER_API FTetherShape
 {
 	GENERATED_BODY()
 
-	FTetherShape()
-	{}
-	virtual ~FTetherShape() = default;
-
-protected:
-	// Allow copy constructor but make it protected
-	FTetherShape(const FTetherShape&) = default;
-	FTetherShape& operator=(const FTetherShape&) = default;
-
 public:
-	/** Implement move constructor and assignment operator */
-	FTetherShape(FTetherShape&&) = default;
-	FTetherShape& operator=(FTetherShape&&) = default;
+	FTetherShape() = default;
+	virtual ~FTetherShape() = default;
 
 	/** Add a virtual clone method - this must be used instead of copying! */
 	virtual TSharedPtr<FTetherShape> Clone() const { return MakeShared<FTetherShape>(*this); }
-	
+
+public:
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	TSubclassOf<UTetherShapeObject> TetherShapeClass = nullptr;
 

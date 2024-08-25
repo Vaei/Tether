@@ -38,7 +38,6 @@ void UTetherShapeObject_AxisAlignedBoundingBox::TransformToWorldSpace(FTetherSha
 		TransformToLocalSpace(Shape);
 	}
 	
-	FTetherShape TransformedShape;
 	// Transform both the min and max points
 	FVector TransformedMin = WorldTransform.TransformPosition(AABB->Min);
 	FVector TransformedMax = WorldTransform.TransformPosition(AABB->Max);
