@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2024 Jared Taylor. All Rights Reserved.
+﻿// Copyright (c) Jared Taylor. All Rights Reserved.
 
 #include "Shapes/TetherShape_Capsule.h"
 #include "Animation/AnimInstanceProxy.h"
