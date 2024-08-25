@@ -39,8 +39,10 @@ void UTetherShapeObject_AxisAlignedBoundingBox::TransformToWorldSpace(FTetherSha
 	}
 	
 	// Transform both the min and max points
-	FVector TransformedMin = WorldTransform.TransformPosition(AABB->Min);
-	FVector TransformedMax = WorldTransform.TransformPosition(AABB->Max);
+	FTransform Transform = WorldTransform;
+	Transform.SetRotation(FQuat::Identity);
+	FVector TransformedMin = Transform.TransformPosition(AABB->Min);
+	FVector TransformedMax = Transform.TransformPosition(AABB->Max);
 
 	// Ensure the transformed min and max are correctly aligned
 	AABB->Min = FVector(FMath::Min(TransformedMin.X, TransformedMax.X), 
@@ -64,6 +66,7 @@ void UTetherShapeObject_AxisAlignedBoundingBox::TransformToLocalSpace(FTetherSha
 	
 	// Inverse the world transform to get back to local space
 	FTransform InverseTransform = Shape.GetWorldTransform().Inverse();
+	InverseTransform.SetRotation(FQuat::Identity);
 
 	// Transform both the min and max points back to local space
 	FVector TransformedMin = InverseTransform.TransformPosition(AABB->Min);
