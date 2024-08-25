@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 
+/**
+ * Handles the timing and updates for physics simulations, ensuring consistent sub-ticks within a frame.
+ */
 struct FTetherPhysicsUpdate
 {
 	float DeltaTime;
