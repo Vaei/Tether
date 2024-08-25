@@ -8,7 +8,7 @@
 
 FLinearColor UAnimGraphNode_Tether::GetNodeTitleColor() const
 {
-	return FLinearColor(1.f, 0.4f, 0.1f);  // Orange
+	return FLinearColor(1.f, 0.0f, 0.5f);  // Pinkish-Purple (Raspberry?)
 }
 
 FText UAnimGraphNode_Tether::GetNodeTitle(ENodeTitleType::Type TitleType) const
