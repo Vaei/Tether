@@ -17,5 +17,5 @@ namespace FTether
 	 * 12.0f is a constant that results from the math involved in determining how the mass is spread out relative to the
 	 * axis of rotation. It helps correctly scale the influence of the box's dimensions on its rotational inertia.
 	 */
-	TETHER_API constexpr float MomentOfInertia = 12.f;
+	static constexpr float MomentOfInertia = 12.f;
 }

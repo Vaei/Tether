@@ -4,9 +4,9 @@
 #include "TetherDeveloperSettings.h"
 
 #include "TetherGameplayTags.h"
+#include "Physics/Collision/TetherShapeCollisionControl.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverLinear.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverAngular.h"
-#include "Shapes/TetherShapeCollisionControl.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherDeveloperSettings)

@@ -1,10 +1,9 @@
 ﻿// Copyright (c) 2024 Jared Taylor. All Rights Reserved.
 
 
-#include "Shapes/TetherShapeCollisionControl.h"
+#include "Physics/Collision/TetherShapeCollisionControl.h"
 
 #include "TetherIO.h"
-#include "TetherStatics.h"
 #include "Shapes/TetherShapeCaster.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
 #include "Shapes/TetherShape_BoundingSphere.h"

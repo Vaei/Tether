@@ -15,7 +15,7 @@
  * involving basic distance checks.
  */
 USTRUCT(BlueprintType)
-struct TETHER_API FTetherShape_BoundingSphere : public FTetherShape
+struct TETHERPHYSICS_API FTetherShape_BoundingSphere : public FTetherShape
 {
 	GENERATED_BODY()
 
@@ -37,7 +37,7 @@ struct TETHER_API FTetherShape_BoundingSphere : public FTetherShape
 };
 
 UCLASS()
-class TETHER_API UTetherShapeObject_BoundingSphere : public UTetherShapeObject
+class TETHERPHYSICS_API UTetherShapeObject_BoundingSphere : public UTetherShapeObject
 {
 	GENERATED_BODY()
 

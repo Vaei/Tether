@@ -8,7 +8,7 @@
 /**
  * Cast<>() & IsA<>() equivalent for FTetherShape types
  */
-struct TETHER_API FTetherShapeCaster
+struct TETHERPHYSICS_API FTetherShapeCaster
 {
 	/** Check if the shape is of the specified type */
 	template <typename ShapeType>

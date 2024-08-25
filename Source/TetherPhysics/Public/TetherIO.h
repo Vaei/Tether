@@ -16,7 +16,7 @@ enum class ETetherDampingModel : uint8
 };
 
 USTRUCT(BlueprintType)
-struct TETHER_API FLinearInput
+struct TETHERPHYSICS_API FLinearInput
 {
 	GENERATED_BODY()
 
@@ -60,7 +60,7 @@ struct TETHER_API FLinearInput
 };
 
 USTRUCT(BlueprintType)
-struct TETHER_API FLinearOutput
+struct TETHERPHYSICS_API FLinearOutput
 {
 	GENERATED_BODY()
 
@@ -73,7 +73,7 @@ struct TETHER_API FLinearOutput
 };
 
 USTRUCT(BlueprintType)
-struct TETHER_API FAngularInput
+struct TETHERPHYSICS_API FAngularInput
 {
 	GENERATED_BODY()
 
@@ -137,7 +137,7 @@ struct TETHER_API FAngularInput
 };
 
 USTRUCT(BlueprintType)
-struct TETHER_API FAngularOutput
+struct TETHERPHYSICS_API FAngularOutput
 {
 	GENERATED_BODY()
 

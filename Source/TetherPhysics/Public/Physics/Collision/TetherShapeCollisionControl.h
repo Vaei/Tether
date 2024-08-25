@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "TetherShape.h"
+#include "Shapes/TetherShape.h"
 #include "UObject/Object.h"
 #include "TetherShapeCollisionControl.generated.h"
 
@@ -29,7 +29,7 @@ struct FTetherShape_AxisAlignedBoundingBox;
  * via Project Settings.
  */
 UCLASS(Const, NotBlueprintType, NotBlueprintable)
-class TETHER_API UTetherShapeCollisionControl : public UObject
+class TETHERPHYSICS_API UTetherShapeCollisionControl : public UObject
 {
 	GENERATED_BODY()
 

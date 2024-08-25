@@ -14,7 +14,7 @@
  * Because they are axis-aligned, checking for overlaps between two AABBs is computationally cheap
  */
 USTRUCT(BlueprintType)
-struct TETHER_API FTetherShape_AxisAlignedBoundingBox : public FTetherShape
+struct TETHERPHYSICS_API FTetherShape_AxisAlignedBoundingBox : public FTetherShape
 {
 	GENERATED_BODY()
 
@@ -44,7 +44,7 @@ struct TETHER_API FTetherShape_AxisAlignedBoundingBox : public FTetherShape
 };
 
 UCLASS()
-class TETHER_API UTetherShapeObject_AxisAlignedBoundingBox : public UTetherShapeObject
+class TETHERPHYSICS_API UTetherShapeObject_AxisAlignedBoundingBox : public UTetherShapeObject
 {
 	GENERATED_BODY()
 

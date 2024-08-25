@@ -9,7 +9,7 @@
 #include "TetherShape_OrientedBoundingBox.generated.h"
 
 USTRUCT(BlueprintType)
-struct TETHER_API FTetherShape_OrientedBoundingBox : public FTetherShape
+struct TETHERPHYSICS_API FTetherShape_OrientedBoundingBox : public FTetherShape
 {
 	GENERATED_BODY()
 
@@ -67,7 +67,7 @@ struct TETHER_API FTetherShape_OrientedBoundingBox : public FTetherShape
 };
 
 UCLASS()
-class TETHER_API UTetherShapeObject_OrientedBoundingBox : public UTetherShapeObject
+class TETHERPHYSICS_API UTetherShapeObject_OrientedBoundingBox : public UTetherShapeObject
 {
 	GENERATED_BODY()
 

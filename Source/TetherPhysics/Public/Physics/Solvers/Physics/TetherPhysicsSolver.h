@@ -10,7 +10,7 @@
  * 
  */
 UCLASS(Abstract, NotBlueprintable)
-class TETHER_API UTetherPhysicsSolver : public UObject
+class TETHERPHYSICS_API UTetherPhysicsSolver : public UObject
 {
 	GENERATED_BODY()
 };

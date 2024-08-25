@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AnimGraphNode_SkeletalControlBase.h"
-#include "Tether/Public/AnimNode_Tether.h"
+#include "AnimNode_Tether.h"
 #include "AnimGraphNode_Tether.generated.h"
 
 UCLASS()

@@ -1,10 +1,8 @@
-﻿// Copyright (c) Jared Taylor. All Rights Reserved.
+﻿using UnrealBuildTool;
 
-using UnrealBuildTool;
-
-public class TetherEditor : ModuleRules
+public class TetherPhysics : ModuleRules
 {
-    public TetherEditor(ReadOnlyTargetRules Target) : base(Target)
+    public TetherPhysics(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -12,11 +10,12 @@ public class TetherEditor : ModuleRules
             new string[]
             {
                 "Core",
-                "TetherPhysics",
                 "GameplayTags",
+                "DeveloperSettings",
             }
         );
-
+			
+		
         PrivateDependencyModuleNames.AddRange(
             new string[]
             {

@@ -12,9 +12,9 @@ public class Tether : ModuleRules
 			new string[]
 			{
 				"Core",
+				"TetherPhysics",
 				"GameplayTags",
 				"AnimGraphRuntime",
-				"DeveloperSettings",
 			}
 			);
 			

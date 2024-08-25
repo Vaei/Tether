@@ -13,7 +13,7 @@ class UTetherPhysicsSolver;
  * 
  */
 UCLASS(Config=Game)
-class TETHER_API UTetherDeveloperSettings : public UDeveloperSettings
+class TETHERPHYSICS_API UTetherDeveloperSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 

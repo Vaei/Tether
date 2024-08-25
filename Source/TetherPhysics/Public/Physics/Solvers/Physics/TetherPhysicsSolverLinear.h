@@ -11,7 +11,7 @@
  * 
  */
 UCLASS(Abstract)
-class TETHER_API UTetherPhysicsSolverLinear : public UTetherPhysicsSolver
+class TETHERPHYSICS_API UTetherPhysicsSolverLinear : public UTetherPhysicsSolver
 {
 	GENERATED_BODY()
 

@@ -6,47 +6,47 @@
 #include "TetherGameplayTags.h"
 #include "TetherShape.h"
 #include "TetherShape_AxisAlignedBoundingBox.h"
-#include "TetherShape_Capsule.generated.h"
+#include "TetherShape_Cone.generated.h"
 
 USTRUCT(BlueprintType)
-struct TETHER_API FTetherShape_Capsule : public FTetherShape
+struct TETHERPHYSICS_API FTetherShape_Cone : public FTetherShape
 {
 	GENERATED_BODY()
 
-	FTetherShape_Capsule();
+	FTetherShape_Cone();
 
-	FTetherShape_Capsule(const FVector& InCenter, float InHalfHeight, float InRadius, const FRotator& InRotation);
+	FTetherShape_Cone(const FVector& InBaseCenter, float InHeight, float InBaseRadius, const FRotator& InRotation);
 
-	virtual TSharedPtr<FTetherShape> Clone() const override { return MakeShared<FTetherShape_Capsule>(*this); }
+	virtual TSharedPtr<FTetherShape> Clone() const override { return MakeShared<FTetherShape_Cone>(*this); }
 
-	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_Capsule; }
+	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_Cone; }
 
-	/** Center of the capsule */
+	/** Base center of the cone */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FVector Center;
+	FVector BaseCenter;
 
-	/** Half-height of the capsule (from the center to one of the hemispherical ends) */
+	/** Height of the cone */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(ClampMin="0", UIMin="0"))
-	float HalfHeight;
+	float Height;
 
-	/** Radius of the capsule */
+	/** Radius of the cone's base */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(ClampMin="0", UIMin="0"))
-	float Radius;
+	float BaseRadius;
 
-	/** Rotation of the capsule */
+	/** Rotation of the cone */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FRotator Rotation;
-	
+
 	FTetherShape_AxisAlignedBoundingBox GetBoundingBox() const;
 };
 
 UCLASS()
-class TETHER_API UTetherShapeObject_Capsule : public UTetherShapeObject
+class TETHERPHYSICS_API UTetherShapeObject_Cone : public UTetherShapeObject
 {
 	GENERATED_BODY()
 
 public:
-	virtual FGameplayTag GetShapeType() const override { return FTetherGameplayTags::Tether_Shape_Capsule; }
+	virtual FGameplayTag GetShapeType() const override { return FTetherGameplayTags::Tether_Shape_Cone; }
 
 	virtual FVector GetLocalSpaceShapeCenter(const FTetherShape& Shape) const override;
 

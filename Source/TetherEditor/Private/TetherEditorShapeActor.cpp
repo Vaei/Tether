@@ -4,9 +4,9 @@
 #include "TetherEditorShapeActor.h"
 
 #include "TetherDeveloperSettings.h"
-#include "Tether/Public/TetherIO.h"
+#include "TetherIO.h"
+#include "Physics/Collision/TetherShapeCollisionControl.h"
 #include "Shapes/TetherShape.h"
-#include "Shapes/TetherShapeCollisionControl.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherEditorShapeActor)
 
@@ -55,12 +55,12 @@ void ATetherEditorShapeActor::TestCollision(const ATetherEditorShapeActor* Other
 {
 	const UTetherDeveloperSettings* Settings = GetDefault<UTetherDeveloperSettings>();
 	const UTetherShapeCollisionControl* Control = Settings->ShapeCollisionControl.GetDefaultObject();
-
+	
 	if (!IsValid(OtherShapeActor))
 	{
 		return;
 	}
-
+	
 	if (GetTetherShape().IsValid() && OtherShapeActor->GetTetherShape().IsValid())
 	{
 		// Apply the actor's transform to the shape
@@ -75,7 +75,7 @@ void ATetherEditorShapeActor::TestCollision(const ATetherEditorShapeActor* Other
 		// Get the shape from the other actor
 		FTetherNarrowPhaseCollisionOutput CollisionOutput;
 		const bool bHasCollision = Control->CheckNarrowCollision(*TransformedShape, *TransformedOtherShape, CollisionOutput);
-
+	
 		static constexpr float DebugThickness = 0.0f;
 		
 		if (bHasCollision)

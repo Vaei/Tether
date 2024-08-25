@@ -12,7 +12,7 @@ struct FTetherNarrowPhaseCollisionOutput;
  * 
  */
 UCLASS()
-class TETHER_API UTetherCollisionDetectionNarrowPhase : public UObject
+class TETHERPHYSICS_API UTetherCollisionDetectionNarrowPhase : public UObject
 {
 	GENERATED_BODY()
 

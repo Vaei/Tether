@@ -25,7 +25,7 @@ class UTetherShapeObject;
  *		FTetherShape::Clone() will give you an FTetherShape with the data intact
  */
 USTRUCT(BlueprintType)
-struct TETHER_API FTetherShape
+struct TETHERPHYSICS_API FTetherShape
 {
 	GENERATED_BODY()
 
@@ -104,7 +104,7 @@ public:
  * It exists for the purpose of overriding functions, as USTRUCTs don't have vtables/polymorphism
  */
 UCLASS(Const, Abstract, NotBlueprintable, NotBlueprintType)
-class TETHER_API UTetherShapeObject : public UObject
+class TETHERPHYSICS_API UTetherShapeObject : public UObject
 {
 	GENERATED_BODY()
 

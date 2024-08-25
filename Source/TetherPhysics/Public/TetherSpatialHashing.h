@@ -8,7 +8,7 @@
 #include "TetherSpatialHashing.generated.h"
 
 USTRUCT(BlueprintType)
-struct FTetherSpatialHashingInput
+struct TETHERPHYSICS_API FTetherSpatialHashingInput
 {
     GENERATED_BODY()
     
@@ -24,7 +24,7 @@ struct FTetherSpatialHashingInput
     FVector BucketSize;
 };
 
-struct FTetherShapePair
+struct TETHERPHYSICS_API FTetherShapePair
 {
     int32 ShapeIndexA;  // Index of the first shape in the pair
     int32 ShapeIndexB;  // Index of the second shape in the pair
@@ -41,7 +41,7 @@ struct FTetherShapePair
     }
 };
 
-struct FTetherSpatialHashing
+struct TETHERPHYSICS_API FTetherSpatialHashing
 {
     FTetherSpatialHashingInput Input;
 
