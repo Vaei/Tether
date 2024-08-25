@@ -32,7 +32,7 @@ struct TETHER_API FTetherShape_BoundingSphere : public FTetherShape
 	FVector Center;
 
 	/** Radius of the sphere */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(ClampMin="0", UIMin="0"))
 	float Radius;
 };
 

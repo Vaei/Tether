@@ -26,11 +26,11 @@ struct TETHER_API FTetherShape_Cone : public FTetherShape
 	FVector BaseCenter;
 
 	/** Height of the cone */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(ClampMin="0", UIMin="0"))
 	float Height;
 
 	/** Radius of the cone's base */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(ClampMin="0", UIMin="0"))
 	float BaseRadius;
 
 	/** Rotation of the cone */

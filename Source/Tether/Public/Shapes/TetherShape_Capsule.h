@@ -26,11 +26,11 @@ struct TETHER_API FTetherShape_Capsule : public FTetherShape
 	FVector Center;
 
 	/** Half-height of the capsule (from the center to one of the hemispherical ends) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(ClampMin="0", UIMin="0"))
 	float HalfHeight;
 
 	/** Radius of the capsule */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(ClampMin="0", UIMin="0"))
 	float Radius;
 
 	/** Rotation of the capsule */
