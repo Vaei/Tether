@@ -33,6 +33,21 @@ public:
 public:
 	UTetherDeveloperSettings(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	static const UTetherDeveloperSettings* Get() { return GetDefault<UTetherDeveloperSettings>(); }
+	
+	template<typename T>
+	static T* GetSolver(const FGameplayTag& Tag)
+	{
+		if (const TSubclassOf<UTetherPhysicsSolver>* NewSolverClass = Get()->Solvers.Find(Tag))
+		{
+			if (UTetherPhysicsSolver* NewSolver = NewSolverClass->GetDefaultObject())
+			{
+				return Cast<T>(NewSolver);
+			}
+		}
+		return nullptr;
+	}
+	
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
