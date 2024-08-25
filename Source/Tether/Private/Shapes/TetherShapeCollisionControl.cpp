@@ -567,18 +567,31 @@ bool UTetherShapeCollisionControl::Narrow_AABB_OBB(const FTetherShape_AxisAligne
 	return Narrow_OBB_AABB(B, A, Output);
 }
 
-// Narrow-phase collision check for AABB vs Capsule
 bool UTetherShapeCollisionControl::Narrow_AABB_Capsule(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_Capsule* B, FTetherNarrowPhaseCollisionOutput& Output)
 {
-	// Implement a more precise narrow-phase check for AABB vs Capsule
-	if (Broad_AABB_Capsule(A, B))
+	// Get the top and bottom points of the capsule
+	FVector CapsuleTop = B->Center + B->Rotation.RotateVector(FVector::UpVector) * (B->HalfHeight - B->Radius);
+	FVector CapsuleBottom = B->Center - B->Rotation.RotateVector(FVector::UpVector) * (B->HalfHeight - B->Radius);
+
+	// Get the closest point on the AABB to the capsule's line segment
+	FVector ClosestPointOnAABB = ClampVector(B->Center, A->Min, A->Max);
+
+	// Find the closest point on the capsule's segment to the AABB
+	FVector ClosestPointOnCapsule;
+	FMath::SegmentDistToSegmentSafe(CapsuleBottom, CapsuleTop, ClosestPointOnAABB, ClosestPointOnAABB, ClosestPointOnCapsule, ClosestPointOnAABB);
+
+	// Calculate the distance between the closest points
+	float DistanceSquared = FVector::DistSquared(ClosestPointOnCapsule, ClosestPointOnAABB);
+
+	// Check if the distance is less than the radius of the capsule
+	if (DistanceSquared <= FMath::Square(B->Radius))
 	{
-		// Placeholder: Assume collision at center points
 		Output.bHasCollision = true;
-		Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
-		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
+		Output.ContactPoint = (ClosestPointOnCapsule + ClosestPointOnAABB) * 0.5f;
+		Output.PenetrationDepth = B->Radius - FMath::Sqrt(DistanceSquared);
 		return true;
 	}
+
 	return false;
 }
 
