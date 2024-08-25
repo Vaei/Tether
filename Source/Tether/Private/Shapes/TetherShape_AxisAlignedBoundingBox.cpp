@@ -8,10 +8,30 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape_AxisAlignedBoundingBox)
 
-void UTetherShape_AxisAlignedBoundingBox::TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const
+FTetherShape_AxisAlignedBoundingBox::FTetherShape_AxisAlignedBoundingBox()
+	: Min(FVector::ZeroVector)
+    , Max(FVector::ZeroVector)
+{
+	TetherShapeClass = UTetherShapeObject_AxisAlignedBoundingBox::StaticClass();
+}
+
+FTetherShape_AxisAlignedBoundingBox::FTetherShape_AxisAlignedBoundingBox(const FVector& InMin, const FVector& InMax)
+	: Min(InMin)
+	, Max(InMax)
+{
+	TetherShapeClass = UTetherShapeObject_AxisAlignedBoundingBox::StaticClass();
+}
+
+FVector UTetherShapeObject_AxisAlignedBoundingBox::GetShapeCenter(const FTetherShape& Shape) const
+{
+	const FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeTypeCaster::CastShapeChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
+	return (AABB->Min + AABB->Max) * 0.5f;
+}
+
+void UTetherShapeObject_AxisAlignedBoundingBox::TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const
 {
 	FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeTypeCaster::CastShapeChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
-	
+
 	if (Shape.IsWorldSpace() && !Shape.GetWorldTransform().Equals(WorldTransform))
 	{
 		// Already in world space, but has a new transform. Convert it back first.
@@ -31,11 +51,9 @@ void UTetherShape_AxisAlignedBoundingBox::TransformToWorldSpace(FTetherShape& Sh
 	AABB->Max = FVector(FMath::Max(TransformedMin.X, TransformedMax.X), 
 				  FMath::Max(TransformedMin.Y, TransformedMax.Y), 
 				  FMath::Max(TransformedMin.Z, TransformedMax.Z));
-
-	Shape.ToWorldSpace(WorldTransform);
 }
 
-void UTetherShape_AxisAlignedBoundingBox::TransformToLocalSpace(FTetherShape& Shape) const
+void UTetherShapeObject_AxisAlignedBoundingBox::TransformToLocalSpace(FTetherShape& Shape) const
 {
 	if (!Shape.IsWorldSpace())
 	{
@@ -60,12 +78,10 @@ void UTetherShape_AxisAlignedBoundingBox::TransformToLocalSpace(FTetherShape& Sh
 	AABB->Max = FVector(FMath::Max(TransformedMin.X, TransformedMax.X), 
 						FMath::Max(TransformedMin.Y, TransformedMax.Y), 
 						FMath::Max(TransformedMin.Z, TransformedMax.Z));
-
-	Shape.ToLocalSpace();
 }
 
-void UTetherShape_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy,
-	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
+void UTetherShapeObject_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy,
+	UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 	const FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeTypeCaster::CastShapeChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
 
@@ -80,16 +96,34 @@ void UTetherShape_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Shape, F
 	Vertices[7] = AABB->Max;
 
 	// Draw edges
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[0], Vertices[1], Color, bPersistentLines, LifeTime, Thickness);
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[0], Vertices[2], Color, bPersistentLines, LifeTime, Thickness);
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[0], Vertices[4], Color, bPersistentLines, LifeTime, Thickness);
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[1], Vertices[3], Color, bPersistentLines, LifeTime, Thickness);
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[1], Vertices[5], Color, bPersistentLines, LifeTime, Thickness);
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[2], Vertices[3], Color, bPersistentLines, LifeTime, Thickness);
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[2], Vertices[6], Color, bPersistentLines, LifeTime, Thickness);
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[3], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[4], Vertices[5], Color, bPersistentLines, LifeTime, Thickness);
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[4], Vertices[6], Color, bPersistentLines, LifeTime, Thickness);
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[5], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
-	AnimInstanceProxy->AnimDrawDebugLine(Vertices[6], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
+	if (AnimInstanceProxy)
+	{
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[0], Vertices[1], Color, bPersistentLines, LifeTime, Thickness);
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[0], Vertices[2], Color, bPersistentLines, LifeTime, Thickness);
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[0], Vertices[4], Color, bPersistentLines, LifeTime, Thickness);
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[1], Vertices[3], Color, bPersistentLines, LifeTime, Thickness);
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[1], Vertices[5], Color, bPersistentLines, LifeTime, Thickness);
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[2], Vertices[3], Color, bPersistentLines, LifeTime, Thickness);
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[2], Vertices[6], Color, bPersistentLines, LifeTime, Thickness);
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[3], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[4], Vertices[5], Color, bPersistentLines, LifeTime, Thickness);
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[4], Vertices[6], Color, bPersistentLines, LifeTime, Thickness);
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[5], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
+		AnimInstanceProxy->AnimDrawDebugLine(Vertices[6], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
+	}
+	else if (World)
+	{
+		DrawDebugLine(World, Vertices[0], Vertices[1], Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Vertices[0], Vertices[2], Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Vertices[0], Vertices[4], Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Vertices[1], Vertices[3], Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Vertices[1], Vertices[5], Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Vertices[2], Vertices[3], Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Vertices[2], Vertices[6], Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Vertices[3], Vertices[7], Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Vertices[4], Vertices[5], Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Vertices[4], Vertices[6], Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Vertices[5], Vertices[7], Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Vertices[6], Vertices[7], Color, bPersistentLines, LifeTime, 0, Thickness);
+	}
 }

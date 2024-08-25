@@ -22,10 +22,10 @@ void FAnimNode_Tether::Initialize_AnyThread(const FAnimationInitializeContext& C
 {
 	Super::Initialize_AnyThread(Context);
 
-	auto Sphere0 = FTetherShape_BoundingSphere(FVector::ZeroVector, 30.f);
-	auto Sphere1 = FTetherShape_BoundingSphere(FVector(0.f, 0.f, 30.f), 40.f);
-	TempDevShapes.Add(Sphere0);
-	TempDevShapes.Add(Sphere1);
+	// auto Sphere0 = FTetherShape_BoundingSphere(FVector::ZeroVector, 30.f);
+	// auto Sphere1 = FTetherShape_BoundingSphere(FVector(0.f, 0.f, 30.f), 40.f);
+	// TempDevShapes.Add(Sphere0);
+	// TempDevShapes.Add(Sphere1);
 }
 
 void FAnimNode_Tether::UpdateInternal(const FAnimationUpdateContext& Context)

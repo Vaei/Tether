@@ -13,6 +13,7 @@ public class TetherEditor : ModuleRules
             {
                 "Core",
                 "Tether",
+                "GameplayTags",
             }
         );
 

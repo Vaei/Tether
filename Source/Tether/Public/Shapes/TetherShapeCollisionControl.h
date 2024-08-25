@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 #include "TetherShapeCollisionControl.generated.h"
 
+struct FTetherNarrowPhaseCollisionOutput;
 struct FTetherShape_AxisAlignedBoundingBox;
 
 /**
@@ -27,11 +28,11 @@ public:
 	virtual bool CheckBroadCollision(const FTetherShape& ShapeA, const FTetherShape& ShapeB) const;
 	
 	/** Narrow Collision is a complex collision that occurs after the physics simulation */
-	virtual bool CheckNarrowCollision(const FTetherShape& ShapeA, const FTetherShape& ShapeB) const;
+	virtual bool CheckNarrowCollision(const FTetherShape& ShapeA, const FTetherShape& ShapeB, FTetherNarrowPhaseCollisionOutput& Output) const;
 
-	static bool AABB_AABB(const FTetherShape_AxisAlignedBoundingBox& A, const FTetherShape_AxisAlignedBoundingBox& B);
-	// static bool AABB_OBB(const FTetherShape_AxisAlignedBoundingBox& A, const FTetherShape_AxisAlignedBoundingBox& B);
-	// static bool AABB_BoundingSphere(const FTetherShape_AxisAlignedBoundingBox& A, const FTetherShape_AxisAlignedBoundingBox& B);
-	// static bool AABB_Capsule(const FTetherShape_AxisAlignedBoundingBox& A, const FTetherShape_AxisAlignedBoundingBox& B);
-	// static bool AABB_Cone(const FTetherShape_AxisAlignedBoundingBox& A, const FTetherShape_AxisAlignedBoundingBox& B);
+	static bool Broad_AABB_AABB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B);
+	// static bool Broad_AABB_OBB(const FTetherShape_AxisAlignedBoundingBox& A, const FTetherShape_AxisAlignedBoundingBox& B);
+	// static bool Broad_AABB_BoundingSphere(const FTetherShape_AxisAlignedBoundingBox& A, const FTetherShape_AxisAlignedBoundingBox& B);
+	// static bool Broad_AABB_Capsule(const FTetherShape_AxisAlignedBoundingBox& A, const FTetherShape_AxisAlignedBoundingBox& B);
+	// static bool Broad_AABB_Cone(const FTetherShape_AxisAlignedBoundingBox& A, const FTetherShape_AxisAlignedBoundingBox& B);
 };

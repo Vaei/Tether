@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "TetherShapes.h"
+#include "Shapes/TetherShape.h"
 #include "UObject/Object.h"
 #include "TetherCollisionDetectionBroadPhase.generated.h"
 

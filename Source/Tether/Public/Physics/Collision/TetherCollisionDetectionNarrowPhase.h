@@ -3,10 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "TetherShapes.h"
+#include "Shapes/TetherShape.h"
 #include "UObject/Object.h"
 #include "TetherCollisionDetectionNarrowPhase.generated.h"
 
+struct FTetherNarrowPhaseCollisionOutput;
 /**
  * 
  */

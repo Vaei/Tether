@@ -17,14 +17,10 @@ class TETHEREDITOR_API ATetherEditorShapeActor : public AActor
 	GENERATED_BODY()
 
 public:
-	/** Used to create and retrieve an AnimInstanceProxy for debug drawing */
-	UPROPERTY()
-	TObjectPtr<USkeletalMeshComponent> DebugMesh;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Shape"))
 	FGameplayTag ShapeType = FGameplayTag::EmptyTag;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="AxisAlignedBoundingBox", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="AxisAlignedBoundingBox"))
 	FTetherShape_AxisAlignedBoundingBox AABB;
 
 	//
@@ -43,14 +39,12 @@ public:
 public:
 	ATetherEditorShapeActor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	virtual FTetherShape& GetTetherShape() const;
+	virtual const FTetherShape& GetTetherShape() const;
 	
 	void TestCollisions(const TArray<ATetherEditorShapeActor*>& OtherShapeActors) const;
 
 protected:
 	void TestCollision(const ATetherEditorShapeActor* OtherShapeActor) const;
-
-	FAnimInstanceProxy* GetAnimInstanceProxy() const;
 
 public:
 	virtual bool CanEditChange(const FProperty* InProperty) const override;

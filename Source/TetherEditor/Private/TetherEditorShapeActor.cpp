@@ -4,27 +4,22 @@
 #include "TetherEditorShapeActor.h"
 
 #include "TetherDeveloperSettings.h"
-#include "TetherEditorShapeAnimInstance.h"
 #include "Tether/Public/TetherIO.h"
 #include "Shapes/TetherShape.h"
+#include "Shapes/TetherShapeCollisionControl.h"
 
 ATetherEditorShapeActor::ATetherEditorShapeActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	bIsEditorOnlyActor = true;
+	// Editor only actors can't be saved into a level, which is annoying for testing - need to be deleted before packaging!
+	// bIsEditorOnlyActor = true;
 
 	// These are ticked by TetherEditorSubsystem
 	PrimaryActorTick.bCanEverTick = false;
 	PrimaryActorTick.bStartWithTickEnabled = false;
-
-	DebugMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DebugMesh"));
-	SetRootComponent(DebugMesh);
-	DebugMesh->SetVisibility(false);
-	DebugMesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-	DebugMesh->SetAnimInstanceClass(UTetherEditorShapeAnimInstance::StaticClass());
 }
 
-FTetherShape& ATetherEditorShapeActor::GetTetherShape() const
+const FTetherShape& ATetherEditorShapeActor::GetTetherShape() const
 {
 	if (ShapeType == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox) { return AABB; }
 	// if (ShapeType == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox) { return OBB; }
@@ -55,24 +50,24 @@ void ATetherEditorShapeActor::TestCollision(const ATetherEditorShapeActor* Other
 	{
 		return;
 	}
-	
-	const FTetherShape OtherShape = OtherShapeActor->GetTetherShape();
-	
-	if (GetTetherShape().IsValid() && OtherShape.IsValid())
+
+	if (GetTetherShape().IsValid() && OtherShapeActor->GetTetherShape().IsValid())
 	{
 		// Apply the actor's transform to the shape
 		FTransform ActorTransform = GetActorTransform();
-		FTetherShape TransformedShape = GetTetherShape();  // Copying means we don't have to convert it back after we're done
-		TransformedShape.GetTetherShape()->TransformToWorldSpace(TransformedShape, ActorTransform);
+		TSharedPtr<FTetherShape> TransformedShape = GetTetherShape().Clone();  // Copying means we don't have to convert it back after we're done
+		TransformedShape->ToWorldSpace(ActorTransform);
 	
 		FTransform OtherActorTransform = OtherShapeActor->GetActorTransform(); // Assuming OtherShape is linked to an actor
-		FTetherShape TransformedOtherShape = OtherShape;  // Copying means we don't have to convert it back after we're done
-		OtherShape.GetTetherShape()->TransformToWorldSpace(OtherShape, OtherActorTransform);
+		TSharedPtr<FTetherShape> TransformedOtherShape = OtherShapeActor->GetTetherShape().Clone();  // Copying means we don't have to convert it back after we're done
+		TransformedOtherShape->ToWorldSpace(OtherActorTransform);
 	
 		// Get the shape from the other actor
 		FTetherNarrowPhaseCollisionOutput CollisionOutput;
-		bool bHasCollision = TransformedShape.CheckNarrowCollision(OtherShape, CollisionOutput);
-	
+		const bool bHasCollision = Control->CheckNarrowCollision(*TransformedShape, *TransformedOtherShape, CollisionOutput);
+
+		static constexpr float DebugThickness = 0.5f;
+		
 		if (bHasCollision)
 		{
 			// Draw debug point at collision contact point
@@ -83,24 +78,16 @@ void ATetherEditorShapeActor::TestCollision(const ATetherEditorShapeActor* Other
 			DrawDebugLine(GetWorld(), CollisionOutput.ContactPoint, PenetrationEnd, FColor::Red, false, -1.f, 0, 2.0f);
 	
 			// Draw the shapes in their colliding color (e.g., red)
-			TransformedShape.GetTetherShape()->DrawDebug(GetAnimInstanceProxy(), FColor::Red);
-			TransformedOtherShape.GetTetherShape()->DrawDebug(GetAnimInstanceProxy(), FColor::Red);
+			TransformedShape->DrawDebug(GetWorld(), FColor::Red, false, -1, DebugThickness);
+			TransformedOtherShape->DrawDebug(GetWorld(), FColor::Red, false, -1, DebugThickness);
 		}
 		else
 		{
 			// Draw the shapes in their non-colliding color (e.g., green)
-			TransformedShape.GetTetherShape()->DrawDebug(GetAnimInstanceProxy(), FColor::Green);
-			TransformedOtherShape.GetTetherShape()->DrawDebug(GetAnimInstanceProxy(), FColor::Green);
+			TransformedShape->DrawDebug(GetWorld(), FColor::Green, false, -1, DebugThickness);
+			TransformedOtherShape->DrawDebug(GetWorld(), FColor::Green, false, -1, DebugThickness);
 		}
 	}
-}
-
-FAnimInstanceProxy* ATetherEditorShapeActor::GetAnimInstanceProxy() const
-{
-	// We need a non-const proxy, anim instance only gives us const
-	UTetherEditorShapeAnimInstance* AnimInstance = CastChecked<UTetherEditorShapeAnimInstance>(DebugMesh->GetAnimInstance());
-	const FAnimInstanceProxy* Proxy = &AnimInstance->GetAnimInstanceProxy();
-	return const_cast<FAnimInstanceProxy*>(Proxy);
 }
 
 bool ATetherEditorShapeActor::CanEditChange(const FProperty* InProperty) const

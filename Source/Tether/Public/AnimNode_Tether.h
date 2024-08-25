@@ -6,7 +6,6 @@
 #include "GameplayTagContainer.h"
 #include "TetherGameplayTags.h"
 #include "TetherIO.h"
-#include "TetherShapes.h"
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
 #include "AnimNode_Tether.generated.h"
 

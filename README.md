@@ -1,6 +1,7 @@
 # Tether
 
 ***IN ACTIVE DEVELOPMENT AND NOT FUNCTIONAL - YET***
+_DO NOT EXPECT THIS TO COMPILE OR FUNCTION AT ALL_
 
 Modular framework for integrating physics solvers and constraints into animation graph.
 

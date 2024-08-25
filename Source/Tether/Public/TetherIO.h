@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "TetherShapes.h"
+#include "Shapes/TetherShape.h"
 
 #include "TetherIO.generated.h"
 
