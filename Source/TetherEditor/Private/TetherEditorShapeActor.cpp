@@ -41,6 +41,14 @@ void ATetherEditorShapeActor::TestCollisions(const TArray<ATetherEditorShapeActo
 			TestCollision(OtherActor);
 		}
 	}
+
+	FVector Origin = FVector(0, 0, 0);
+	FVector Direction = FVector(0, 0, 1); // Upward direction
+	float Height = 20.0f;
+	float BaseRadius = 10.0f;
+	float HalfAngle = FMath::Atan2(BaseRadius, Height); // Should be approx 0.4636 radians
+
+	DrawDebugCone(GetWorld(), Origin, Direction, Height, HalfAngle, HalfAngle, 12, FColor::Red, false, -1.0f, 0, 1.0f);
 }
 
 void ATetherEditorShapeActor::TestCollision(const ATetherEditorShapeActor* OtherShapeActor) const
@@ -68,7 +76,7 @@ void ATetherEditorShapeActor::TestCollision(const ATetherEditorShapeActor* Other
 		FTetherNarrowPhaseCollisionOutput CollisionOutput;
 		const bool bHasCollision = Control->CheckNarrowCollision(*TransformedShape, *TransformedOtherShape, CollisionOutput);
 
-		static constexpr float DebugThickness = 0.5f;
+		static constexpr float DebugThickness = 0.0f;
 		
 		if (bHasCollision)
 		{

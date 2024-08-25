@@ -598,15 +598,34 @@ bool UTetherShapeCollisionControl::Narrow_AABB_Capsule(const FTetherShape_AxisAl
 // Narrow-phase collision check for AABB vs Cone
 bool UTetherShapeCollisionControl::Narrow_AABB_Cone(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output)
 {
-	// Implement a more precise narrow-phase check for AABB vs Cone
-	if (Broad_AABB_Cone(A, B))
+	// Step 1: Transform the cone's apex and base center to the AABB's local space
+	FVector ConeApex = B->BaseCenter + B->Rotation.RotateVector(FVector::UpVector) * B->Height;
+	FVector ConeBaseCenter = B->BaseCenter;
+	FVector ConeAxis = (ConeApex - ConeBaseCenter).GetSafeNormal();
+
+	// Step 2: Calculate the closest point on the AABB to the cone's axis
+	FVector ClosestPointOnAABB = ClampVector(ConeBaseCenter, A->Min, A->Max);
+
+	// Step 3: Project the closest point onto the cone's axis
+	FVector ClosestPointOnAxis = ConeBaseCenter + ConeAxis * FVector::DotProduct(ClosestPointOnAABB - ConeBaseCenter, ConeAxis);
+
+	// Step 4: Calculate the distance from the cone's axis to the closest point on the AABB
+	float DistanceToAxisSquared = FVector::DistSquared(ClosestPointOnAABB, ClosestPointOnAxis);
+
+	// Step 5: Calculate the cone's radius at the projection point
+	float HeightRatio = FVector::Dist(ClosestPointOnAxis, ConeApex) / B->Height;
+	float ConeRadiusAtProjection = FMath::Lerp(0.0f, B->BaseRadius, HeightRatio);
+
+	// Step 6: Determine if the AABB intersects the cone
+	if (DistanceToAxisSquared <= FMath::Square(ConeRadiusAtProjection))
 	{
-		// Placeholder: Assume collision at center points
+		// The AABB intersects the cone
 		Output.bHasCollision = true;
-		Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
-		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
+		Output.ContactPoint = ClosestPointOnAABB;
+		Output.PenetrationDepth = ConeRadiusAtProjection - FMath::Sqrt(DistanceToAxisSquared);
 		return true;
 	}
+
 	return false;
 }
 
@@ -941,13 +960,44 @@ bool UTetherShapeCollisionControl::Narrow_Cone_Capsule(const FTetherShape_Cone* 
 // Narrow-phase collision check for Cone vs Cone
 bool UTetherShapeCollisionControl::Narrow_Cone_Cone(const FTetherShape_Cone* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output)
 {
-	if (Broad_Cone_Cone(A, B))
-	{
-		// Placeholder: Assume collision at center points
-		Output.bHasCollision = true;
-		Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
-		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
-		return true;
-	}
-	return false;
+    // Transform the tips and bases of both cones to world space
+    FVector A_Tip = A->BaseCenter + A->Rotation.RotateVector(FVector::UpVector) * A->Height;
+    FVector B_Tip = B->BaseCenter + B->Rotation.RotateVector(FVector::UpVector) * B->Height;
+
+    // Calculate the closest points on the cone axes
+    FVector ClosestPointA, ClosestPointB;
+    FMath::SegmentDistToSegmentSafe(A->BaseCenter, A_Tip, B->BaseCenter, B_Tip, ClosestPointA, ClosestPointB);
+
+    // Compute the distance between the closest points
+    float DistanceSquared = FVector::DistSquared(ClosestPointA, ClosestPointB);
+    float Distance = FMath::Sqrt(DistanceSquared);
+
+    // Calculate the proportion of the distance along each cone's height
+    float ProportionalDistanceA = FVector::Dist(ClosestPointA, A_Tip) / A->Height;
+    float ProportionalDistanceB = FVector::Dist(ClosestPointB, B_Tip) / B->Height;
+
+    // Calculate the radius at the closest points
+    float RadiusAtClosestPointA = A->BaseRadius * (1.0f - ProportionalDistanceA);
+    float RadiusAtClosestPointB = B->BaseRadius * (1.0f - ProportionalDistanceB);
+
+    // Calculate the effective radii (ensure that rotation is correctly applied)
+    FVector EffectiveRadiusVectorA = A->Rotation.RotateVector(FVector(RadiusAtClosestPointA, 0, 0));
+    FVector EffectiveRadiusVectorB = B->Rotation.RotateVector(FVector(RadiusAtClosestPointB, 0, 0));
+
+    // Compute the effective radii lengths
+    float EffectiveRadiusA = EffectiveRadiusVectorA.Size();
+    float EffectiveRadiusB = EffectiveRadiusVectorB.Size();
+
+    // Check for overlap
+    float CombinedRadii = EffectiveRadiusA + EffectiveRadiusB;
+
+    if (Distance <= CombinedRadii)
+    {
+        Output.bHasCollision = true;
+        Output.ContactPoint = (ClosestPointA + ClosestPointB) * 0.5f;
+        Output.PenetrationDepth = CombinedRadii - Distance;
+        return true;
+    }
+
+    return false;
 }

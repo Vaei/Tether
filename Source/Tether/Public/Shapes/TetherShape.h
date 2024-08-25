@@ -40,6 +40,23 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	TSubclassOf<UTetherShapeObject> TetherShapeClass = nullptr;
 
+	/**
+	 * The Shape with the higher efficiency rating will be evaluated in a pairing
+	 * 
+	 * Some pairings are potentially asymmetric during the narrow phase and can be more expensive
+	 * depending on the order of calculations
+	 *
+	 * You can compute the time it takes to evaluate by having ChatGPT convert the method to python
+	 * and evaluate how long it takes to run, but of course you will have to run all functions
+	 * for comparison. @see UTetherShapeCollisionControl.
+	 */
+	UPROPERTY()
+	uint8 EfficiencyRating = 0;  // @todo implement for all shapes
+
+	/** The bucket where we exist on the spatial grid */
+	UPROPERTY()
+	int32 Bucket = 0;
+
 	UPROPERTY()
 	TArray<TWeakObjectPtr<UTetherShapeObject>> IgnoredShapes;
 
@@ -59,12 +76,6 @@ public:
 	/** Checks if two shapes are ignoring each other */
 	static bool AreShapesIgnoringEachOther(const FTetherShape& ShapeA, const FTetherShape& ShapeB);
 
-	void DrawDebug(FAnimInstanceProxy* AnimInstanceProxy, const FColor& Color = FColor::Red,
-		bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f) const;
-
-	void DrawDebug(UWorld* World, const FColor& Color = FColor::Red, bool bPersistentLines = false,
-		float LifeTime = -1.f, float Thickness = 0.f) const;
-	
 	bool IsWorldSpace() const { return bInWorldSpace; }
 	
 	void ToWorldSpace(const FTransform& InWorldTransform);
@@ -79,6 +90,13 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	bool bInWorldSpace = false;
+
+public:
+	void DrawDebug(FAnimInstanceProxy* AnimInstanceProxy, const FColor& Color = FColor::Red,
+		bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f) const;
+
+	void DrawDebug(UWorld* World, const FColor& Color = FColor::Red, bool bPersistentLines = false,
+		float LifeTime = -1.f, float Thickness = 0.f) const;
 };
 
 /**

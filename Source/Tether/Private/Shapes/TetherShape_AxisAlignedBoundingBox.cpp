@@ -85,6 +85,7 @@ void UTetherShapeObject_AxisAlignedBoundingBox::TransformToLocalSpace(FTetherSha
 void UTetherShapeObject_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy,
 	UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
+#if ENABLE_DRAW_DEBUG
 	const FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
 
 	FVector Vertices[8];
@@ -128,4 +129,5 @@ void UTetherShapeObject_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Sh
 		DrawDebugLine(World, Vertices[5], Vertices[7], Color, bPersistentLines, LifeTime, 0, Thickness);
 		DrawDebugLine(World, Vertices[6], Vertices[7], Color, bPersistentLines, LifeTime, 0, Thickness);
 	}
+#endif
 }

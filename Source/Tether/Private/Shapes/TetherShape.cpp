@@ -41,18 +41,6 @@ bool FTetherShape::AreShapesIgnoringEachOther(const FTetherShape& ShapeA, const 
 	return ShapeA.IsIgnored(ShapeB) || ShapeB.IsIgnored(ShapeA);
 }
 
-void FTetherShape::DrawDebug(FAnimInstanceProxy* AnimInstanceProxy, const FColor& Color, bool bPersistentLines,
-	float LifeTime, float Thickness) const
-{
-	GetTetherShape()->DrawDebug(*this, AnimInstanceProxy, nullptr, Color, bPersistentLines, LifeTime, Thickness);
-}
-
-void FTetherShape::DrawDebug(UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime,
-	float Thickness) const
-{
-	GetTetherShape()->DrawDebug(*this, nullptr, World, Color, bPersistentLines, LifeTime, Thickness);
-}
-
 void FTetherShape::ToWorldSpace(const FTransform& InWorldTransform)
 {
 	GetTetherShape()->TransformToWorldSpace(*this, InWorldTransform);
@@ -64,4 +52,20 @@ void FTetherShape::ToLocalSpace()
 {
 	GetTetherShape()->TransformToLocalSpace(*this);
 	bInWorldSpace = false;
+}
+
+void FTetherShape::DrawDebug(FAnimInstanceProxy* AnimInstanceProxy, const FColor& Color, bool bPersistentLines,
+	float LifeTime, float Thickness) const
+{
+#if ENABLE_DRAW_DEBUG
+	GetTetherShape()->DrawDebug(*this, AnimInstanceProxy, nullptr, Color, bPersistentLines, LifeTime, Thickness);
+#endif
+}
+
+void FTetherShape::DrawDebug(UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime,
+	float Thickness) const
+{
+#if ENABLE_DRAW_DEBUG
+	GetTetherShape()->DrawDebug(*this, nullptr, World, Color, bPersistentLines, LifeTime, Thickness);
+#endif
 }

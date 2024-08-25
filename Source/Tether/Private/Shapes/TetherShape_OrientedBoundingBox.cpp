@@ -108,6 +108,7 @@ void UTetherShapeObject_OrientedBoundingBox::TransformToLocalSpace(FTetherShape&
 void UTetherShapeObject_OrientedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,
 	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
+#if ENABLE_DRAW_DEBUG
 	const FTetherShape_OrientedBoundingBox* OBB = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&Shape);
 	
 	// Get vertices of the OBB
@@ -137,4 +138,5 @@ void UTetherShapeObject_OrientedBoundingBox::DrawDebug(const FTetherShape& Shape
 			DrawDebugLine(World, Vertices[i], Vertices[i + 4], Color, bPersistentLines, LifeTime, 0, Thickness);
 		}
 	}
+#endif
 }

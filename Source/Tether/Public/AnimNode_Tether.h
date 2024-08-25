@@ -6,6 +6,7 @@
 #include "GameplayTagContainer.h"
 #include "TetherGameplayTags.h"
 #include "TetherIO.h"
+#include "TetherSpatialHashing.h"
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
 #include "AnimNode_Tether.generated.h"
 
@@ -31,6 +32,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Contact"))
 	FGameplayTag ContactSolver;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FTetherSpatialHashingInput SpatialHashingInput;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault))
 	FLinearInput LinearInput;
@@ -58,8 +62,8 @@ protected:
 	float RemainingTime = 0.f;
 
 protected:
-	// UPROPERTY()
-	// TArray<FTetherShape> TempDevShapes;  // @todo remove
+	UPROPERTY()
+	TArray<FTetherShape> Shapes;  // @todo remove
 	
 	UPROPERTY()
 	FLinearOutput LinearOutput;

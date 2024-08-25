@@ -3,12 +3,15 @@
 #include "AnimNode_Tether.h"
 
 #include "TetherDeveloperSettings.h"
+#include "TetherSpatialHashing.h"
 #include "TetherStatics.h"
 #include "Animation/AnimInstanceProxy.h"
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
 #include "Physics/Collision/TetherCollisionDetectionNarrowPhase.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverLinear.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverAngular.h"
+#include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
+#include "Shapes/TetherShape_Capsule.h"
 
 DECLARE_CYCLE_STAT(TEXT("Tether_Update"), STAT_TetherUpdate, STATGROUP_Tether);
 DECLARE_CYCLE_STAT(TEXT("Tether_Evaluate"), STAT_TetherEval, STATGROUP_Tether);
@@ -22,10 +25,10 @@ void FAnimNode_Tether::Initialize_AnyThread(const FAnimationInitializeContext& C
 {
 	Super::Initialize_AnyThread(Context);
 
-	// auto Sphere0 = FTetherShape_BoundingSphere(FVector::ZeroVector, 30.f);
-	// auto Sphere1 = FTetherShape_BoundingSphere(FVector(0.f, 0.f, 30.f), 40.f);
-	// TempDevShapes.Add(Sphere0);
-	// TempDevShapes.Add(Sphere1);
+	auto Sphere0 = FTetherShape_AxisAlignedBoundingBox();
+	auto Sphere1 = FTetherShape_Capsule();
+	Shapes.Add(Sphere0);
+	Shapes.Add(Sphere1);
 }
 
 void FAnimNode_Tether::UpdateInternal(const FAnimationUpdateContext& Context)
@@ -82,7 +85,7 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		return;
 	}
 
-	if (RootBone.IsValidToEvaluate(RequiredBones))
+	if (!RootBone.IsValidToEvaluate(RequiredBones))
 	{
 		return;
 	}
@@ -100,17 +103,21 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 	// Run physics sub-ticks to catch up with the accumulated time
 	while (RemainingTime >= TimeTick)
 	{
+		// 0. Spatial Hashing - Generate shape pairs based on proximity and efficiency ratings for priority
+		FTetherSpatialHashing SpatialHashing { SpatialHashingInput, Shapes, RootTM.GetLocation() };  // @todo this should be mesh center, I guess
+		SpatialHashing.DrawDebugSpatialGrid(Output.AnimInstanceProxy, nullptr);
+
 		// @todo 1. Solve Broad-Phase Collision
-		
-		// if (CurrentBroadPhaseCollisionDetection)
-		// {
-		// 	CurrentBroadPhaseCollisionDetection->DetectCollision(TempDevShapes, BroadPhaseOutput);
-		// 	CurrentBroadPhaseCollisionDetection->DrawDebug(TempDevShapes, BroadPhaseOutput, Output.AnimInstanceProxy);
-		// }
 
 		// Optional but common optimization step where you quickly check if objects are close enough to potentially
 		// collide. It reduces the number of detailed collision checks needed in the narrow phase.
 		
+		if (CurrentBroadPhaseCollisionDetection)
+		{
+			CurrentBroadPhaseCollisionDetection->DetectCollision(Shapes, BroadPhaseOutput);
+			CurrentBroadPhaseCollisionDetection->DrawDebug(Shapes, BroadPhaseOutput, Output.AnimInstanceProxy);
+		}
+
 		// 2. Solve Linear & Angular Physics
 		
 		// These steps calculate the velocities that will be applied to the object. By solving linear and angular
@@ -134,6 +141,8 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		// how an object should move in the next time step.
 
 		// @todo 5. Solve Narrow-Phase Collision
+		SpatialHashing.GenerateShapePairs(Shapes);  // Shapes have likely moved
+		// @todo add checks for nothing in nearby bucket, skip both broad phase and narrow phase if required
 		// if (CurrentNarrowPhaseCollisionDetection)
 		// {
 		// 	CurrentNarrowPhaseCollisionDetection->DetectCollision(TempDevShapes, NarrowPhaseOutput);

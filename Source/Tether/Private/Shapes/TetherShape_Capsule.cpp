@@ -117,6 +117,7 @@ void UTetherShapeObject_Capsule::TransformToLocalSpace(FTetherShape& Shape) cons
 void UTetherShapeObject_Capsule::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,
 	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
+#if ENABLE_DRAW_DEBUG
 	const FTetherShape_Capsule* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
 
 	// Draw the capsule using its center, half-height, radius, and rotation
@@ -149,4 +150,5 @@ void UTetherShapeObject_Capsule::DrawDebug(const FTetherShape& Shape, FAnimInsta
 			DrawDebugLine(World, CurrentTopPoint, CurrentBottomPoint, Color, bPersistentLines, LifeTime, 0, Thickness);
 		}
 	}
+#endif
 }

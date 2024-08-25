@@ -50,26 +50,26 @@ void UTetherCollisionDetectionBroadPhase::DetectCollision(const TArray<FTetherSh
 void UTetherCollisionDetectionBroadPhase::DrawDebug(const TArray<FTetherShape>& BoneShapes,
 	const FTetherBroadPhaseCollisionOutput& CollisionOutput, FAnimInstanceProxy* AnimInstanceProxy, bool bForceDraw) const
 {
-// #if ENABLE_DRAW_DEBUG
-// 	if (!bForceDraw || !FTether::CVarTetherDrawBroadPhaseCollision.GetValueOnAnyThread())
-// 	{
-// 		return;
-// 	}
-// 	
-// 	// Draw all bounding volumes
-// 	for (const FTetherShape& Shape : BoneShapes)
-// 	{
-// 		Shape.DrawDebug(AnimInstanceProxy, FColor::Blue); // Draw all shapes in blue by default
-// 	}
-//
-// 	// Highlight potential collisions
-// 	for (const FTetherBroadCollisionPair& Pair : CollisionOutput.CollisionPairings)
-// 	{
-// 		const FTetherShape& ShapeA = BoneShapes[Pair.FirstIndex];
-// 		const FTetherShape& ShapeB = BoneShapes[Pair.SecondIndex];
-//
-// 		ShapeA.DrawDebug(AnimInstanceProxy, FColor::Yellow); // Highlight potential collision shapes in yellow
-// 		ShapeB.DrawDebug(AnimInstanceProxy, FColor::Yellow);
-// 	}
-// #endif
+#if ENABLE_DRAW_DEBUG
+	if (!bForceDraw || !FTether::CVarTetherDrawBroadPhaseCollision.GetValueOnAnyThread())
+	{
+		return;
+	}
+	
+	// Draw all bounding volumes
+	for (const FTetherShape& Shape : BoneShapes)
+	{
+		Shape.DrawDebug(AnimInstanceProxy, FColor::Blue); // Draw all shapes in blue by default
+	}
+
+	// Highlight potential collisions
+	for (const FTetherBroadCollisionPair& Pair : CollisionOutput.CollisionPairings)
+	{
+		const FTetherShape& ShapeA = BoneShapes[Pair.FirstIndex];
+		const FTetherShape& ShapeB = BoneShapes[Pair.SecondIndex];
+
+		ShapeA.DrawDebug(AnimInstanceProxy, FColor::Yellow); // Highlight potential collision shapes in yellow
+		ShapeB.DrawDebug(AnimInstanceProxy, FColor::Yellow);
+	}
+#endif
 }

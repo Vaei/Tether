@@ -80,6 +80,7 @@ void UTetherShapeObject_BoundingSphere::TransformToLocalSpace(FTetherShape& Shap
 void UTetherShapeObject_BoundingSphere::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy,
 	UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
+#if ENABLE_DRAW_DEBUG
 	const FTetherShape_BoundingSphere* Sphere = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&Shape);
 	
 	// Draw edges
@@ -91,4 +92,5 @@ void UTetherShapeObject_BoundingSphere::DrawDebug(const FTetherShape& Shape, FAn
 	{
 		DrawDebugSphere(World, Sphere->Center, Sphere->Radius, 12, Color, bPersistentLines, LifeTime, 0, Thickness);
 	}
+#endif
 }
