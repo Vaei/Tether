@@ -6,6 +6,10 @@
 #include "GameplayTagContainer.h"
 #include "GameFramework/Actor.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
+#include "Shapes/TetherShape_BoundingSphere.h"
+#include "Shapes/TetherShape_Capsule.h"
+#include "Shapes/TetherShape_Cone.h"
+#include "Shapes/TetherShape_OrientedBoundingBox.h"
 #include "TetherEditorShapeActor.generated.h"
 
 /**
@@ -20,22 +24,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Shape"))
 	FGameplayTag ShapeType = FGameplayTag::EmptyTag;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="AxisAlignedBoundingBox"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="Axis-Aligned Bounding Box"))
 	FTetherShape_AxisAlignedBoundingBox AABB;
 
-	//
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="OrientedBoundingBox", EditCondition="ShapeType==ETetherShapeType::OBB", EditConditionHides))
-	// FTetherShape_OrientedBoundingBox OBB;
-	//
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="BoundingSphere", EditCondition="ShapeType==ETetherShapeType::BoundingSphere", EditConditionHides))
-	// FTetherShape_BoundingSphere BoundingSphere;
-	//
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="Capsule", EditCondition="ShapeType==ETetherShapeType::Capsule", EditConditionHides))
-	// FTetherShape_Capsule Capsule;
-	//
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="Cone", EditCondition="ShapeType==ETetherShapeType::Cone", EditConditionHides))
-	// FTetherShape_Cone Cone;
-	//
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="Oriented Bounding Box"))
+	FTetherShape_OrientedBoundingBox OBB;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="Bounding Sphere"))
+	FTetherShape_BoundingSphere BoundingSphere;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="Capsule"))
+	FTetherShape_Capsule Capsule;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="Cone"))
+	FTetherShape_Cone Cone;
+
 public:
 	ATetherEditorShapeActor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 

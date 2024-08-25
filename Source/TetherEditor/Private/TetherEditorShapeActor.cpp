@@ -8,6 +8,8 @@
 #include "Shapes/TetherShape.h"
 #include "Shapes/TetherShapeCollisionControl.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(TetherEditorShapeActor)
+
 ATetherEditorShapeActor::ATetherEditorShapeActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -22,10 +24,10 @@ ATetherEditorShapeActor::ATetherEditorShapeActor(const FObjectInitializer& Objec
 const FTetherShape& ATetherEditorShapeActor::GetTetherShape() const
 {
 	if (ShapeType == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox) { return AABB; }
-	// if (ShapeType == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox) { return OBB; }
-	// if (ShapeType == FTetherGameplayTags::Tether_Shape_BoundingSphere) { return BoundingSphere; }
-	// if (ShapeType == FTetherGameplayTags::Tether_Shape_Capsule) { return Capsule; }
-	// if (ShapeType == FTetherGameplayTags::Tether_Shape_Cone) { return Cone; }
+	if (ShapeType == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox) { return OBB; }
+	if (ShapeType == FTetherGameplayTags::Tether_Shape_BoundingSphere) { return BoundingSphere; }
+	if (ShapeType == FTetherGameplayTags::Tether_Shape_Capsule) { return Capsule; }
+	if (ShapeType == FTetherGameplayTags::Tether_Shape_Cone) { return Cone; }
 	
 	return AABB;
 }
@@ -95,6 +97,22 @@ bool ATetherEditorShapeActor::CanEditChange(const FProperty* InProperty) const
 	if (InProperty->GetFName().IsEqual(GET_MEMBER_NAME_CHECKED(ThisClass, AABB)))
 	{
 		return ShapeType == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox;
+	}
+	if (InProperty->GetFName().IsEqual(GET_MEMBER_NAME_CHECKED(ThisClass, OBB)))
+	{
+		return ShapeType == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox;
+	}
+	if (InProperty->GetFName().IsEqual(GET_MEMBER_NAME_CHECKED(ThisClass, BoundingSphere)))
+	{
+		return ShapeType == FTetherGameplayTags::Tether_Shape_BoundingSphere;
+	}
+	if (InProperty->GetFName().IsEqual(GET_MEMBER_NAME_CHECKED(ThisClass, Capsule)))
+	{
+		return ShapeType == FTetherGameplayTags::Tether_Shape_Capsule;
+	}
+	if (InProperty->GetFName().IsEqual(GET_MEMBER_NAME_CHECKED(ThisClass, Cone)))
+	{
+		return ShapeType == FTetherGameplayTags::Tether_Shape_Cone;
 	}
 	return Super::CanEditChange(InProperty);
 }
