@@ -10,7 +10,7 @@
 
 FTetherShape_BoundingSphere::FTetherShape_BoundingSphere()
 	: Center(FVector::ZeroVector)
-    , Radius(30.f)
+    , Radius(10.f)
 {
 	TetherShapeClass = UTetherShapeObject_BoundingSphere::StaticClass();
 }

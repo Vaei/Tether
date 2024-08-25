@@ -8,8 +8,8 @@
 
 FTetherShape_Cone::FTetherShape_Cone()
 	: BaseCenter(FVector::ZeroVector)
-	, Height(100.f)
-	, BaseRadius(50.f)
+	, Height(20.f)
+	, BaseRadius(10.f)
 	, Rotation(FRotator::ZeroRotator)
 {
 	TetherShapeClass = UTetherShapeObject_Cone::StaticClass();

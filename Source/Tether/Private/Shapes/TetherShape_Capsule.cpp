@@ -8,8 +8,8 @@
 
 FTetherShape_Capsule::FTetherShape_Capsule()
 	: Center(FVector::ZeroVector)
-	, HalfHeight(50.f)
-	, Radius(25.f)
+	, HalfHeight(25.f)
+	, Radius(10.f)
 	, Rotation(FRotator::ZeroRotator)
 {
 	TetherShapeClass = UTetherShapeObject_Capsule::StaticClass();

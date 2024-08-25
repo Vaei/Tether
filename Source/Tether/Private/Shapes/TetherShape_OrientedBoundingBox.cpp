@@ -8,7 +8,7 @@
 
 FTetherShape_OrientedBoundingBox::FTetherShape_OrientedBoundingBox()
 	: Center(FVector::ZeroVector)
-	, Extent(FVector(50.f, 50.f, 50.f))
+	, Extent(FVector::OneVector * 10.f)
 	, Rotation(FRotator::ZeroRotator)
 {
 	TetherShapeClass = UTetherShapeObject_OrientedBoundingBox::StaticClass();
