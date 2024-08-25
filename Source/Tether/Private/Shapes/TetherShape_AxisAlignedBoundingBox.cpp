@@ -4,13 +4,13 @@
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
 
 #include "Animation/AnimInstanceProxy.h"
-#include "Shapes/TetherShapeTypeCaster.h"
+#include "Shapes/TetherShapeCaster.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape_AxisAlignedBoundingBox)
 
 FTetherShape_AxisAlignedBoundingBox::FTetherShape_AxisAlignedBoundingBox()
-	: Min(FVector::ZeroVector)
-    , Max(FVector::ZeroVector)
+	: Min(FVector::OneVector * -10.f)
+    , Max(FVector::OneVector * 10.f)
 {
 	TetherShapeClass = UTetherShapeObject_AxisAlignedBoundingBox::StaticClass();
 }
@@ -24,13 +24,13 @@ FTetherShape_AxisAlignedBoundingBox::FTetherShape_AxisAlignedBoundingBox(const F
 
 FVector UTetherShapeObject_AxisAlignedBoundingBox::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
 {
-	const FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeTypeCaster::CastShapeChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
+	const FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
 	return (AABB->Min + AABB->Max) * 0.5f;
 }
 
 void UTetherShapeObject_AxisAlignedBoundingBox::TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const
 {
-	FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeTypeCaster::CastShapeChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
+	FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
 
 	if (Shape.IsWorldSpace() && !Shape.GetWorldTransform().Equals(WorldTransform))
 	{
@@ -60,7 +60,7 @@ void UTetherShapeObject_AxisAlignedBoundingBox::TransformToLocalSpace(FTetherSha
 		return;
 	}
 	
-	FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeTypeCaster::CastShapeChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
+	FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
 	
 	// Inverse the world transform to get back to local space
 	FTransform InverseTransform = Shape.GetWorldTransform().Inverse();
@@ -82,7 +82,7 @@ void UTetherShapeObject_AxisAlignedBoundingBox::TransformToLocalSpace(FTetherSha
 void UTetherShapeObject_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy,
 	UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
-	const FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeTypeCaster::CastShapeChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
+	const FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
 
 	FVector Vertices[8];
 	Vertices[0] = AABB->Min;
@@ -110,7 +110,7 @@ void UTetherShapeObject_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Sh
 		AnimInstanceProxy->AnimDrawDebugLine(Vertices[5], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
 		AnimInstanceProxy->AnimDrawDebugLine(Vertices[6], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
 	}
-	else if (World)
+	else if (World)  // We don't use DrawDebugBox because we want to test this too
 	{
 		DrawDebugLine(World, Vertices[0], Vertices[1], Color, bPersistentLines, LifeTime, 0, Thickness);
 		DrawDebugLine(World, Vertices[0], Vertices[2], Color, bPersistentLines, LifeTime, 0, Thickness);

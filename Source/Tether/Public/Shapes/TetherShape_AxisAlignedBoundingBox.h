@@ -23,7 +23,9 @@ struct TETHER_API FTetherShape_AxisAlignedBoundingBox : public FTetherShape
 	FTetherShape_AxisAlignedBoundingBox(const FVector& InMin, const FVector& InMax);
 
 	virtual TSharedPtr<FTetherShape> Clone() const override { return MakeShared<FTetherShape_AxisAlignedBoundingBox>(*this); }
-	
+
+	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox; }
+
 	/**
 	 * Minimum corner of the AABB
 	 * Represents the coords of the corner of the box with the smallest x, y, and z values
@@ -39,8 +41,6 @@ struct TETHER_API FTetherShape_AxisAlignedBoundingBox : public FTetherShape
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector Max;
-	
-	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox; }
 };
 
 UCLASS()

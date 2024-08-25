@@ -8,11 +8,11 @@
 /**
  * Cast<>() & IsA<>() equivalent for FTetherShape types
  */
-struct TETHER_API FTetherShapeTypeCaster
+struct TETHER_API FTetherShapeCaster
 {
 	/** Check if the shape is of the specified type */
 	template <typename ShapeType>
-	static bool IsShapeChildOf(const FTetherShape* InShape)
+	static bool IsChildOf(const FTetherShape* InShape)
 	{
 		if (InShape)
 		{
@@ -23,9 +23,9 @@ struct TETHER_API FTetherShapeTypeCaster
 
 	/** Cast the shape to the specified type */
 	template <typename ShapeType>
-	static const ShapeType* CastShape(const FTetherShape* InShape)
+	static const ShapeType* Cast(const FTetherShape* InShape)
 	{
-		if (IsShapeChildOf<ShapeType>(InShape))
+		if (IsChildOf<ShapeType>(InShape))
 		{
 			return static_cast<const ShapeType*>(InShape);
 		}
@@ -34,16 +34,16 @@ struct TETHER_API FTetherShapeTypeCaster
 
 	/** Cast the shape to the specified type - engine crashes if wrong type is given */
 	template <typename ShapeType>
-	static const ShapeType* CastShapeChecked(const FTetherShape* InShape)
+	static const ShapeType* CastChecked(const FTetherShape* InShape)
 	{
 		return static_cast<const ShapeType*>(InShape);
 	}
 
 	/** Cast the shape to the specified type */
 	template <typename ShapeType>
-	static ShapeType* CastShape(FTetherShape* InShape)
+	static ShapeType* Cast(FTetherShape* InShape)
 	{
-		if (IsShapeChildOf<ShapeType>(InShape))
+		if (IsChildOf<ShapeType>(InShape))
 		{
 			return static_cast<ShapeType*>(InShape);
 		}
@@ -52,16 +52,16 @@ struct TETHER_API FTetherShapeTypeCaster
 
 	/** Cast the shape to the specified type - engine crashes if wrong type is given */
 	template <typename ShapeType>
-	static ShapeType* CastShapeChecked(FTetherShape* InShape)
+	static ShapeType* CastChecked(FTetherShape* InShape)
 	{
 		return static_cast<ShapeType*>(InShape);
 	}
 	
 	/** Cast the shape to the specified type */
 	template <typename ShapeType>
-	static ShapeType& CastShape(const FTetherShape& InShape)
+	static ShapeType& Cast(const FTetherShape& InShape)
 	{
-		if (IsShapeChildOf<ShapeType>(InShape))
+		if (IsChildOf<ShapeType>(InShape))
 		{
 			return static_cast<const ShapeType&>(InShape);
 		}
@@ -70,16 +70,16 @@ struct TETHER_API FTetherShapeTypeCaster
 
 	/** Cast the shape to the specified type - engine crashes if wrong type is given */
 	template <typename ShapeType>
-	static ShapeType& CastShapeChecked(const FTetherShape& InShape)
+	static ShapeType& CastChecked(const FTetherShape& InShape)
 	{
 		return static_cast<const ShapeType&>(InShape);
 	}
 
 	/** Cast the shape to the specified type */
 	template <typename ShapeType>
-	static ShapeType& CastShape(FTetherShape& InShape)
+	static ShapeType& Cast(FTetherShape& InShape)
 	{
-		if (IsShapeChildOf<ShapeType>(InShape))
+		if (IsChildOf<ShapeType>(InShape))
 		{
 			return static_cast<ShapeType&>(InShape);
 		}
@@ -88,7 +88,7 @@ struct TETHER_API FTetherShapeTypeCaster
 
 	/** Cast the shape to the specified type - engine crashes if wrong type is given */
 	template <typename ShapeType>
-	static ShapeType& CastShapeChecked(FTetherShape& InShape)
+	static ShapeType& CastChecked(FTetherShape& InShape)
 	{
 		return static_cast<ShapeType&>(InShape);
 	}

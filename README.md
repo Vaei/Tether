@@ -16,9 +16,15 @@ _WIP_
 ## Add Custom Shapes
 _WIP - THESE ARE JUST NOTES FOR NOW_
 
-Subclass `UTetherShapeCollisionControl`
+_Adding custom shapes is an exceptionally mathematically advanced topic!_
+
+*Note: For example implementations, simply look at the existing tether shapes! You can find these in Tether/Public/Shapes*
+
+In this example, all we're really doing is reimplementing the BoundingSphere, but from scratch, in our own project, extending the plugin's modular shape framework.
+
+Look at `TetherGameplayTags.h` and `.cpp`, you will need to add the same kind of setup to your own project, then add a tag, e.g. `Tether.Shape.MyNewShape`; it _must_ begin with `Tether.Shape`. Don't forget to add "GameplayTags" to your Build.cs
+
 Subclass `UTetherShapeObject`, usually as `UTetherShapeObject_MyNewShape`
-Look at `TetherGameplayTags.h` and `.cpp`, you will need to add the same kind of setup to your own project, then add a tag, e.g. `Tether.Shape.MyNewShape`; it _must_ begin with `Tether.Shape`
 Within `UTetherShapeObject_MyNewShape`, create a struct matching the template below:
 
 ```cpp
@@ -67,6 +73,14 @@ Override all functions from `UTetherShapeObject`:
 	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,
 		const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const override;
 ```
+
+Example implementation:
+```cpp
+
+```
+
+Subclass `UTetherShapeCollisionControl`
+
 
 # Changelog
 

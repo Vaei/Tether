@@ -162,6 +162,8 @@ struct FTetherNarrowPhaseCollisionOutput
 		: bHasCollision(false)
 		, ContactPoint(FVector::ZeroVector)
 		, PenetrationDepth(0.0f)
+		, ShapeA(nullptr)
+		, ShapeB(nullptr)
 	{}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
@@ -173,11 +175,8 @@ struct FTetherNarrowPhaseCollisionOutput
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float PenetrationDepth;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FTetherShape ShapeA;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FTetherShape ShapeB;
+	TWeakObjectPtr<FTetherShape> ShapeA;
+	TWeakObjectPtr<FTetherShape> ShapeB;
 };
 
 USTRUCT(BlueprintType)
