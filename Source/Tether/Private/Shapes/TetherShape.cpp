@@ -17,7 +17,7 @@ FGameplayTag FTetherShape::GetShapeType() const
 
 FVector FTetherShape::GetCenter() const
 {
-	return GetTetherShape() ? GetTetherShape()->GetShapeCenter(*this) : FVector::ZeroVector;
+	return GetTetherShape() ? GetTetherShape()->GetLocalSpaceShapeCenter(*this) : FVector::ZeroVector;
 }
 
 bool FTetherShape::IsValid() const

@@ -22,7 +22,7 @@ FTetherShape_AxisAlignedBoundingBox::FTetherShape_AxisAlignedBoundingBox(const F
 	TetherShapeClass = UTetherShapeObject_AxisAlignedBoundingBox::StaticClass();
 }
 
-FVector UTetherShapeObject_AxisAlignedBoundingBox::GetShapeCenter(const FTetherShape& Shape) const
+FVector UTetherShapeObject_AxisAlignedBoundingBox::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
 {
 	const FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeTypeCaster::CastShapeChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
 	return (AABB->Min + AABB->Max) * 0.5f;

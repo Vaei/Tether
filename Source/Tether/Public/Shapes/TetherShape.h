@@ -32,16 +32,18 @@ struct TETHER_API FTetherShape
 	{}
 	virtual ~FTetherShape() = default;
 
-	/** Delete the copy constructor and assignment operator */
-	FTetherShape(const FTetherShape&) = delete;
-	FTetherShape& operator=(const FTetherShape&) = delete;
+protected:
+	// Allow copy constructor but make it protected
+	FTetherShape(const FTetherShape&) = default;
+	FTetherShape& operator=(const FTetherShape&) = default;
 
+public:
 	/** Implement move constructor and assignment operator */
 	FTetherShape(FTetherShape&&) = default;
 	FTetherShape& operator=(FTetherShape&&) = default;
 
 	/** Add a virtual clone method - this must be used instead of copying! */
-	virtual TSharedPtr<FTetherShape> Clone() const { return MakeShared<FTetherShape>(); }
+	virtual TSharedPtr<FTetherShape> Clone() const { return MakeShared<FTetherShape>(*this); }
 	
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	TSubclassOf<UTetherShapeObject> TetherShapeClass = nullptr;
@@ -99,7 +101,7 @@ class TETHER_API UTetherShapeObject : public UObject
 public:
 	virtual FGameplayTag GetShapeType() const { return FGameplayTag::EmptyTag; }
 
-	virtual FVector GetShapeCenter(const FTetherShape& Shape) const { return FVector::ZeroVector; }
+	virtual FVector GetLocalSpaceShapeCenter(const FTetherShape& Shape) const { return FVector::ZeroVector; }
 
 	virtual void TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const {}
 	virtual void TransformToLocalSpace(FTetherShape& Shape) const {}

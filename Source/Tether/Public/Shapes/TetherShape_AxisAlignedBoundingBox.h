@@ -51,7 +51,7 @@ class TETHER_API UTetherShapeObject_AxisAlignedBoundingBox : public UTetherShape
 public:
 	virtual FGameplayTag GetShapeType() const override { return FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox;	}
 
-	virtual FVector GetShapeCenter(const FTetherShape& Shape) const override;
+	virtual FVector GetLocalSpaceShapeCenter(const FTetherShape& Shape) const override;
 	
 	virtual void TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const override;
 	virtual void TransformToLocalSpace(FTetherShape& Shape) const override;
