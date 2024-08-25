@@ -9,14 +9,12 @@
  */
 struct FTetherPhysicsUpdate
 {
-	float DeltaTime;
 	float TimeTick;
 	double RemainingTime;
 
 	FTetherPhysicsUpdate(float SimulationFrameRate)
-		: DeltaTime(0.0f),
-		  TimeTick(1.0f / SimulationFrameRate),
-		  RemainingTime(0.0f)
+		: TimeTick(1.f / SimulationFrameRate)
+		, RemainingTime(0.f)
 	{
 	}
 
