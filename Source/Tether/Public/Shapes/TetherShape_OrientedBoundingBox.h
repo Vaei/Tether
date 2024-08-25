@@ -37,25 +37,30 @@ struct TETHER_API FTetherShape_OrientedBoundingBox : public FTetherShape
 
 	TArray<FVector> GetVertices() const
 	{
-		const FQuat QuatRotation = Rotation.Quaternion();
-		TArray<FVector> Vertices;
-		FVector Axes[3] =
-		{
-			QuatRotation.GetAxisX() * Extent.X,
-			QuatRotation.GetAxisY() * Extent.Y,
-			QuatRotation.GetAxisZ() * Extent.Z
-		};
+		// Local axis vectors for the OBB (before rotation)
+		FVector XAxis = Extent.X * FVector::ForwardVector;
+		FVector YAxis = Extent.Y * FVector::RightVector;
+		FVector ZAxis = Extent.Z * FVector::UpVector;
 
-		for (int32 i = -1; i <= 1; i += 2)
-		{
-			for (int32 j = -1; j <= 1; j += 2)
-			{
-				for (int32 k = -1; k <= 1; k += 2)
-				{
-					Vertices.Add(Center + i * Axes[0] + j * Axes[1] + k * Axes[2]);
-				}
-			}
-		}
+		// Apply rotation to these axes
+		FQuat RotationQuat = Rotation.Quaternion();
+		XAxis = RotationQuat.RotateVector(XAxis);
+		YAxis = RotationQuat.RotateVector(YAxis);
+		ZAxis = RotationQuat.RotateVector(ZAxis);
+
+		// Calculate the eight vertices of the OBB
+		TArray<FVector> Vertices;
+		Vertices.SetNumUninitialized(8);
+
+		Vertices[0] = Center - XAxis - YAxis - ZAxis;
+		Vertices[1] = Center + XAxis - YAxis - ZAxis;
+		Vertices[2] = Center + XAxis + YAxis - ZAxis;
+		Vertices[3] = Center - XAxis + YAxis - ZAxis;
+
+		Vertices[4] = Center - XAxis - YAxis + ZAxis;
+		Vertices[5] = Center + XAxis - YAxis + ZAxis;
+		Vertices[6] = Center + XAxis + YAxis + ZAxis;
+		Vertices[7] = Center - XAxis + YAxis + ZAxis;
 
 		return Vertices;
 	}

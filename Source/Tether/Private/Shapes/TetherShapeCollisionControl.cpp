@@ -383,9 +383,8 @@ bool UTetherShapeCollisionControl::Broad_BoundingSphere_BoundingSphere(const FTe
 // BoundingSphere vs OBB
 bool UTetherShapeCollisionControl::Broad_BoundingSphere_OBB(const FTetherShape_BoundingSphere* A, const FTetherShape_OrientedBoundingBox* B)
 {
-	// Implement the broad-phase logic for BoundingSphere vs OBB
-	FTetherShape_AxisAlignedBoundingBox OBBAABB = B->GetBoundingBox();
-	return Broad_BoundingSphere_AABB(A, &OBBAABB);
+	// Reuse the logic from Broad_OBB_BoundingSphere since BoundingSphere vs OBB and OBB vs BoundingSphere are symmetrical
+	return Broad_OBB_BoundingSphere(B, A);
 }
 
 // BoundingSphere vs Capsule
@@ -407,9 +406,8 @@ bool UTetherShapeCollisionControl::Broad_BoundingSphere_Cone(const FTetherShape_
 // OBB vs AABB
 bool UTetherShapeCollisionControl::Broad_OBB_AABB(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B)
 {
-	// Implement the broad-phase logic for OBB vs AABB
-	FTetherShape_AxisAlignedBoundingBox OBBAABB = A->GetBoundingBox();
-	return Broad_AABB_AABB(&OBBAABB, B);
+	// Reuse the logic from Broad_OBB_AABB since AABB vs OBB and OBB vs AABB are symmetrical
+	return Broad_AABB_OBB(B, A);
 }
 
 // OBB vs BoundingSphere
@@ -432,19 +430,15 @@ bool UTetherShapeCollisionControl::Broad_OBB_OBB(const FTetherShape_OrientedBoun
 // OBB vs Capsule
 bool UTetherShapeCollisionControl::Broad_OBB_Capsule(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_Capsule* B)
 {
-	// Implement the broad-phase logic for OBB vs Capsule
-	FTetherShape_AxisAlignedBoundingBox OBBAABB = A->GetBoundingBox();
-	FTetherShape_AxisAlignedBoundingBox CapsuleAABB = B->GetBoundingBox();
-	return Broad_AABB_AABB(&OBBAABB, &CapsuleAABB);
+	// Reuse the logic from Broad_Capsule_OBB since OBB vs Capsule and Capsule vs OBB are symmetrical
+	return Broad_Capsule_OBB(B, A);
 }
 
 // OBB vs Cone
 bool UTetherShapeCollisionControl::Broad_OBB_Cone(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_Cone* B)
 {
-	// Implement the broad-phase logic for OBB vs Cone
-	FTetherShape_AxisAlignedBoundingBox OBBAABB = A->GetBoundingBox();
-	FTetherShape_AxisAlignedBoundingBox ConeAABB = B->GetBoundingBox();
-	return Broad_AABB_AABB(&OBBAABB, &ConeAABB);
+	// Reuse the logic from Broad_Cone_OBB since OBB vs Cone and Cone vs OBB are symmetrical
+	return Broad_Cone_OBB(B, A);
 }
 
 // Capsule vs AABB
@@ -568,18 +562,8 @@ bool UTetherShapeCollisionControl::Narrow_AABB_BoundingSphere(const FTetherShape
 // Narrow-phase collision check for AABB vs OBB
 bool UTetherShapeCollisionControl::Narrow_AABB_OBB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output)
 {
-	// Implement a more precise narrow-phase check for AABB vs OBB
-	// Example: SAT (Separating Axis Theorem) can be used for this detailed check.
-	// Placeholder logic for now:
-	if (Broad_AABB_OBB(A, B))
-	{
-		// Placeholder: Assume collision at center points
-		Output.bHasCollision = true;
-		Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
-		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
-		return true;
-	}
-	return false;
+	// Reuse the logic from Narrow_OBB_AABB since AABB vs OBB and OBB vs AABB are symmetrical
+	return Narrow_OBB_AABB(B, A, Output);
 }
 
 // Narrow-phase collision check for AABB vs Capsule
@@ -683,16 +667,61 @@ bool UTetherShapeCollisionControl::Narrow_BoundingSphere_Cone(const FTetherShape
 // Narrow-phase collision check for OBB vs AABB
 bool UTetherShapeCollisionControl::Narrow_OBB_AABB(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output)
 {
-	// Implement a more precise narrow-phase check for OBB vs AABB
-	if (Broad_OBB_AABB(A, B))
-	{
-		// Placeholder: Assume collision at center points
-		Output.bHasCollision = true;
-		Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
-		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
-		return true;
-	}
-	return false;
+    // Get the center and half-extents of the AABB
+    FVector BCenter = B->GetCenter();
+    FVector BExtents = (B->Max - B->Min) * 0.5f;
+
+    // Get the local axes of the OBB
+    FQuat ARotation = A->Rotation.Quaternion();
+    FVector AX = ARotation.GetAxisX();
+    FVector AY = ARotation.GetAxisY();
+    FVector AZ = ARotation.GetAxisZ();
+
+    FVector ACenter = A->Center;
+    FVector AExtents = A->Extent;
+
+    // 1. Test the axes of the AABB (which are aligned with the world axes)
+    FVector AABBAxes[] = { FVector::ForwardVector, FVector::RightVector, FVector::UpVector };
+
+    for (const FVector& Axis : AABBAxes)
+    {
+        float AABBProjection = FVector::DotProduct(BExtents, Axis.GetAbs());
+        float OBBProjection = FMath::Abs(FVector::DotProduct(AExtents.X * AX, Axis)) +
+                              FMath::Abs(FVector::DotProduct(AExtents.Y * AY, Axis)) +
+                              FMath::Abs(FVector::DotProduct(AExtents.Z * AZ, Axis));
+
+        float Distance = FMath::Abs(FVector::DotProduct(BCenter - ACenter, Axis));
+
+        if (Distance > (AABBProjection + OBBProjection))
+        {
+            return false; // No collision
+        }
+    }
+
+    // 2. Test the axes of the OBB
+    FVector OBBAxes[] = { AX, AY, AZ };
+
+    for (const FVector& Axis : OBBAxes)
+    {
+        float AABBProjection = FVector::DotProduct(BExtents, Axis.GetAbs());
+        float OBBProjection = FMath::Abs(FVector::DotProduct(AExtents.X * AX, Axis)) +
+                              FMath::Abs(FVector::DotProduct(AExtents.Y * AY, Axis)) +
+                              FMath::Abs(FVector::DotProduct(AExtents.Z * AZ, Axis));
+
+        float Distance = FMath::Abs(FVector::DotProduct(BCenter - ACenter, Axis));
+
+        if (Distance > (AABBProjection + OBBProjection))
+        {
+            return false; // No collision
+        }
+    }
+
+    // If all axes overlap
+    Output.bHasCollision = true;
+    Output.ContactPoint = (ACenter + BCenter) * 0.5f; // Simplified contact point
+    Output.PenetrationDepth = 0.0f; // Placeholder; refine based on actual overlap calculations
+
+    return true;
 }
 
 // Narrow-phase collision check for OBB vs BoundingSphere
@@ -705,16 +734,55 @@ bool UTetherShapeCollisionControl::Narrow_OBB_BoundingSphere(const FTetherShape_
 // Narrow-phase collision check for OBB vs OBB
 bool UTetherShapeCollisionControl::Narrow_OBB_OBB(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output)
 {
-	// Implement a more precise narrow-phase check for OBB vs OBB
-	if (Broad_OBB_OBB(A, B))
-	{
-		// Placeholder: Assume collision at center points
-		Output.bHasCollision = true;
-		Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
-		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
-		return true;
-	}
-	return false;
+    FVector ACenter = A->Center;
+    FVector AExtents = A->Extent;
+    FVector BCenter = B->Center;
+    FVector BExtents = B->Extent;
+
+    FQuat ARotation = A->Rotation.Quaternion();
+    FQuat BRotation = B->Rotation.Quaternion();
+
+    // Get the local axes of both OBBs
+    FVector AX = ARotation.GetAxisX();
+    FVector AY = ARotation.GetAxisY();
+    FVector AZ = ARotation.GetAxisZ();
+
+    FVector BX = BRotation.GetAxisX();
+    FVector BY = BRotation.GetAxisY();
+    FVector BZ = BRotation.GetAxisZ();
+
+    FVector Axes[] = {
+        AX, AY, AZ,  // A's local axes
+        BX, BY, BZ,  // B's local axes
+        FVector::CrossProduct(AX, BX), FVector::CrossProduct(AX, BY), FVector::CrossProduct(AX, BZ),
+        FVector::CrossProduct(AY, BX), FVector::CrossProduct(AY, BY), FVector::CrossProduct(AY, BZ),
+        FVector::CrossProduct(AZ, BX), FVector::CrossProduct(AZ, BY), FVector::CrossProduct(AZ, BZ)
+    };
+
+    for (const FVector& Axis : Axes)
+    {
+        if (!Axis.IsZero())  // Avoid degenerate axes
+        {
+            FVector AbsAxis = Axis.GetAbs();
+
+            // Project both OBBs onto the axis
+            float AProjection = FVector::DotProduct(AExtents, AbsAxis.X * AX + AbsAxis.Y * AY + AbsAxis.Z * AZ);
+            float BProjection = FVector::DotProduct(BExtents, AbsAxis.X * BX + AbsAxis.Y * BY + AbsAxis.Z * BZ);
+            float Distance = FMath::Abs(FVector::DotProduct(BCenter - ACenter, Axis));
+
+            if (Distance > (AProjection + BProjection))
+            {
+                return false; // No collision
+            }
+        }
+    }
+
+    // If all axes overlap
+    Output.bHasCollision = true;
+    Output.ContactPoint = (ACenter + BCenter) * 0.5f; // Simplified contact point
+    Output.PenetrationDepth = 0.0f; // Placeholder; refine based on actual overlap calculations
+
+    return true;
 }
 
 // Narrow-phase collision check for OBB vs Capsule

@@ -114,44 +114,27 @@ void UTetherShapeObject_OrientedBoundingBox::DrawDebug(const FTetherShape& Shape
 	TArray<FVector> Vertices = OBB->GetVertices();
 
 	// Draw edges using individual lines
-	if (AnimInstanceProxy)
+	for (int32 i = 0; i < 4; ++i)
 	{
-		// Front face (connecting Vertices[0] -> Vertices[3])
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[0], Vertices[1], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[1], Vertices[3], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[3], Vertices[2], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[2], Vertices[0], Color, bPersistentLines, LifeTime, Thickness);
+		int32 NextIndex = (i + 1) % 4;
 
-		// Back face (connecting Vertices[4] -> Vertices[7])
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[4], Vertices[5], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[5], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[7], Vertices[6], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[6], Vertices[4], Color, bPersistentLines, LifeTime, Thickness);
+		if (AnimInstanceProxy)
+		{
+			// Draw the front face
+			AnimInstanceProxy->AnimDrawDebugLine(Vertices[i], Vertices[NextIndex], Color, bPersistentLines, LifeTime, Thickness);
+			AnimInstanceProxy->AnimDrawDebugLine(Vertices[i + 4], Vertices[NextIndex + 4], Color, bPersistentLines, LifeTime, Thickness);
 
-		// Connecting edges between front and back face
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[0], Vertices[4], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[1], Vertices[5], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[2], Vertices[6], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[3], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
-	}
-	else if (World)  // We don't use DrawDebugBox because we want to test this too
-	{
-		// Front face (connecting Vertices[0] -> Vertices[3])
-		DrawDebugLine(World, Vertices[0], Vertices[1], Color, bPersistentLines, LifeTime, Thickness);
-		DrawDebugLine(World, Vertices[1], Vertices[3], Color, bPersistentLines, LifeTime, Thickness);
-		DrawDebugLine(World, Vertices[3], Vertices[2], Color, bPersistentLines, LifeTime, Thickness);
-		DrawDebugLine(World, Vertices[2], Vertices[0], Color, bPersistentLines, LifeTime, Thickness);
+			// Draw the connecting edges between the front and back face
+			AnimInstanceProxy->AnimDrawDebugLine(Vertices[i], Vertices[i + 4], Color, bPersistentLines, LifeTime, Thickness);
+		}
+		else if (World)
+		{
+			// Draw the front face
+			DrawDebugLine(World, Vertices[i], Vertices[NextIndex], Color, bPersistentLines, LifeTime, 0, Thickness);
+			DrawDebugLine(World, Vertices[i + 4], Vertices[NextIndex + 4], Color, bPersistentLines, LifeTime, 0, Thickness);
 
-		// Back face (connecting Vertices[4] -> Vertices[7])
-		DrawDebugLine(World, Vertices[4], Vertices[5], Color, bPersistentLines, LifeTime, Thickness);
-		DrawDebugLine(World, Vertices[5], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
-		DrawDebugLine(World, Vertices[7], Vertices[6], Color, bPersistentLines, LifeTime, Thickness);
-		DrawDebugLine(World, Vertices[6], Vertices[4], Color, bPersistentLines, LifeTime, Thickness);
-
-		// Connecting edges between front and back face
-		DrawDebugLine(World, Vertices[0], Vertices[4], Color, bPersistentLines, LifeTime, Thickness);
-		DrawDebugLine(World, Vertices[1], Vertices[5], Color, bPersistentLines, LifeTime, Thickness);
-		DrawDebugLine(World, Vertices[2], Vertices[6], Color, bPersistentLines, LifeTime, Thickness);
-		DrawDebugLine(World, Vertices[3], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
+			// Draw the connecting edges between the front and back face
+			DrawDebugLine(World, Vertices[i], Vertices[i + 4], Color, bPersistentLines, LifeTime, 0, Thickness);
+		}
 	}
 }

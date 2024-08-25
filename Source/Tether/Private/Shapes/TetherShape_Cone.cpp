@@ -27,7 +27,12 @@ FTetherShape_Cone::FTetherShape_Cone(const FVector& InBaseCenter, float InHeight
 FTetherShape_AxisAlignedBoundingBox FTetherShape_Cone::GetBoundingBox() const
 {
 	FTransform Transform = IsWorldSpace() ? WorldTransform : FTransform::Identity;
-	FVector Tip = Transform.TransformPosition(BaseCenter + Rotation.RotateVector(FVector(0, 0, Height)));
+
+	// Calculate the direction vector (points from base to tip)
+	FVector Direction = Rotation.RotateVector(-FVector::UpVector); // Inverted to fix the upside-down issue
+
+	// Calculate the tip of the cone
+	FVector Tip = Transform.TransformPosition(BaseCenter + Direction * Height);
 
 	// Get the points that define the cone's bounding box
 	TArray<FVector> Points;
@@ -67,20 +72,19 @@ void UTetherShapeObject_Cone::TransformToWorldSpace(FTetherShape& Shape, const F
 
 	if (Shape.IsWorldSpace() && !Shape.GetWorldTransform().Equals(WorldTransform))
 	{
-		// Already in world space, but has a new transform. Convert it back first.
 		TransformToLocalSpace(Shape);
 	}
 
 	// Transform the base center to world space
 	FVector TransformedBaseCenter = WorldTransform.TransformPosition(Cone->BaseCenter);
 
-	// Scale the height and base radius based on the scale of the world transform
+	// Scale the height and base radius based on the world transform scale
 	FVector Scale = WorldTransform.GetScale3D();
 	float MaxScale = FMath::Max(Scale.X, FMath::Max(Scale.Y, Scale.Z));
 	float TransformedHeight = Cone->Height * MaxScale;
 	float TransformedBaseRadius = Cone->BaseRadius * MaxScale;
 
-	// Apply the rotation
+	// Apply the rotation to the cone's rotation
 	FRotator TransformedRotation = WorldTransform.GetRotation().Rotator() + Cone->Rotation;
 
 	// Update the cone with the transformed values
@@ -94,7 +98,6 @@ void UTetherShapeObject_Cone::TransformToLocalSpace(FTetherShape& Shape) const
 {
 	if (!Shape.IsWorldSpace())
 	{
-		// Already there
 		return;
 	}
 
@@ -127,13 +130,16 @@ void UTetherShapeObject_Cone::DrawDebug(const FTetherShape& Shape, FAnimInstance
 {
 	const FTetherShape_Cone* Cone = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&Shape);
 
+	// Calculate the direction vector (points from base to tip)
+	FVector Direction = Cone->Rotation.RotateVector(-FVector::UpVector); // Inverted to fix the upside-down issue
+
 	// Draw cone
 	if (AnimInstanceProxy)
 	{
-		AnimInstanceProxy->AnimDrawDebugCone(Cone->BaseCenter, Cone->Height, FVector::UpVector, FMath::Atan2(Cone->BaseRadius, Cone->Height), FMath::Atan2(Cone->BaseRadius, Cone->Height), 12, Color, bPersistentLines, LifeTime, SDPG_World, Thickness);
+		AnimInstanceProxy->AnimDrawDebugCone(Cone->BaseCenter, Cone->Height, Direction, FMath::Atan2(Cone->BaseRadius, Cone->Height), FMath::Atan2(Cone->BaseRadius, Cone->Height), 12, Color, bPersistentLines, LifeTime, SDPG_World, Thickness);
 	}
 	else if (World)
 	{
-		DrawDebugCone(World, Cone->BaseCenter, FVector::UpVector, Cone->Height, FMath::Atan2(Cone->BaseRadius, Cone->Height), FMath::Atan2(Cone->BaseRadius, Cone->Height), 12, Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugCone(World, Cone->BaseCenter, Direction, Cone->Height, FMath::Atan2(Cone->BaseRadius, Cone->Height), FMath::Atan2(Cone->BaseRadius, Cone->Height), 12, Color, bPersistentLines, LifeTime, 0, Thickness);
 	}
 }
