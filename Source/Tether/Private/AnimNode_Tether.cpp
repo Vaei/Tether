@@ -25,6 +25,8 @@ void FAnimNode_Tether::Initialize_AnyThread(const FAnimationInitializeContext& C
 {
 	Super::Initialize_AnyThread(Context);
 
+	PhysicsUpdate = { SimulationFrameRate };
+
 	auto Sphere0 = FTetherShape_AxisAlignedBoundingBox();
 	auto Sphere1 = FTetherShape_Capsule();
 	Shapes.Add(Sphere0);
@@ -93,16 +95,14 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 	// This initializes the bone so that it can be modified; it is not merely grabbing a transform
 	FTransform RootTM = Output.Pose.GetComponentSpaceTransform(RootBoneIndex);
 
-	// Calculate the delta time for each physics sub-tick
-	float TimeTick = 1.0f / static_cast<float>(SimulationFrameRate);
+	// Start the frame with the current DeltaTime
+	PhysicsUpdate.StartFrame(Output.AnimInstanceProxy->GetDeltaSeconds());
 
-	// Accumulate the time since the last frame, ensuring any left-over time from last frame is included
-	const float DeltaTime = Output.AnimInstanceProxy->GetDeltaSeconds();
-	RemainingTime += DeltaTime;
-
-	// Run physics sub-ticks to catch up with the accumulated time
-	while (RemainingTime >= TimeTick)
+	// Update at consistent framerate (default 60fps)
+	while (PhysicsUpdate.ShouldTick())
 	{
+		// Physics update logic here
+
 		// 0. Spatial Hashing - Generate shape pairs based on proximity and efficiency ratings for priority
 		FTetherSpatialHashing SpatialHashing { SpatialHashingInput, Shapes, RootTM.GetLocation() };  // @todo this should be mesh center, I guess
 		SpatialHashing.DrawDebugSpatialGrid(Output.AnimInstanceProxy, nullptr);
@@ -125,13 +125,13 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		
 		if (CurrentLinearSolver)
 		{
-			CurrentLinearSolver->Solve(LinearInput, LinearOutput, RootTM, TimeTick);
+			CurrentLinearSolver->Solve(LinearInput, LinearOutput, RootTM, PhysicsUpdate.TimeTick);
 		}
 		
 		if (CurrentAngularSolver)
 		{
 			static constexpr float DebugRadius = 25.f;
-			CurrentAngularSolver->Solve(AngularInput, AngularOutput, RootTM, TimeTick, DebugRadius);
+			CurrentAngularSolver->Solve(AngularInput, AngularOutput, RootTM, PhysicsUpdate.TimeTick, DebugRadius);
 		}
 
 		// @todo 4. Solve Integration
@@ -166,9 +166,7 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		// if accessory_01 is constrained to follow spine_01, the constraint solver will ensure this attachment is
 		// respected, regardless of the results of other physics calculations. You might have multiple constraints to
 		// solve, depending on the complexity of your simulation.
-		
-		// Reduce the accumulator by the sub-tick delta time
-		RemainingTime -= TimeTick;
+		PhysicsUpdate.FinalizeTick();
 	}
 }
 

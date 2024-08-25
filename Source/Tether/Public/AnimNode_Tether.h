@@ -8,6 +8,7 @@
 #include "TetherIO.h"
 #include "TetherSpatialHashing.h"
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
+#include "Threading/TetherPhysicsUpdate.h"
 #include "AnimNode_Tether.generated.h"
 
 class UTetherCollisionDetectionNarrowPhase;
@@ -48,7 +49,7 @@ public:
 	 * cost.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, ClampMin="1", UIMin="1", UIMax="120"))
-	int32 SimulationFrameRate = 60.f;
+	float SimulationFrameRate = 60.f;
 
 	UPROPERTY(EditAnywhere, Category=Tether)
 	FBoneReference RootBone;
@@ -58,8 +59,7 @@ protected:
 	UPROPERTY()
 	bool bFirstUpdate = true;
 
-	UPROPERTY()
-	float RemainingTime = 0.f;
+	FTetherPhysicsUpdate PhysicsUpdate;
 
 protected:
 	UPROPERTY()
