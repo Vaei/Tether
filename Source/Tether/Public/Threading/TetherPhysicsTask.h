@@ -3,26 +3,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ITetherPhysicsThreadInterface.h"
+#include "GameplayTagContainer.h"
+#include "GameplayTask.h"
 
-class FTetherPhysicsTask : public FNonAbandonableTask
+#include "TetherPhysicsTask.generated.h"
+
+/**
+ * @TODO
+ * Updates on GameThread
+ */
+UCLASS()
+class TETHER_API UTetherPhysicsTask : public UGameplayTask
 {
+	GENERATED_BODY()
+
 public:
-	FTetherPhysicsTask(ITetherPhysicsThreadInterface* InThreadInterface, float InDeltaTime)
-		: ThreadInterface(InThreadInterface), DeltaTime(InDeltaTime)
-	{}
+	// UTetherPhysicsTask(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	FORCEINLINE TStatId GetStatId() const
-	{
-		RETURN_QUICK_DECLARE_CYCLE_STAT(FPhysicsTask, STATGROUP_ThreadPoolAsyncTasks);
-	}
-
-	void DoWork() const
-	{
-		
-	}
-
-private:
-	ITetherPhysicsThreadInterface* ThreadInterface;
-	float DeltaTime;
+	// static UTetherPhysicsTask* TetherPhysicsTask(FGameplayTag LinearSolver);
 };

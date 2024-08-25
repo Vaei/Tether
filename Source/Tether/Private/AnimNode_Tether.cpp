@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023 Drowning Dragons. All Rights Reserved.
+﻿// Copyright (c) Jared Taylor. All Rights Reserved.
 
 #include "AnimNode_Tether.h"
 
@@ -49,25 +49,13 @@ void FAnimNode_Tether::UpdateInternal(const FAnimationUpdateContext& Context)
 	if (LastLinearSolver != LinearSolver)
 	{
 		LastLinearSolver = LinearSolver;
-		if (const TSubclassOf<UTetherPhysicsSolver>* NewSolverClass = GetSettings()->Solvers.Find(LinearSolver))
-		{
-			if (UTetherPhysicsSolver* NewSolver = NewSolverClass->GetDefaultObject())
-			{
-				CurrentLinearSolver = Cast<UTetherPhysicsSolverLinear>(NewSolver);
-			}
-		}
+		CurrentLinearSolver = UTetherDeveloperSettings::GetSolver<UTetherPhysicsSolverLinear>(LinearSolver);
 	}
 
 	if (LastAngularSolver != AngularSolver)
 	{
 		LastAngularSolver = AngularSolver;
-		if (const TSubclassOf<UTetherPhysicsSolver>* NewSolverClass = GetSettings()->Solvers.Find(AngularSolver))
-		{
-			if (UTetherPhysicsSolver* NewSolver = NewSolverClass->GetDefaultObject())
-			{
-				CurrentAngularSolver = Cast<UTetherPhysicsSolverAngular>(NewSolver);
-			}
-		}
+		CurrentAngularSolver = UTetherDeveloperSettings::GetSolver<UTetherPhysicsSolverAngular>(AngularSolver);
 	}
 }
 

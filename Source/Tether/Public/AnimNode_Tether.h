@@ -6,9 +6,9 @@
 #include "GameplayTagContainer.h"
 #include "TetherGameplayTags.h"
 #include "TetherIO.h"
+#include "TetherPhysicsUpdate.h"
 #include "TetherSpatialHashing.h"
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
-#include "Threading/TetherPhysicsUpdate.h"
 #include "AnimNode_Tether.generated.h"
 
 class UTetherCollisionDetectionNarrowPhase;
@@ -59,7 +59,7 @@ protected:
 	UPROPERTY()
 	bool bFirstUpdate = true;
 
-	FTetherPhysicsUpdate PhysicsUpdate;
+	FTetherPhysicsUpdate PhysicsUpdate = { SimulationFrameRate };
 
 protected:
 	UPROPERTY()

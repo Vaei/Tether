@@ -14,6 +14,7 @@ public class Tether : ModuleRules
 				"Core",
 				"TetherPhysics",
 				"GameplayTags",
+				"GameplayTasks",
 				"AnimGraphRuntime",
 			}
 			);

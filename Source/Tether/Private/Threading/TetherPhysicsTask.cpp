@@ -3,11 +3,4 @@
 
 #include "Threading/TetherPhysicsTask.h"
 
-
-void FTetherPhysicsTask::DoWork() const
-{
-	if (ThreadInterface)
-	{
-		ThreadInterface->TickPhysics(DeltaTime);
-	}
-}
+#include UE_INLINE_GENERATED_CPP_BY_NAME(TetherPhysicsTask)
