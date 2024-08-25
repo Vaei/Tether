@@ -18,9 +18,6 @@ UTetherDeveloperSettings::UTetherDeveloperSettings(const FObjectInitializer& Obj
 	Solvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Linear.GetTag(), UTetherPhysicsSolverLinear::StaticClass() });
 	Solvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Angular.GetTag(), UTetherPhysicsSolverAngular::StaticClass() });
 
-	// Default Shapes
-	Shapes.Add({ FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox.GetTag(), UTetherShapeObject_AxisAlignedBoundingBox::StaticClass() });
-
 	// Collision control
 	ShapeCollisionControl = UTetherShapeCollisionControl::StaticClass();
 }
