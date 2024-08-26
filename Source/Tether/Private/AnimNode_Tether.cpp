@@ -3,11 +3,11 @@
 #include "AnimNode_Tether.h"
 
 #include "TetherDeveloperSettings.h"
-#include "TetherSpatialHashing.h"
 #include "TetherStatics.h"
 #include "Animation/AnimInstanceProxy.h"
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
 #include "Physics/Collision/TetherCollisionDetectionNarrowPhase.h"
+#include "Physics/Hashing/TetherHashingSpatial.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverLinear.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverAngular.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
@@ -44,6 +44,13 @@ void FAnimNode_Tether::UpdateInternal(const FAnimationUpdateContext& Context)
 	if (!IsValid(Owner))
 	{
 		return;
+	}
+
+	// Detect gameplay tag changes and grab the newly referenced object
+	if (LastHashing != Hashing)
+	{
+		LastHashing = Hashing;
+		CurrentHashing = UTetherDeveloperSettings::GetHashing<UTetherHashingSpatial>(Hashing);
 	}
 
 	if (LastLinearSolver != LinearSolver)
@@ -89,12 +96,14 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 	// Update at consistent framerate (default 60fps)
 	while (PhysicsUpdate.ShouldTick())
 	{
-		// Physics update logic here
-
 		// 0. Spatial Hashing - Generate shape pairs based on proximity and efficiency ratings for priority
-		FTetherSpatialHashing SpatialHashing { SpatialHashingInput, Shapes, RootTM.GetLocation() };  // @todo this should be mesh center, I guess
-		SpatialHashing.DrawDebugSpatialGrid(Output.AnimInstanceProxy, nullptr);
-
+		if (CurrentHashing)
+		{
+			// @todo use mesh or actor TM probably
+			SpatialHashingInput.Shapes = &Shapes;
+			CurrentHashing->Solve(&SpatialHashingInput, &SpatialHashingOutput, RootTM, PhysicsUpdate.TimeTick);
+		}
+		
 		// @todo 1. Solve Broad-Phase Collision
 
 		// Optional but common optimization step where you quickly check if objects are close enough to potentially
@@ -127,8 +136,15 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		// orientation of objects over time. It essentially integrates the calculated forces and torques to determine
 		// how an object should move in the next time step.
 
+		// 4.5 Spatial Hashing - Re-Generate shape pairs, because the shapes have moved and narrow-phase is expensive
+		if (CurrentHashing)
+		{
+			// @todo use mesh or actor TM probably
+			SpatialHashingInput.Shapes = &Shapes;
+			CurrentHashing->Solve(&SpatialHashingInput, &SpatialHashingOutput, RootTM, PhysicsUpdate.TimeTick);
+		}
+		
 		// @todo 5. Solve Narrow-Phase Collision
-		SpatialHashing.GenerateShapePairs(Shapes);  // Shapes have likely moved
 		// @todo add checks for nothing in nearby bucket, skip both broad phase and narrow phase if required
 		// if (CurrentNarrowPhaseCollisionDetection)
 		// {
@@ -170,9 +186,4 @@ void FAnimNode_Tether::InitializeBoneReferences(const FBoneContainer& RequiredBo
 {
 	RootBone.Initialize(RequiredBones);
 	RootBoneIndex = RootBone.GetCompactPoseIndex(RequiredBones);
-}
-
-const UTetherDeveloperSettings* FAnimNode_Tether::GetSettings()
-{
-	return GetDefault<UTetherDeveloperSettings>();
 }

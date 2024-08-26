@@ -11,7 +11,7 @@
 #include "Shapes/TetherShape_Cone.h"
 #include "Shapes/TetherShape_OrientedBoundingBox.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShapeCollisionControl)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(TetherCollisionDetectionHandler)
 
 FVector UTetherCollisionDetectionHandler::ClampVector(const FVector& InVector, const FVector& Min, const FVector& Max)
 {

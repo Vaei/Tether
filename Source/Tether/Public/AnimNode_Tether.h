@@ -7,15 +7,14 @@
 #include "TetherGameplayTags.h"
 #include "TetherIO.h"
 #include "TetherPhysicsUpdate.h"
-#include "TetherSpatialHashing.h"
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
 #include "AnimNode_Tether.generated.h"
 
-class UTetherCollisionDetectionNarrowPhase;
-class UTetherCollisionDetectionBroadPhase;
-class UTetherDeveloperSettings;
 class UTetherPhysicsSolverAngular;
 class UTetherPhysicsSolverLinear;
+class UTetherCollisionDetectionNarrowPhase;
+class UTetherCollisionDetectionBroadPhase;
+class UTetherHashing;
 /**
  * Tether's core functionality
  */
@@ -25,6 +24,9 @@ struct TETHER_API FAnimNode_Tether : public FAnimNode_SkeletalControlBase
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Hashing"))
+	FGameplayTag Hashing = FTetherGameplayTags::Tether_Hashing_Spatial;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Physics.Linear"))
 	FGameplayTag LinearSolver = FTetherGameplayTags::Tether_Solver_Physics_Linear;
 		
@@ -35,7 +37,7 @@ public:
 	FGameplayTag ContactSolver;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FTetherSpatialHashingInput SpatialHashingInput;
+	FSpatialHashingInput SpatialHashingInput;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault))
 	FLinearInput LinearInput;
@@ -64,6 +66,9 @@ protected:
 protected:
 	UPROPERTY()
 	TArray<FTetherShape> Shapes;  // @todo remove
+
+	UPROPERTY()
+	FSpatialHashingOutput SpatialHashingOutput;
 	
 	UPROPERTY()
 	FLinearOutput LinearOutput;
@@ -78,11 +83,17 @@ protected:
 	TArray<FTetherNarrowPhaseCollisionOutput> NarrowPhaseOutput;
 
 	UPROPERTY(Transient)
+	FGameplayTag LastHashing = FGameplayTag::EmptyTag;
+	
+	UPROPERTY(Transient)
 	FGameplayTag LastLinearSolver = FGameplayTag::EmptyTag;
 
 	UPROPERTY(Transient)
 	FGameplayTag LastAngularSolver = FGameplayTag::EmptyTag;
 
+	UPROPERTY(Transient)
+	const UTetherHashing* CurrentHashing = nullptr;
+	
 	UPROPERTY(Transient)
 	const UTetherCollisionDetectionBroadPhase* CurrentBroadPhaseCollisionDetection = nullptr;
 
@@ -106,6 +117,4 @@ protected:
 	virtual bool IsValidToEvaluate(const USkeleton* Skeleton, const FBoneContainer& RequiredBones) override;
 	virtual void InitializeBoneReferences(const FBoneContainer& RequiredBones) override;
 	// End of FAnimNode_SkeletalControlBase interface
-
-	static const UTetherDeveloperSettings* GetSettings();
 };

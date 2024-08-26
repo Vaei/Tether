@@ -54,7 +54,7 @@ void ATetherEditorShapeActor::TestCollisions(const TArray<ATetherEditorShapeActo
 void ATetherEditorShapeActor::TestCollision(const ATetherEditorShapeActor* OtherShapeActor) const
 {
 	const UTetherDeveloperSettings* Settings = GetDefault<UTetherDeveloperSettings>();
-	const UTetherCollisionDetectionHandler* Control = Settings->ShapeCollisionControl.GetDefaultObject();
+	const UTetherCollisionDetectionHandler* Control = Settings->CollisionDetectionHandler.GetDefaultObject();
 	
 	if (!IsValid(OtherShapeActor))
 	{

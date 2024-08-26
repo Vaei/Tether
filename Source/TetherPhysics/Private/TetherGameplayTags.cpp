@@ -5,6 +5,9 @@
 
 namespace FTetherGameplayTags
 {
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Hashing, "Tether.Hashing");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Hashing_Spatial, "Tether.Hashing.Spatial");
+	
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver, "Tether.Solver");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics, "Tether.Solver.Physics");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics_Linear, "Tether.Solver.Physics.Linear");

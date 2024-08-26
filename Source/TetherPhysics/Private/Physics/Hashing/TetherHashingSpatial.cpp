@@ -1,17 +1,68 @@
-﻿// Copyright (c) Jared Taylor. All Rights Reserved
+﻿// Copyright (c) Jared Taylor. All Rights Reserved.
 
 
-#include "TetherSpatialHashing.h"
+#include "Physics/Hashing/TetherHashingSpatial.h"
 
 #include "Animation/AnimInstanceProxy.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(TetherSpatialHashing)
+void UTetherHashingSpatial::Solve(FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform,
+	float DeltaTime) const
+{
+	// Generate shape pairs based on spatial hashing and efficiency rating
 
-void FTetherSpatialHashing::DrawDebugBucket(FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World,
+	const auto* Input = InputData->GetDataIO<FSpatialHashingInput>();
+	auto* Output = InputData->GetDataIO<FSpatialHashingOutput>();
+	
+	// Clear previous pairs and hash map
+	Output->ShapePairs.Empty();
+	Output->SpatialHashMap.Empty();
+
+	// Add all shapes to the spatial hash map
+	const TArray<FTetherShape>& Shapes = *Input->Shapes;
+	
+	for (int32 i = 0; i < Input->Shapes->Num(); i++)
+	{
+		AddShapeToSpatialHash(Input, Output, i, Shapes[i], Transform);
+	}
+
+	// Generate pairs based on spatial proximity and efficiency rating
+	for (const auto& HashEntry : Output->SpatialHashMap)
+	{
+		const TArray<int32>& Indices = HashEntry.Value;
+
+		for (int32 i = 0; i < Indices.Num(); i++)
+		{
+			for (int32 j = i + 1; j < Indices.Num(); j++)
+			{
+				int32 IndexA = Indices[i];
+				int32 IndexB = Indices[j];
+
+				const FTetherShape& ShapeA = Shapes[IndexA];
+				const FTetherShape& ShapeB = Shapes[IndexB];
+
+				// Check if shapes are in the same or adjacent buckets
+				if (IsInSameOrAdjacentBucket(ShapeA, ShapeB))
+				{
+					// Determine which shape should perform the evaluation based on EfficiencyRating
+					if (ShapeA.EfficiencyRating >= ShapeB.EfficiencyRating)
+					{
+						Output->ShapePairs.Add(FTetherShapePair(IndexA, IndexB));
+					}
+					else
+					{
+						Output->ShapePairs.Add(FTetherShapePair(IndexB, IndexA));
+					}
+				}
+			}
+		}
+	}
+}
+
+void UTetherHashingSpatial::DrawDebugBucket(FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World,
 	const FIntVector& BucketIndex, const FVector& BucketSize, const FColor& Color, bool bPersistentLines,
 	float LifeTime, float Thickness)
 {
-#if ENABLE_DRAW_DEBUG
+	#if ENABLE_DRAW_DEBUG
 	FVector BucketMin = FVector(BucketIndex) * BucketSize;
 	FVector BucketMax = BucketMin + BucketSize;
 
@@ -51,8 +102,9 @@ void FTetherSpatialHashing::DrawDebugBucket(FAnimInstanceProxy* AnimInstanceProx
 #endif
 }
 
-void FTetherSpatialHashing::DrawDebugSpatialGrid(FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAllBuckets,
-	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
+void UTetherHashingSpatial::DrawDebugSpatialGrid(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
+	FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAllBuckets, const FColor& Color, bool
+	bPersistentLines, float LifeTime, float Thickness)
 {
 #if ENABLE_DRAW_DEBUG
 	if (!AnimInstanceProxy && !World)
@@ -66,7 +118,7 @@ void FTetherSpatialHashing::DrawDebugSpatialGrid(FAnimInstanceProxy* AnimInstanc
 	// If we want to draw all buckets, first calculate the bounds
 	if (bDrawAllBuckets)
 	{
-		for (const auto& HashEntry : SpatialHashMap)
+		for (const auto& HashEntry : Output->SpatialHashMap)
 		{
 			MinBucketIndex.X = FMath::Min(MinBucketIndex.X, HashEntry.Key.X);
 			MinBucketIndex.Y = FMath::Min(MinBucketIndex.Y, HashEntry.Key.Y);
@@ -85,7 +137,8 @@ void FTetherSpatialHashing::DrawDebugSpatialGrid(FAnimInstanceProxy* AnimInstanc
 				for (int32 Z = MinBucketIndex.Z; Z <= MaxBucketIndex.Z; Z++)
 				{
 					FIntVector BucketIndex(X, Y, Z);
-					DrawDebugBucket(AnimInstanceProxy, World, BucketIndex, Input.BucketSize, Color, bPersistentLines, LifeTime, Thickness);
+					DrawDebugBucket(AnimInstanceProxy, World, BucketIndex, Input->BucketSize, Color, bPersistentLines,
+						LifeTime, Thickness);
 				}
 			}
 		}
@@ -93,9 +146,10 @@ void FTetherSpatialHashing::DrawDebugSpatialGrid(FAnimInstanceProxy* AnimInstanc
 	else
 	{
 		// Draw only the buckets that contain shapes
-		for (const auto& HashEntry : SpatialHashMap)
+		for (const auto& HashEntry : Output->SpatialHashMap)
 		{
-			DrawDebugBucket(AnimInstanceProxy, World, HashEntry.Key, Input.BucketSize, Color, bPersistentLines, LifeTime, Thickness);
+			DrawDebugBucket(AnimInstanceProxy, World, HashEntry.Key, Input->BucketSize, Color, bPersistentLines, 
+			LifeTime, Thickness);
 		}
 	}
 #endif

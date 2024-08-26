@@ -99,6 +99,23 @@ public:
 		float LifeTime = -1.f, float Thickness = 0.f) const;
 };
 
+struct TETHERPHYSICS_API FTetherShapePair
+{
+	int32 ShapeIndexA;  // Index of the first shape in the pair
+	int32 ShapeIndexB;  // Index of the second shape in the pair
+
+	// Constructor to initialize the pair
+	FTetherShapePair(int32 InShapeIndexA, int32 InShapeIndexB)
+		: ShapeIndexA(InShapeIndexA), ShapeIndexB(InShapeIndexB) {}
+    
+	// Method to check equality between two shape pairs
+	bool operator==(const FTetherShapePair& Other) const
+	{
+		return (ShapeIndexA == Other.ShapeIndexA && ShapeIndexB == Other.ShapeIndexB) ||
+			   (ShapeIndexA == Other.ShapeIndexB && ShapeIndexB == Other.ShapeIndexA);
+	}
+};
+
 /**
  * This doesn't store any data as a rule, and is used as const - all functions must be const
  * It exists for the purpose of overriding functions, as USTRUCTs don't have vtables/polymorphism

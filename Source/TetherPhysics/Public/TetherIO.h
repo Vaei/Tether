@@ -43,6 +43,49 @@ struct FTetherIO
 };
 
 USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FSpatialHashingInput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FSpatialHashingInput()
+		: BucketSize(50.f)
+		, Origin(FVector::ZeroVector)
+		, Shapes(nullptr)
+	{}
+    
+	FSpatialHashingInput(const FVector& InBucketSize, const FVector& InOrigin, const TArray<FTetherShape>& InShapes)
+		: BucketSize(InBucketSize)
+		, Origin(InOrigin)
+	{
+		Shapes = &InShapes;
+	}
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FVector BucketSize;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FVector Origin;
+
+	const TArray<FTetherShape>* Shapes;
+};
+
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FSpatialHashingOutput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FSpatialHashingOutput()
+		: Origin(FVector::ZeroVector)
+	{}
+
+	TArray<FTetherShapePair> ShapePairs;
+    
+	TMap<FIntVector, TArray<int32>> SpatialHashMap;
+
+	FVector Origin;
+};
+
+USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FLinearInput : public FTetherIO
 {
 	GENERATED_BODY()

@@ -5,6 +5,7 @@
 
 #include "TetherGameplayTags.h"
 #include "Physics/Collision/TetherCollisionDetectionHandler.h"
+#include "Physics/Hashing/TetherHashingSpatial.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverLinear.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverAngular.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
@@ -14,12 +15,15 @@
 UTetherDeveloperSettings::UTetherDeveloperSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	// Default Hashing (Spatial)
+	Hashing.Add({ FTetherGameplayTags::Tether_Hashing_Spatial.GetTag(), UTetherHashingSpatial::StaticClass() });
+	
 	// Default Solvers
 	Solvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Linear.GetTag(), UTetherPhysicsSolverLinear::StaticClass() });
 	Solvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Angular.GetTag(), UTetherPhysicsSolverAngular::StaticClass() });
 
 	// Collision control
-	ShapeCollisionControl = UTetherCollisionDetectionHandler::StaticClass();
+	CollisionDetectionHandler = UTetherCollisionDetectionHandler::StaticClass();
 }
 
 #if WITH_EDITOR
@@ -27,13 +31,13 @@ void UTetherDeveloperSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	if (PropertyChangedEvent.GetPropertyName().IsEqual(GET_MEMBER_NAME_CHECKED(ThisClass, ShapeCollisionControl)))
+	if (PropertyChangedEvent.GetPropertyName().IsEqual(GET_MEMBER_NAME_CHECKED(ThisClass, CollisionDetectionHandler)))
 	{
 		// This doesn't prevent clearing it in DefaultGame.ini; at that point they're going to crash and its not worth
 		// preventing that from happening
-		if (!ShapeCollisionControl)
+		if (!CollisionDetectionHandler)
 		{
-			ShapeCollisionControl = UTetherCollisionDetectionHandler::StaticClass();
+			CollisionDetectionHandler = UTetherCollisionDetectionHandler::StaticClass();
 		}
 	}
 }
