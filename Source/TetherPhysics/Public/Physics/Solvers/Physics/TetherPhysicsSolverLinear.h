@@ -16,5 +16,5 @@ class TETHERPHYSICS_API UTetherPhysicsSolverLinear : public UTetherPhysicsSolver
 	GENERATED_BODY()
 
 public:
-	virtual void Solve(const FLinearInput& Input, FLinearOutput& Output, const FTransform& Transform, float DeltaTime) const;
+	virtual void Solve(FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const override;
 };

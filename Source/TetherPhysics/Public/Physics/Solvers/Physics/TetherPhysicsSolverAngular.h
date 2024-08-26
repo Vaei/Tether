@@ -16,7 +16,5 @@ class TETHERPHYSICS_API UTetherPhysicsSolverAngular : public UTetherPhysicsSolve
 	GENERATED_BODY()
 
 public:
-	void Solve(const FAngularInput& Input, FAngularOutput& Output, const FTransform& Transform, float DeltaTime, float Radius) const;
-	void Solve(const FAngularInput& Input, FAngularOutput& Output, const FTransform& Transform, float DeltaTime, float HalfHeight, float Radius) const;
-	virtual void Solve(const FAngularInput& Input, FAngularOutput& Output, const FTransform& Transform, float DeltaTime, const FVector& BoxExtent) const;
+	virtual void Solve(FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const override;
 };

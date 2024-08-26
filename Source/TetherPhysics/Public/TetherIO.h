@@ -15,8 +15,35 @@ enum class ETetherDampingModel : uint8
 	ExponentialDecay		UMETA(ToolTip="Angular velocity (a) decreases over time with rate of decrease proportional to current velocity. More realistic in many physical systems, especially for simulating air resistance or other forms of damping that don't depend linearly on velocity: a *= exp(-k * d)"),
 };
 
+UENUM(BlueprintType)
+enum class ETetherAngularShape : uint8
+{
+	Box,
+	Sphere,
+	Capsule
+};
+
+USTRUCT()
+struct FTetherIO
+{
+	GENERATED_BODY()
+
+	// Templated SetStructData
+	template<typename StructType>
+	void SetDataIO(StructType& StructData)
+	{
+		*this = static_cast<void*>(&StructData);
+	}
+	
+	template<typename StructType>
+	StructType* GetDataIO()
+	{
+		return static_cast<StructType*>(this);
+	}
+};
+
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FLinearInput
+struct TETHERPHYSICS_API FLinearInput : public FTetherIO
 {
 	GENERATED_BODY()
 
@@ -60,20 +87,7 @@ struct TETHERPHYSICS_API FLinearInput
 };
 
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FLinearOutput
-{
-	GENERATED_BODY()
-
-	FLinearOutput()
-		: LinearVelocity(FVector::ZeroVector)
-	{}
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FVector LinearVelocity;
-};
-
-USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FAngularInput
+struct TETHERPHYSICS_API FAngularInput : public FTetherIO
 {
 	GENERATED_BODY()
 
@@ -81,6 +95,10 @@ struct TETHERPHYSICS_API FAngularInput
 		: Torque(FVector::ZeroVector)						// No initial torque
 		, PointOfApplication(FVector::ZeroVector)			// Origin (center of the object)
 		, CenterOfMass(FVector::ZeroVector)					// Geometric center of the object
+		, Shape(ETetherAngularShape::Sphere)				// Default to a simple sphere
+		, Radius(10.f)										// Sane default radius
+		, HalfHeight(20.f)									// Sane default half height
+		, BoxExtent(FVector::OneVector * 10.f)				// Sane default box extent
 		, bUseDynamicInertia(true)							// Dynamic inertia calculation based on the object's dimensions
 		, Inertia(FVector::OneVector)						// Reasonable non-zero default for static inertia
 		, Mass(1.f)											// Mass of 1.0 for reasonable physics interaction
@@ -102,6 +120,29 @@ struct TETHERPHYSICS_API FAngularInput
 	/** Center of mass of the object, offset relative to the object */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector CenterOfMass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	ETetherAngularShape Shape;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(EditCondition="Shape==ETetherAngularShape::Sphere||Shape==ETetherAngularShape::Capsule", EditConditionHides))
+	float Radius;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(EditCondition="Shape==ETetherAngularShape::Capsule", EditConditionHides))
+	float HalfHeight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(EditCondition="Shape==ETetherAngularShape::Box", EditConditionHides))
+	FVector BoxExtent;
+
+	FVector GetBoxExtent() const
+	{
+		switch (Shape)
+		{
+		case ETetherAngularShape::Box: return BoxExtent;
+		case ETetherAngularShape::Sphere: return FVector(Radius);
+		case ETetherAngularShape::Capsule: return FVector(Radius, Radius, HalfHeight);
+		}
+		return BoxExtent;
+	}
 	
 	/** If enabled, factors in the extents of the object when computing Inertia */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
@@ -137,7 +178,20 @@ struct TETHERPHYSICS_API FAngularInput
 };
 
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FAngularOutput
+struct TETHERPHYSICS_API FLinearOutput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FLinearOutput()
+		: LinearVelocity(FVector::ZeroVector)
+	{}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FVector LinearVelocity;
+};
+
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FAngularOutput : public FTetherIO
 {
 	GENERATED_BODY()
 
@@ -154,16 +208,14 @@ struct TETHERPHYSICS_API FAngularOutput
 };
 
 USTRUCT(BlueprintType)
-struct FTetherNarrowPhaseCollisionOutput
+struct FTetherNarrowPhaseCollisionOutput : public FTetherIO
 {
 	GENERATED_BODY()
 
 	FTetherNarrowPhaseCollisionOutput()
 		: bHasCollision(false)
 		, ContactPoint(FVector::ZeroVector)
-		, PenetrationDepth(0.0f)
-		, ShapeA(nullptr)
-		, ShapeB(nullptr)
+		, PenetrationDepth(0.f)
 	{}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
@@ -174,9 +226,6 @@ struct FTetherNarrowPhaseCollisionOutput
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float PenetrationDepth;
-
-	TWeakObjectPtr<FTetherShape> ShapeA;
-	TWeakObjectPtr<FTetherShape> ShapeB;
 };
 
 USTRUCT(BlueprintType)
@@ -202,7 +251,7 @@ struct FTetherBroadCollisionPair
 };
 
 USTRUCT(BlueprintType)
-struct FTetherBroadPhaseCollisionOutput
+struct FTetherBroadPhaseCollisionOutput : public FTetherIO
 {
 	GENERATED_BODY()
 

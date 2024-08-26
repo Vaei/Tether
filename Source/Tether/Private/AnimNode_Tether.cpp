@@ -113,13 +113,12 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		
 		if (CurrentLinearSolver)
 		{
-			CurrentLinearSolver->Solve(LinearInput, LinearOutput, RootTM, PhysicsUpdate.TimeTick);
+			CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, RootTM, PhysicsUpdate.TimeTick);
 		}
 		
 		if (CurrentAngularSolver)
 		{
-			static constexpr float DebugRadius = 25.f;
-			CurrentAngularSolver->Solve(AngularInput, AngularOutput, RootTM, PhysicsUpdate.TimeTick, DebugRadius);
+			CurrentAngularSolver->Solve(&AngularInput, &AngularOutput, RootTM, PhysicsUpdate.TimeTick);
 		}
 
 		// @todo 4. Solve Integration
