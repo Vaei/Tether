@@ -5,7 +5,7 @@
 
 #include "TetherDeveloperSettings.h"
 #include "TetherIO.h"
-#include "Physics/Collision/TetherShapeCollisionControl.h"
+#include "Physics/Collision/TetherCollisionDetectionHandler.h"
 #include "Shapes/TetherShape.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherEditorShapeActor)
@@ -54,7 +54,7 @@ void ATetherEditorShapeActor::TestCollisions(const TArray<ATetherEditorShapeActo
 void ATetherEditorShapeActor::TestCollision(const ATetherEditorShapeActor* OtherShapeActor) const
 {
 	const UTetherDeveloperSettings* Settings = GetDefault<UTetherDeveloperSettings>();
-	const UTetherShapeCollisionControl* Control = Settings->ShapeCollisionControl.GetDefaultObject();
+	const UTetherCollisionDetectionHandler* Control = Settings->ShapeCollisionControl.GetDefaultObject();
 	
 	if (!IsValid(OtherShapeActor))
 	{

@@ -7,7 +7,7 @@
 #include "Engine/DeveloperSettings.h"
 #include "TetherDeveloperSettings.generated.h"
 
-class UTetherShapeCollisionControl;
+class UTetherCollisionDetectionHandler;
 class UTetherPhysicsSolver;
 /**
  * 
@@ -24,7 +24,7 @@ public:
 
 	/** Class used to handle collisions between different shapes */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, NoClear, Category=Tether)
-	TSubclassOf<UTetherShapeCollisionControl> ShapeCollisionControl;
+	TSubclassOf<UTetherCollisionDetectionHandler> ShapeCollisionControl;
 	
 public:
 	UTetherDeveloperSettings(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());

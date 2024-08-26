@@ -4,7 +4,7 @@
 #include "TetherDeveloperSettings.h"
 
 #include "TetherGameplayTags.h"
-#include "Physics/Collision/TetherShapeCollisionControl.h"
+#include "Physics/Collision/TetherCollisionDetectionHandler.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverLinear.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverAngular.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
@@ -19,7 +19,7 @@ UTetherDeveloperSettings::UTetherDeveloperSettings(const FObjectInitializer& Obj
 	Solvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Angular.GetTag(), UTetherPhysicsSolverAngular::StaticClass() });
 
 	// Collision control
-	ShapeCollisionControl = UTetherShapeCollisionControl::StaticClass();
+	ShapeCollisionControl = UTetherCollisionDetectionHandler::StaticClass();
 }
 
 #if WITH_EDITOR
@@ -33,7 +33,7 @@ void UTetherDeveloperSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 		// preventing that from happening
 		if (!ShapeCollisionControl)
 		{
-			ShapeCollisionControl = UTetherShapeCollisionControl::StaticClass();
+			ShapeCollisionControl = UTetherCollisionDetectionHandler::StaticClass();
 		}
 	}
 }
