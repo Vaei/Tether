@@ -27,6 +27,8 @@ struct TETHERPHYSICS_API FTetherShape_BoundingSphere : public FTetherShape
 
 	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_BoundingSphere; }
 
+	void ToLocalSpace_Implementation();
+	
 	/** Center of the sphere */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector Center;

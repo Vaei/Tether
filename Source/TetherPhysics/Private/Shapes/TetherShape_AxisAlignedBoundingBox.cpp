@@ -22,6 +22,14 @@ FTetherShape_AxisAlignedBoundingBox::FTetherShape_AxisAlignedBoundingBox(const F
 	TetherShapeClass = UTetherShapeObject_AxisAlignedBoundingBox::StaticClass();
 }
 
+void FTetherShape_AxisAlignedBoundingBox::ToLocalSpace_Implementation()
+{
+	if (ensure(LocalSpaceData.IsValid()))
+	{
+		*this = *StaticCastSharedPtr<FTetherShape_AxisAlignedBoundingBox>(LocalSpaceData);
+	}
+}
+
 FVector UTetherShapeObject_AxisAlignedBoundingBox::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
 {
 	const FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
@@ -61,25 +69,9 @@ void UTetherShapeObject_AxisAlignedBoundingBox::TransformToLocalSpace(FTetherSha
 		// Already there
 		return;
 	}
-	
-	FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
-	
-	// Inverse the world transform to get back to local space
-	FTransform InverseTransform = Shape.GetWorldTransform().Inverse();
-	InverseTransform.SetRotation(FQuat::Identity);
 
-	// Transform both the min and max points back to local space
-	FVector TransformedMin = InverseTransform.TransformPosition(AABB->Min);
-	FVector TransformedMax = InverseTransform.TransformPosition(AABB->Max);
-
-	// Ensure the transformed min and max are correctly aligned
-	AABB->Min = FVector(FMath::Min(TransformedMin.X, TransformedMax.X), 
-						FMath::Min(TransformedMin.Y, TransformedMax.Y), 
-						FMath::Min(TransformedMin.Z, TransformedMax.Z));
-
-	AABB->Max = FVector(FMath::Max(TransformedMin.X, TransformedMax.X), 
-						FMath::Max(TransformedMin.Y, TransformedMax.Y), 
-						FMath::Max(TransformedMin.Z, TransformedMax.Z));
+	auto* CastShape = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
+	CastShape->ToLocalSpace_Implementation();
 }
 
 void UTetherShapeObject_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy,

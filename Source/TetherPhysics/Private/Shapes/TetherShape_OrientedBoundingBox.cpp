@@ -22,6 +22,14 @@ FTetherShape_OrientedBoundingBox::FTetherShape_OrientedBoundingBox(const FVector
 	TetherShapeClass = UTetherShapeObject_OrientedBoundingBox::StaticClass();
 }
 
+void FTetherShape_OrientedBoundingBox::ToLocalSpace_Implementation()
+{
+	if (ensure(LocalSpaceData.IsValid()))
+	{
+		*this = *StaticCastSharedPtr<FTetherShape_OrientedBoundingBox>(LocalSpaceData);
+	}
+}
+
 FTetherShape_AxisAlignedBoundingBox FTetherShape_OrientedBoundingBox::GetBoundingBox() const
 {
 	FTransform Transform = IsWorldSpace() ? WorldTransform : FTransform::Identity;
@@ -85,24 +93,8 @@ void UTetherShapeObject_OrientedBoundingBox::TransformToLocalSpace(FTetherShape&
 		return;
 	}
 
-	FTetherShape_OrientedBoundingBox* OBB = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&Shape);
-
-	// Inverse the world transform to get back to local space
-	FTransform InverseTransform = Shape.GetWorldTransform().Inverse();
-
-	// Transform the center back to local space
-	FVector LocalCenter = InverseTransform.TransformPosition(OBB->Center);
-
-	// Adjust the extent back to local scale
-	FVector LocalExtent = InverseTransform.GetScale3D().Reciprocal() * OBB->Extent;
-
-	// Apply the inverse rotation
-	FRotator LocalRotation = OBB->Rotation - InverseTransform.GetRotation().Rotator();
-
-	// Update the OBB with the local values
-	OBB->Center = LocalCenter;
-	OBB->Extent = LocalExtent;
-	OBB->Rotation = LocalRotation;
+	auto* CastShape = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&Shape);
+	CastShape->ToLocalSpace_Implementation();
 }
 
 void UTetherShapeObject_OrientedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,

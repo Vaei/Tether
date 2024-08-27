@@ -22,6 +22,14 @@ FTetherShape_BoundingSphere::FTetherShape_BoundingSphere(const FVector& InCenter
 	TetherShapeClass = UTetherShapeObject_BoundingSphere::StaticClass();
 }
 
+void FTetherShape_BoundingSphere::ToLocalSpace_Implementation()
+{
+	if (ensure(LocalSpaceData.IsValid()))
+	{
+		*this = *StaticCastSharedPtr<FTetherShape_BoundingSphere>(LocalSpaceData);
+	}
+}
+
 FVector UTetherShapeObject_BoundingSphere::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
 {
 	const FTetherShape_BoundingSphere* Sphere = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&Shape);
@@ -59,22 +67,8 @@ void UTetherShapeObject_BoundingSphere::TransformToLocalSpace(FTetherShape& Shap
 		return;
 	}
 	
-	FTetherShape_BoundingSphere* Sphere = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&Shape);
-
-	// Inverse the world transform to get back to local space
-	FTransform InverseTransform = Shape.GetWorldTransform().Inverse();
-
-	// Transform the center back to local space
-	FVector LocalCenter = InverseTransform.TransformPosition(Sphere->Center);
-
-	// Adjust the radius back to local scale
-	FVector Scale = InverseTransform.GetScale3D();
-	float MaxScale = FMath::Max(Scale.X, FMath::Max(Scale.Y, Scale.Z));
-	float LocalRadius = Sphere->Radius / MaxScale;
-
-	// Update the sphere with the local values
-	Sphere->Center = LocalCenter;
-	Sphere->Radius = LocalRadius;
+	auto* CastShape = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&Shape);
+	CastShape->ToLocalSpace_Implementation();
 }
 
 void UTetherShapeObject_BoundingSphere::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy,

@@ -57,6 +57,9 @@ public:
 	UPROPERTY()
 	int32 Bucket = 0;
 
+	/** Cache local space data to avoid precision or rounding data loss over time */
+	TSharedPtr<FTetherShape> LocalSpaceData = nullptr;
+
 	UPROPERTY()
 	TArray<TWeakObjectPtr<UTetherShapeObject>> IgnoredShapes;
 

@@ -26,6 +26,8 @@ struct TETHERPHYSICS_API FTetherShape_AxisAlignedBoundingBox : public FTetherSha
 
 	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox; }
 
+	void ToLocalSpace_Implementation();
+	
 	/**
 	 * Minimum corner of the AABB
 	 * Represents the coords of the corner of the box with the smallest x, y, and z values

@@ -21,6 +21,8 @@ struct TETHERPHYSICS_API FTetherShape_Capsule : public FTetherShape
 
 	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_Capsule; }
 
+	void ToLocalSpace_Implementation();
+	
 	/** Center of the capsule */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector Center;

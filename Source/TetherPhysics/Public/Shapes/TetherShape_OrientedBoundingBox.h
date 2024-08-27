@@ -21,6 +21,8 @@ struct TETHERPHYSICS_API FTetherShape_OrientedBoundingBox : public FTetherShape
 
 	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_OrientedBoundingBox; }
 
+	void ToLocalSpace_Implementation();
+	
 	/** Center of the OBB */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector Center;

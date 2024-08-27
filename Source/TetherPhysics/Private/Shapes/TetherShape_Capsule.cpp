@@ -24,6 +24,14 @@ FTetherShape_Capsule::FTetherShape_Capsule(const FVector& InCenter, float InHalf
 	TetherShapeClass = UTetherShapeObject_Capsule::StaticClass();
 }
 
+void FTetherShape_Capsule::ToLocalSpace_Implementation()
+{
+	if (ensure(LocalSpaceData.IsValid()))
+	{
+		*this = *StaticCastSharedPtr<FTetherShape_Capsule>(LocalSpaceData);
+	}
+}
+
 FTetherShape_AxisAlignedBoundingBox FTetherShape_Capsule::GetBoundingBox() const
 {
 	FTransform Transform = IsWorldSpace() ? WorldTransform : FTransform::Identity;
@@ -60,6 +68,9 @@ void UTetherShapeObject_Capsule::TransformToWorldSpace(FTetherShape& Shape, cons
 		TransformToLocalSpace(Shape);
 	}
 
+	// Clone current state prior to conversion
+	Capsule->LocalSpaceData = Capsule->Clone();
+
 	// Transform the center to world space
 	FVector TransformedCenter = WorldTransform.TransformPosition(Capsule->Center);
 
@@ -90,28 +101,8 @@ void UTetherShapeObject_Capsule::TransformToLocalSpace(FTetherShape& Shape) cons
 		return;
 	}
 
-	FTetherShape_Capsule* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
-
-	// Inverse the world transform to get back to local space
-	FTransform InverseTransform = Shape.GetWorldTransform().Inverse();
-
-	// Transform the center back to local space
-	FVector LocalCenter = InverseTransform.TransformPosition(Capsule->Center);
-
-	// Adjust the half-height and radius back to local scale
-	FVector Scale = InverseTransform.GetScale3D();
-	float MaxScale = FMath::Max(Scale.X, FMath::Max(Scale.Y, Scale.Z));
-	float LocalHalfHeight = Capsule->HalfHeight / MaxScale;
-	float LocalRadius = Capsule->Radius / MaxScale;
-
-	// Apply the inverse rotation
-	FRotator LocalRotation = Capsule->Rotation - InverseTransform.GetRotation().Rotator();
-
-	// Update the capsule with the local values
-	Capsule->Center = LocalCenter;
-	Capsule->HalfHeight = LocalHalfHeight;
-	Capsule->Radius = LocalRadius;
-	Capsule->Rotation = LocalRotation;
+	auto* CastShape = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
+	CastShape->ToLocalSpace_Implementation();
 }
 
 void UTetherShapeObject_Capsule::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,
