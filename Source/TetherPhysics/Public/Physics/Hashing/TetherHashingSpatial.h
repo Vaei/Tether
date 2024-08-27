@@ -11,7 +11,7 @@
  * Pair shapes by checking if they are either in the same bucket or a neighbouring bucket
  * This allows us to bypass overlap testing for shapes that aren't close enough to potentially collide
  */
-UCLASS(Abstract, NotBlueprintable)
+UCLASS(NotBlueprintable)
 class TETHERPHYSICS_API UTetherHashingSpatial : public UTetherHashing
 {
 	GENERATED_BODY()

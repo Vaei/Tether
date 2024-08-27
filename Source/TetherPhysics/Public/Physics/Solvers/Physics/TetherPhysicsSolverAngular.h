@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(NotBlueprintable)
 class TETHERPHYSICS_API UTetherPhysicsSolverAngular : public UTetherPhysicsSolver
 {
 	GENERATED_BODY()
