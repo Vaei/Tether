@@ -69,12 +69,12 @@ void UTetherShapeObject_OrientedBoundingBox::TransformToWorldSpace(FTetherShape&
 	FVector TransformedExtent = WorldTransform.GetScale3D() * OBB->Extent;
 
 	// Apply the rotation
-	FRotator TransformedRotation = WorldTransform.GetRotation().Rotator() + OBB->Rotation;
+	FQuat TransformedRotation = WorldTransform.GetRotation() * OBB->Rotation.Quaternion();
 
 	// Update the OBB with the transformed values
 	OBB->Center = TransformedCenter;
 	OBB->Extent = TransformedExtent;
-	OBB->Rotation = TransformedRotation;
+	OBB->Rotation = TransformedRotation.Rotator();
 }
 
 void UTetherShapeObject_OrientedBoundingBox::TransformToLocalSpace(FTetherShape& Shape) const

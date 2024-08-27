@@ -784,29 +784,46 @@ bool UTetherCollisionDetectionHandler::Narrow_OBB_OBB(const FTetherShape_Oriente
     FVector BY = BRotation.GetAxisY();
     FVector BZ = BRotation.GetAxisZ();
 
-    FVector Axes[] = {
-        AX, AY, AZ,  // A's local axes
-        BX, BY, BZ,  // B's local axes
-        FVector::CrossProduct(AX, BX), FVector::CrossProduct(AX, BY), FVector::CrossProduct(AX, BZ),
-        FVector::CrossProduct(AY, BX), FVector::CrossProduct(AY, BY), FVector::CrossProduct(AY, BZ),
-        FVector::CrossProduct(AZ, BX), FVector::CrossProduct(AZ, BY), FVector::CrossProduct(AZ, BZ)
-    };
+    // Collect all potential separating axes
+    FVector Axes[15];
+    Axes[0] = AX;
+    Axes[1] = AY;
+    Axes[2] = AZ;
+    Axes[3] = BX;
+    Axes[4] = BY;
+    Axes[5] = BZ;
+    Axes[6] = FVector::CrossProduct(AX, BX);
+    Axes[7] = FVector::CrossProduct(AX, BY);
+    Axes[8] = FVector::CrossProduct(AX, BZ);
+    Axes[9] = FVector::CrossProduct(AY, BX);
+    Axes[10] = FVector::CrossProduct(AY, BY);
+    Axes[11] = FVector::CrossProduct(AY, BZ);
+    Axes[12] = FVector::CrossProduct(AZ, BX);
+    Axes[13] = FVector::CrossProduct(AZ, BY);
+    Axes[14] = FVector::CrossProduct(AZ, BZ);
 
     for (const FVector& Axis : Axes)
     {
-        if (!Axis.IsZero())  // Avoid degenerate axes
+        if (Axis.IsNearlyZero()) continue;  // Skip near-degenerate axes
+
+        FVector NormalizedAxis = Axis.GetSafeNormal();
+
+        // Project both OBBs onto the axis
+        float AProjection = 
+            FMath::Abs(FVector::DotProduct(AX * AExtents.X, NormalizedAxis)) +
+            FMath::Abs(FVector::DotProduct(AY * AExtents.Y, NormalizedAxis)) +
+            FMath::Abs(FVector::DotProduct(AZ * AExtents.Z, NormalizedAxis));
+        
+        float BProjection = 
+            FMath::Abs(FVector::DotProduct(BX * BExtents.X, NormalizedAxis)) +
+            FMath::Abs(FVector::DotProduct(BY * BExtents.Y, NormalizedAxis)) +
+            FMath::Abs(FVector::DotProduct(BZ * BExtents.Z, NormalizedAxis));
+
+        float Distance = FMath::Abs(FVector::DotProduct(BCenter - ACenter, NormalizedAxis));
+
+        if (Distance > (AProjection + BProjection))
         {
-            FVector AbsAxis = Axis.GetAbs();
-
-            // Project both OBBs onto the axis
-            float AProjection = FVector::DotProduct(AExtents, AbsAxis.X * AX + AbsAxis.Y * AY + AbsAxis.Z * AZ);
-            float BProjection = FVector::DotProduct(BExtents, AbsAxis.X * BX + AbsAxis.Y * BY + AbsAxis.Z * BZ);
-            float Distance = FMath::Abs(FVector::DotProduct(BCenter - ACenter, Axis));
-
-            if (Distance > (AProjection + BProjection))
-            {
-                return false; // No collision
-            }
+            return false; // No collision
         }
     }
 
@@ -960,37 +977,41 @@ bool UTetherCollisionDetectionHandler::Narrow_Cone_Capsule(const FTetherShape_Co
 // Narrow-phase collision check for Cone vs Cone
 bool UTetherCollisionDetectionHandler::Narrow_Cone_Cone(const FTetherShape_Cone* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output)
 {
-    // Transform the tips and bases of both cones to world space
-    FVector A_Tip = A->BaseCenter + A->Rotation.RotateVector(FVector::UpVector) * A->Height;
-    FVector B_Tip = B->BaseCenter + B->Rotation.RotateVector(FVector::UpVector) * B->Height;
+    // Calculate the tips of the cones in world space
+    FVector A_Tip = A->BaseCenter + A->Rotation.RotateVector(FVector::UpVector * A->Height);
+    FVector B_Tip = B->BaseCenter + B->Rotation.RotateVector(FVector::UpVector * B->Height);
 
-    // Calculate the closest points on the cone axes
-    FVector ClosestPointA, ClosestPointB;
-    FMath::SegmentDistToSegmentSafe(A->BaseCenter, A_Tip, B->BaseCenter, B_Tip, ClosestPointA, ClosestPointB);
+    // Calculate the axes of the cones
+    FVector A_Axis = (A_Tip - A->BaseCenter).GetSafeNormal();
+    FVector B_Axis = (B_Tip - B->BaseCenter).GetSafeNormal();
 
-    // Compute the distance between the closest points
+    // Calculate the vector between the tips of the cones
+    FVector TipToTip = B_Tip - A_Tip;
+
+    // Project the TipToTip vector onto each cone's axis
+    float A_Projection = FVector::DotProduct(TipToTip, A_Axis);
+    float B_Projection = FVector::DotProduct(-TipToTip, B_Axis);
+
+    // Clamp the projections to the cones' height
+    A_Projection = FMath::Clamp(A_Projection, 0.0f, A->Height);
+    B_Projection = FMath::Clamp(B_Projection, 0.0f, B->Height);
+
+    // Determine the points along the cone axes that are closest to each other
+    FVector ClosestPointA = A->BaseCenter + A_Axis * A_Projection;
+    FVector ClosestPointB = B->BaseCenter + B_Axis * B_Projection;
+
+    // Calculate the distance between these closest points
     float DistanceSquared = FVector::DistSquared(ClosestPointA, ClosestPointB);
     float Distance = FMath::Sqrt(DistanceSquared);
 
-    // Calculate the proportion of the distance along each cone's height
-    float ProportionalDistanceA = FVector::Dist(ClosestPointA, A_Tip) / A->Height;
-    float ProportionalDistanceB = FVector::Dist(ClosestPointB, B_Tip) / B->Height;
+    // Calculate the radius at these points
+    float RadiusAtClosestPointA = A->BaseRadius * (1.0f - (A_Projection / A->Height));
+    float RadiusAtClosestPointB = B->BaseRadius * (1.0f - (B_Projection / B->Height));
 
-    // Calculate the radius at the closest points
-    float RadiusAtClosestPointA = A->BaseRadius * (1.0f - ProportionalDistanceA);
-    float RadiusAtClosestPointB = B->BaseRadius * (1.0f - ProportionalDistanceB);
+    // Combine the effective radii at these points
+    float CombinedRadii = RadiusAtClosestPointA + RadiusAtClosestPointB;
 
-    // Calculate the effective radii (ensure that rotation is correctly applied)
-    FVector EffectiveRadiusVectorA = A->Rotation.RotateVector(FVector(RadiusAtClosestPointA, 0, 0));
-    FVector EffectiveRadiusVectorB = B->Rotation.RotateVector(FVector(RadiusAtClosestPointB, 0, 0));
-
-    // Compute the effective radii lengths
-    float EffectiveRadiusA = EffectiveRadiusVectorA.Size();
-    float EffectiveRadiusB = EffectiveRadiusVectorB.Size();
-
-    // Check for overlap
-    float CombinedRadii = EffectiveRadiusA + EffectiveRadiusB;
-
+    // Determine if there's an overlap
     if (Distance <= CombinedRadii)
     {
         Output.bHasCollision = true;
@@ -1001,3 +1022,4 @@ bool UTetherCollisionDetectionHandler::Narrow_Cone_Cone(const FTetherShape_Cone*
 
     return false;
 }
+
