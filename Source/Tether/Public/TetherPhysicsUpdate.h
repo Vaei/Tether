@@ -29,7 +29,7 @@
  *     }
  * }
  */
-struct TETHERPHYSICS_API FTetherPhysicsUpdate
+struct TETHER_API FTetherPhysicsUpdate
 {
 	/** The fixed time step for each sub-tick, based on the desired simulation frame rate */
 	float TimeTick;
