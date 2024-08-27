@@ -77,9 +77,10 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 	const USkeletalMeshComponent* MeshComponent = Output.AnimInstanceProxy->GetSkelMeshComponent();
 	const FBoneContainer& RequiredBones = Output.AnimInstanceProxy->GetRequiredBones();
 	const AActor* Owner = MeshComponent ? MeshComponent->GetOwner() : nullptr;
+	const UWorld* World = Owner ? Owner->GetWorld() : nullptr;
 
 	// Validate
-	if (!MeshComponent || !IsValid(Owner))
+	if (!MeshComponent || !IsValid(Owner) || !World)
 	{
 		return;
 	}
@@ -103,15 +104,15 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		{
 			// @todo use mesh or actor TM probably
 			CurrentHashing->Solve(&SpatialHashingInput, &SpatialHashingOutput, RootTM, PhysicsUpdate.TimeTick);
+			CurrentHashing->DrawDebug(&SpatialHashingInput, &SpatialHashingOutput, Output.AnimInstanceProxy, World);
 		}
 		
-		// @todo 1. Solve Broad-Phase Collision
-
-		// Optional but common optimization step where you quickly check if objects are close enough to potentially
-		// collide. It reduces the number of detailed collision checks needed in the narrow phase.
-		
+		// 1. Solve Broad-Phase Collision
 		if (CurrentBroadPhaseCollisionDetection)
 		{
+			// Optional but common optimization step where you quickly check if objects are close enough to potentially
+			// collide. It reduces the number of detailed collision checks needed in the narrow phase.
+		
 			CurrentBroadPhaseCollisionDetection->DetectCollision(Shapes, BroadPhaseOutput);
 			CurrentBroadPhaseCollisionDetection->DrawDebug(Shapes, BroadPhaseOutput, Output.AnimInstanceProxy);
 		}
@@ -131,20 +132,32 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 			CurrentAngularSolver->Solve(&AngularInput, &AngularOutput, RootTM, PhysicsUpdate.TimeTick);
 		}
 
-		// @todo 4. Solve Integration
+		// 3. @todo Solve Integration
 
 		// This part of the solver takes the results from the linear and angular solvers and updates the position and
 		// orientation of objects over time. It essentially integrates the calculated forces and torques to determine
 		// how an object should move in the next time step.
 
-		// 4.5 Spatial Hashing - Re-Generate shape pairs, because the shapes have moved and narrow-phase is expensive
+		// 4. @todo Record state of all objects post-integration for replay purposes
+		// if (bIsRecording)
+		// {
+		// 	RecordPhysicsState();  // Implement this function to record the positions, velocities, etc.
+		// }
+
+		// 4.5 @todo Override the physics engine's output with recorded data
+		// if (bIsReplaying)
+		// {
+		// 	ReplayPhysicsState();  // Implement this function to apply the recorded states
+		// }
+		
+		// 5. Spatial Hashing - Re-Generate shape pairs, because the shapes have moved and narrow-phase is expensive
 		if (CurrentHashing)
 		{
 			// @todo use mesh or actor TM probably
 			CurrentHashing->Solve(&SpatialHashingInput, &SpatialHashingOutput, RootTM, PhysicsUpdate.TimeTick);
 		}
 		
-		// @todo 5. Solve Narrow-Phase Collision
+		// 6. @todo Solve Narrow-Phase Collision
 		// @todo add checks for nothing in nearby bucket, skip both broad phase and narrow phase if required
 		// if (CurrentNarrowPhaseCollisionDetection)
 		// {
@@ -155,12 +168,12 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		// This step checks for actual collisions using detailed geometry after the object has been moved.
 		// It’s a more precise and computationally expensive check compared to the broad phase.
 
-		// @todo 6. Solve Contact
+		// 7. @todo Solve Contact
 
 		// After detecting a collision, this step resolves it by adjusting the object's position and velocities. It
 		// prevents interpenetration and handles the physical response of the objects involved in the collision.
 
-		// @todo 7. Solve Constraints (Multiple!)
+		// 8. @todo Solve Constraints (Multiple!)
 
 		// This handles constraints that limit or define the relationships between objects, such as joints
 		// (e.g., hinges or sliders) that allow or restrict certain movements between connected objects.

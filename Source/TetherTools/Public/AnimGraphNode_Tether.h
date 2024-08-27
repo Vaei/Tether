@@ -13,7 +13,7 @@ class TETHERTOOLS_API UAnimGraphNode_Tether : public UAnimGraphNode_SkeletalCont
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, Category = Settings)
+	UPROPERTY(EditAnywhere, Category=Settings)
 	FAnimNode_Tether Node;
 
 	// UEdGraphNode interface
