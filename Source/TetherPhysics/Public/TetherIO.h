@@ -28,18 +28,26 @@ struct FTetherIO
 {
 	GENERATED_BODY()
 
-	// Templated SetStructData
+	// SetDataIO should copy the data from the input StructData to the current instance
 	template<typename StructType>
-	void SetDataIO(StructType& StructData)
+	void SetDataIO(const StructType& StructData)
 	{
-		*this = static_cast<void*>(&StructData);
+		*this = *reinterpret_cast<const FTetherIO*>(&StructData);
 	}
-	
-	template<typename StructType>
-	StructType* GetDataIO()
-	{
-		return static_cast<StructType*>(this);
-	}
+
+    // GetDataIO returns a mutable pointer to the current instance cast to StructType
+    template<typename StructType>
+    StructType* GetDataIO()
+    {
+        return static_cast<StructType*>(this);
+    }
+    
+    // GetDataIO returns a const pointer to the current instance cast to StructType
+    template<typename StructType>
+    const StructType* GetDataIO() const
+    {
+        return static_cast<const StructType*>(this);
+    }
 };
 
 USTRUCT(BlueprintType)
@@ -300,4 +308,105 @@ struct FTetherBroadPhaseCollisionOutput : public FTetherIO
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	TArray<FTetherBroadCollisionPair> CollisionPairings;
+};
+
+/**
+ * Single recorded frame in the physics simulation.
+ *
+ * This struct stores the linear and angular inputs for an object at a specific
+ * time stamp, enabling accurate replay of the simulation.
+ */
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FRecordedPhysicsFrame : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FRecordedPhysicsFrame()
+		: TimeStamp(0.f)
+	{}
+
+	FRecordedPhysicsFrame(float InTimeStamp, const FLinearInput& InLinearInput, const FAngularInput& InAngularInput)
+		: TimeStamp(InTimeStamp)
+		, LinearInput(InLinearInput)
+		, AngularInput(InAngularInput)
+	{}
+
+	/** The time at which this frame was recorded */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	float TimeStamp;
+
+	/** The linear input data at this frame */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FLinearInput LinearInput;
+
+	/** The angular input data at this frame */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FAngularInput AngularInput;
+};
+
+/**
+ * Recorded physics object in the simulation.
+ *
+ * This struct stores a pointer to the object being recorded, along with
+ * a sequence of recorded frames that capture the object's state over time.
+ */
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FRecordedPhysicsObject : public FTetherIO
+{
+	GENERATED_BODY()
+
+	/** The shape being recorded */
+	FTetherShape* TetherShape;
+
+	/** The sequence of recorded frames for this object */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Tether)
+	TArray<FRecordedPhysicsFrame> RecordedFrames;
+
+	/** 
+	 * Adds a new frame to the recorded sequence 
+	 * @param TimeStamp The time at which the frame is recorded
+	 * @param LinearInput Pointer to the linear input data for the frame
+	 * @param AngularInput Pointer to the angular input data for the frame
+	 */
+	void AddFrame(float TimeStamp, const FLinearInput* LinearInput, const FAngularInput* AngularInput)
+	{
+		RecordedFrames.Add(FRecordedPhysicsFrame(TimeStamp, *LinearInput, *AngularInput));
+	}
+};
+
+/**
+ * Entire recorded physics data for a simulation session.
+ *
+ * This struct stores the collection of all recorded objects in the session,
+ * allowing for the complete replay of the simulation.
+ */
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FRecordedPhysicsData : public FTetherIO
+{
+	GENERATED_BODY()
+
+	/** The collection of all recorded objects in the session */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Tether)
+	TArray<FRecordedPhysicsObject> RecordedObjects;
+
+	/**
+	 * Find or create an object recording by pointer
+	 * @param InTetherShape A pointer to the FTetherShape object
+	 * @return A pointer to the recorded object data
+	 */
+	FRecordedPhysicsObject* FindOrCreateObjectRecording(FTetherShape* InTetherShape)
+	{
+		for (FRecordedPhysicsObject& Obj : RecordedObjects)
+		{
+			if (Obj.TetherShape == InTetherShape)
+			{
+				return &Obj;
+			}
+		}
+
+		FRecordedPhysicsObject NewObject;
+		NewObject.TetherShape = InTetherShape;
+		RecordedObjects.Add(NewObject);
+		return &RecordedObjects.Last();
+	}
 };
