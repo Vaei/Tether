@@ -20,5 +20,5 @@ public:
 
 	virtual void DrawDebug(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
 		FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAll = true, const FColor& Color = FColor::Green,
-		bool bPersistentLines = false, float LifeTime = -1.0f, float Thickness = 1.0f) {}
+		bool bPersistentLines = false, float LifeTime = -1.0f, float Thickness = 1.0f) const {}
 };

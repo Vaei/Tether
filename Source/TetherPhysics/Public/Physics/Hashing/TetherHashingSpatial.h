@@ -21,7 +21,13 @@ public:
 
 protected:
 	// Function to add shapes to the spatial hash map
-	static void AddShapeToSpatialHash(const FSpatialHashingInput* Input, FSpatialHashingOutput* Output, int32 ShapeIndex, const FTetherShape& Shape, const FTransform& WorldOrigin);
+	static void AddShapeToSpatialHash(const FSpatialHashingInput* Input, FSpatialHashingOutput* Output,
+		int32 ShapeIndex, const FTetherShape& Shape, const FTransform& WorldOrigin)
+	{
+		FIntVector HashKey = ComputeSpatialHashKey(Input, Shape, WorldOrigin);
+		TArray<int32>& Value = Output->SpatialHashMap.FindOrAdd(HashKey);
+		Value.Add(ShapeIndex);
+	}
 
 	/** Compute the spatial hash key for a given shape */
 	static FIntVector ComputeSpatialHashKey(const FSpatialHashingInput* Input, const FTetherShape& Shape, const FTransform& WorldOrigin)
@@ -63,5 +69,5 @@ public:
 	
 	virtual void DrawDebug(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
 		FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAll, const FColor& Color,
-		bool bPersistentLines, float LifeTime, float Thickness) override;
+		bool bPersistentLines, float LifeTime, float Thickness) const override;
 };

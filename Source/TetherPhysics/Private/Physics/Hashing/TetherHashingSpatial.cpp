@@ -5,6 +5,8 @@
 
 #include "Animation/AnimInstanceProxy.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(TetherHashingSpatial)
+
 void UTetherHashingSpatial::Solve(FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform,
 	float DeltaTime) const
 {
@@ -58,21 +60,6 @@ void UTetherHashingSpatial::Solve(FTetherIO* InputData, FTetherIO* OutputData, c
 	}
 }
 
-static bool bEverRan = false;
-void UTetherHashingSpatial::AddShapeToSpatialHash(const FSpatialHashingInput* Input, FSpatialHashingOutput* Output,
-	int32 ShapeIndex, const FTetherShape& Shape, const FTransform& WorldOrigin)
-{
-	FIntVector HashKey = ComputeSpatialHashKey(Input, Shape, WorldOrigin);
-	TArray<FIntVector> TestOutput;
-	Output->SpatialHashMap.GenerateKeyArray(TestOutput);
-	if (!bEverRan)
-	{
-		bEverRan = true;
-		TArray<int32>& Value = Output->SpatialHashMap.FindOrAdd(HashKey);
-		Value.Add(ShapeIndex);
-	}
-}
-
 void UTetherHashingSpatial::DrawDebugBucket(FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World,
 	const FIntVector& BucketIndex, const FVector& BucketSize, const FColor& Color, bool bPersistentLines,
 	float LifeTime, float Thickness)
@@ -119,7 +106,7 @@ void UTetherHashingSpatial::DrawDebugBucket(FAnimInstanceProxy* AnimInstanceProx
 
 void UTetherHashingSpatial::DrawDebug(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
 	FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAll, const FColor& Color,
-	bool bPersistentLines, float LifeTime, float Thickness)
+	bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
 	if (!AnimInstanceProxy && !World)
