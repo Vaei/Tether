@@ -75,14 +75,11 @@ struct TETHERPHYSICS_API FSpatialHashingOutput : public FTetherIO
 	GENERATED_BODY()
 
 	FSpatialHashingOutput()
-		: Origin(FVector::ZeroVector)
 	{}
 
 	TArray<FTetherShapePair> ShapePairs;
     
 	TMap<FIntVector, TArray<int32>> SpatialHashMap;
-
-	FVector Origin;
 };
 
 USTRUCT(BlueprintType)

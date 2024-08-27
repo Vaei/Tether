@@ -15,6 +15,7 @@ class UTetherPhysicsSolverLinear;
 class UTetherCollisionDetectionNarrowPhase;
 class UTetherCollisionDetectionBroadPhase;
 class UTetherHashing;
+
 /**
  * Tether's core functionality
  */

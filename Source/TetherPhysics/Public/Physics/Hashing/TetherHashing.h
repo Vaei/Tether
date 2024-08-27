@@ -17,4 +17,8 @@ class TETHERPHYSICS_API UTetherHashing : public UObject
 
 public:
 	virtual void Solve(FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const {}
+
+	virtual void DrawDebug(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
+		FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAll = true, const FColor& Color = FColor::Green,
+		bool bPersistentLines = false, float LifeTime = -1.0f, float Thickness = 1.0f) {}
 };

@@ -8,7 +8,7 @@
 void UTetherPhysicsSolverLinear::Solve(FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const
 {
 	const auto* Input = InputData->GetDataIO<FLinearInput>();
-	auto* Output = InputData->GetDataIO<FLinearOutput>();
+	auto* Output = OutputData->GetDataIO<FLinearOutput>();
 	
 	// Calculate linear acceleration based on the net force and mass
 	FVector Acceleration = (Input->Force - Input->FrictionForce) / Input->Mass;

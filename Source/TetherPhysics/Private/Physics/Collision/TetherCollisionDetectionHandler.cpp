@@ -346,7 +346,8 @@ bool UTetherCollisionDetectionHandler::Broad_AABB_BoundingSphere(const FTetherSh
 bool UTetherCollisionDetectionHandler::Broad_AABB_OBB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_OrientedBoundingBox* B)
 {
 	// Call the corresponding OBB vs AABB function (symmetric)
-	return Broad_OBB_AABB(B, A);
+	FTetherShape_AxisAlignedBoundingBox OBBAABB = B->GetBoundingBox();
+	return Broad_AABB_AABB(A, &OBBAABB);
 }
 
 // AABB vs Capsule

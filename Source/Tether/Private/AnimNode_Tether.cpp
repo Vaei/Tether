@@ -16,9 +16,8 @@
 DECLARE_CYCLE_STAT(TEXT("Tether_Update"), STAT_TetherUpdate, STATGROUP_Tether);
 DECLARE_CYCLE_STAT(TEXT("Tether_Evaluate"), STAT_TetherEval, STATGROUP_Tether);
 
-// #if UE_ENABLE_DEBUG_DRAWING
-// TAutoConsoleVariable<bool> CVarMorpherDebugOffsetIK(TEXT("a.Tether.DebugOffsetIK"), false, TEXT("Draw Morpher IK Debugging to Screen when HandlingMode == MaintainOffset"));
-// TAutoConsoleVariable<bool> CVarMorpherDisableUserErrorChecking(TEXT("a.AnimNode.Morpher.DisableUserErrorChecking"), false, TEXT("Prevent user-error checking (overrides UserErrorNodeSeverity)"));
+// #if ENABLE_DRAW_DEBUG
+// TAutoConsoleVariable<bool> CVarTetherDebug(TEXT("p.Tether.Debug"), false, TEXT("Draw Tether Debugging information"));
 // #endif
 
 void FAnimNode_Tether::Initialize_AnyThread(const FAnimationInitializeContext& Context)
@@ -31,6 +30,9 @@ void FAnimNode_Tether::Initialize_AnyThread(const FAnimationInitializeContext& C
 	auto Sphere1 = FTetherShape_Capsule();
 	Shapes.Add(Sphere0);
 	Shapes.Add(Sphere1);
+
+	// @todo Does this need to ever be re-assigned?
+	SpatialHashingInput.Shapes = &Shapes;
 }
 
 void FAnimNode_Tether::UpdateInternal(const FAnimationUpdateContext& Context)
@@ -100,7 +102,6 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		if (CurrentHashing)
 		{
 			// @todo use mesh or actor TM probably
-			SpatialHashingInput.Shapes = &Shapes;
 			CurrentHashing->Solve(&SpatialHashingInput, &SpatialHashingOutput, RootTM, PhysicsUpdate.TimeTick);
 		}
 		
@@ -140,7 +141,6 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		if (CurrentHashing)
 		{
 			// @todo use mesh or actor TM probably
-			SpatialHashingInput.Shapes = &Shapes;
 			CurrentHashing->Solve(&SpatialHashingInput, &SpatialHashingOutput, RootTM, PhysicsUpdate.TimeTick);
 		}
 		

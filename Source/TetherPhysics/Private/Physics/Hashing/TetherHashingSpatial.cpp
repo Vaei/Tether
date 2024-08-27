@@ -11,11 +11,11 @@ void UTetherHashingSpatial::Solve(FTetherIO* InputData, FTetherIO* OutputData, c
 	// Generate shape pairs based on spatial hashing and efficiency rating
 
 	const auto* Input = InputData->GetDataIO<FSpatialHashingInput>();
-	auto* Output = InputData->GetDataIO<FSpatialHashingOutput>();
+	auto* Output = OutputData->GetDataIO<FSpatialHashingOutput>();
 	
 	// Clear previous pairs and hash map
-	Output->ShapePairs.Empty();
-	Output->SpatialHashMap.Empty();
+	Output->ShapePairs.Reset();
+	Output->SpatialHashMap.Reset();
 
 	// Add all shapes to the spatial hash map
 	const TArray<FTetherShape>& Shapes = *Input->Shapes;
@@ -55,6 +55,21 @@ void UTetherHashingSpatial::Solve(FTetherIO* InputData, FTetherIO* OutputData, c
 				}
 			}
 		}
+	}
+}
+
+static bool bEverRan = false;
+void UTetherHashingSpatial::AddShapeToSpatialHash(const FSpatialHashingInput* Input, FSpatialHashingOutput* Output,
+	int32 ShapeIndex, const FTetherShape& Shape, const FTransform& WorldOrigin)
+{
+	FIntVector HashKey = ComputeSpatialHashKey(Input, Shape, WorldOrigin);
+	TArray<FIntVector> TestOutput;
+	Output->SpatialHashMap.GenerateKeyArray(TestOutput);
+	if (!bEverRan)
+	{
+		bEverRan = true;
+		TArray<int32>& Value = Output->SpatialHashMap.FindOrAdd(HashKey);
+		Value.Add(ShapeIndex);
 	}
 }
 
@@ -102,9 +117,9 @@ void UTetherHashingSpatial::DrawDebugBucket(FAnimInstanceProxy* AnimInstanceProx
 #endif
 }
 
-void UTetherHashingSpatial::DrawDebugSpatialGrid(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
-	FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAllBuckets, const FColor& Color, bool
-	bPersistentLines, float LifeTime, float Thickness)
+void UTetherHashingSpatial::DrawDebug(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
+	FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAll, const FColor& Color,
+	bool bPersistentLines, float LifeTime, float Thickness)
 {
 #if ENABLE_DRAW_DEBUG
 	if (!AnimInstanceProxy && !World)
@@ -116,7 +131,7 @@ void UTetherHashingSpatial::DrawDebugSpatialGrid(const FSpatialHashingInput* Inp
 	FIntVector MaxBucketIndex(MIN_int32, MIN_int32, MIN_int32);
 
 	// If we want to draw all buckets, first calculate the bounds
-	if (bDrawAllBuckets)
+	if (bDrawAll)
 	{
 		for (const auto& HashEntry : Output->SpatialHashMap)
 		{

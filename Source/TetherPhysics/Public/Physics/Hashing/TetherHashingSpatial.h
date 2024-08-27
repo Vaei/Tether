@@ -21,12 +21,8 @@ public:
 
 protected:
 	// Function to add shapes to the spatial hash map
-	static void AddShapeToSpatialHash(const FSpatialHashingInput* Input, FSpatialHashingOutput* Output, int32 ShapeIndex, const FTetherShape& Shape, const FTransform& WorldOrigin)
-	{
-		FIntVector HashKey = ComputeSpatialHashKey(Input, Shape, WorldOrigin);
-		Output->SpatialHashMap.FindOrAdd(HashKey).Add(ShapeIndex);
-	}
-	
+	static void AddShapeToSpatialHash(const FSpatialHashingInput* Input, FSpatialHashingOutput* Output, int32 ShapeIndex, const FTetherShape& Shape, const FTransform& WorldOrigin);
+
 	/** Compute the spatial hash key for a given shape */
 	static FIntVector ComputeSpatialHashKey(const FSpatialHashingInput* Input, const FTetherShape& Shape, const FTransform& WorldOrigin)
 	{
@@ -60,12 +56,12 @@ protected:
 		return ShapeA.Bucket == ShapeB.Bucket || AreBucketsAdjacent(ShapeA.Bucket, ShapeB.Bucket);
 	}
 
+public:
 	static void DrawDebugBucket(FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World,
 		const FIntVector& BucketIndex, const FVector& BucketSize, const FColor& Color = FColor::Green,
 		bool bPersistentLines = false, float LifeTime = -1.0f, float Thickness = 1.0f);
 	
-	static void DrawDebugSpatialGrid(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
-		FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAllBuckets = true,
-		const FColor& Color = FColor::Green, bool bPersistentLines = false, float LifeTime = -1.0f,
-		float Thickness = 1.0f);
+	virtual void DrawDebug(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
+		FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAll, const FColor& Color,
+		bool bPersistentLines, float LifeTime, float Thickness) override;
 };

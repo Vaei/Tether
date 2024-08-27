@@ -11,7 +11,7 @@ void UTetherPhysicsSolverAngular::Solve(FTetherIO* InputData, FTetherIO* OutputD
 	float DeltaTime) const
 {
 	const auto* Input = InputData->GetDataIO<FAngularInput>();
-	auto* Output = InputData->GetDataIO<FAngularOutput>();
+	auto* Output = OutputData->GetDataIO<FAngularOutput>();
 	
 	const FVector BoxExtent = Input->GetBoxExtent();
 	
