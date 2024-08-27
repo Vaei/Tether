@@ -27,7 +27,6 @@ const FTetherShape& ATetherEditorShapeActor::GetTetherShape() const
 	if (ShapeType == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox) { return OBB; }
 	if (ShapeType == FTetherGameplayTags::Tether_Shape_BoundingSphere) { return BoundingSphere; }
 	if (ShapeType == FTetherGameplayTags::Tether_Shape_Capsule) { return Capsule; }
-	if (ShapeType == FTetherGameplayTags::Tether_Shape_Cone) { return Cone; }
 	
 	return AABB;
 }
@@ -41,14 +40,6 @@ void ATetherEditorShapeActor::TestCollisions(const TArray<ATetherEditorShapeActo
 			TestCollision(OtherActor);
 		}
 	}
-
-	FVector Origin = FVector(0, 0, 0);
-	FVector Direction = FVector(0, 0, 1); // Upward direction
-	float Height = 20.0f;
-	float BaseRadius = 10.0f;
-	float HalfAngle = FMath::Atan2(BaseRadius, Height); // Should be approx 0.4636 radians
-
-	DrawDebugCone(GetWorld(), Origin, Direction, Height, HalfAngle, HalfAngle, 12, FColor::Red, false, -1.0f, 0, 1.0f);
 }
 
 void ATetherEditorShapeActor::TestCollision(const ATetherEditorShapeActor* OtherShapeActor) const
@@ -117,10 +108,6 @@ bool ATetherEditorShapeActor::CanEditChange(const FProperty* InProperty) const
 	if (InProperty->GetFName().IsEqual(GET_MEMBER_NAME_CHECKED(ThisClass, Capsule)))
 	{
 		return ShapeType == FTetherGameplayTags::Tether_Shape_Capsule;
-	}
-	if (InProperty->GetFName().IsEqual(GET_MEMBER_NAME_CHECKED(ThisClass, Cone)))
-	{
-		return ShapeType == FTetherGameplayTags::Tether_Shape_Cone;
 	}
 	return Super::CanEditChange(InProperty);
 }

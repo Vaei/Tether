@@ -8,7 +8,6 @@
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
 #include "Shapes/TetherShape_BoundingSphere.h"
 #include "Shapes/TetherShape_Capsule.h"
-#include "Shapes/TetherShape_Cone.h"
 #include "Shapes/TetherShape_OrientedBoundingBox.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherCollisionDetectionHandler)
@@ -47,11 +46,6 @@ bool UTetherCollisionDetectionHandler::CheckBroadCollision(const FTetherShape& S
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Broad_AABB_Capsule(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeB);
-			return Broad_AABB_Cone(A, B);
-		}
 	}
 	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 	{
@@ -75,11 +69,6 @@ bool UTetherCollisionDetectionHandler::CheckBroadCollision(const FTetherShape& S
 		{
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Broad_BoundingSphere_Capsule(A, B);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeB);
-			return Broad_BoundingSphere_Cone(A, B);
 		}
 	}
 	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
@@ -105,11 +94,6 @@ bool UTetherCollisionDetectionHandler::CheckBroadCollision(const FTetherShape& S
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Broad_OBB_Capsule(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeB);
-			return Broad_OBB_Cone(A, B);
-		}
 	}
 	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 	{
@@ -133,40 +117,6 @@ bool UTetherCollisionDetectionHandler::CheckBroadCollision(const FTetherShape& S
 		{
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Broad_Capsule_Capsule(A, B);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeB);
-			return Broad_Capsule_Cone(A, B);
-		}
-	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
-			return Broad_Cone_AABB(A, B);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
-			return Broad_Cone_BoundingSphere(A, B);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
-			return Broad_Cone_OBB(A, B);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
-			return Broad_Cone_Capsule(A, B);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeB);
-			return Broad_Cone_Cone(A, B);
 		}
 	}
 
@@ -198,11 +148,6 @@ bool UTetherCollisionDetectionHandler::CheckNarrowCollision(const FTetherShape& 
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Narrow_AABB_Capsule(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeB);
-			return Narrow_AABB_Cone(A, B, Output);
-		}
 	}
 	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 	{
@@ -226,11 +171,6 @@ bool UTetherCollisionDetectionHandler::CheckNarrowCollision(const FTetherShape& 
 		{
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Narrow_BoundingSphere_Capsule(A, B, Output);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeB);
-			return Narrow_BoundingSphere_Cone(A, B, Output);
 		}
 	}
 	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
@@ -256,11 +196,6 @@ bool UTetherCollisionDetectionHandler::CheckNarrowCollision(const FTetherShape& 
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Narrow_OBB_Capsule(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeB);
-			return Narrow_OBB_Cone(A, B, Output);
-		}
 	}
 	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 	{
@@ -284,40 +219,6 @@ bool UTetherCollisionDetectionHandler::CheckNarrowCollision(const FTetherShape& 
 		{
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Narrow_Capsule_Capsule(A, B, Output);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeB);
-			return Narrow_Capsule_Cone(A, B, Output);
-		}
-	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
-			return Narrow_Cone_AABB(A, B, Output);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
-			return Narrow_Cone_BoundingSphere(A, B, Output);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
-			return Narrow_Cone_OBB(A, B, Output);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
-			return Narrow_Cone_Capsule(A, B, Output);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Cone)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Cone>(&ShapeB);
-			return Narrow_Cone_Cone(A, B, Output);
 		}
 	}
 
@@ -358,14 +259,6 @@ bool UTetherCollisionDetectionHandler::Broad_AABB_Capsule(const FTetherShape_Axi
 	return Broad_AABB_AABB(A, &CapsuleAABB);
 }
 
-// AABB vs Cone
-bool UTetherCollisionDetectionHandler::Broad_AABB_Cone(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_Cone* B)
-{
-	// Implement the broad-phase logic for AABB vs Cone
-	FTetherShape_AxisAlignedBoundingBox ConeAABB = B->GetBoundingBox();
-	return Broad_AABB_AABB(A, &ConeAABB);
-}
-
 // BoundingSphere vs AABB
 bool UTetherCollisionDetectionHandler::Broad_BoundingSphere_AABB(const FTetherShape_BoundingSphere* A, const FTetherShape_AxisAlignedBoundingBox* B)
 {
@@ -394,14 +287,6 @@ bool UTetherCollisionDetectionHandler::Broad_BoundingSphere_Capsule(const FTethe
 	// Implement the broad-phase logic for BoundingSphere vs Capsule
 	FTetherShape_AxisAlignedBoundingBox CapsuleAABB = B->GetBoundingBox();
 	return Broad_BoundingSphere_AABB(A, &CapsuleAABB);
-}
-
-// BoundingSphere vs Cone
-bool UTetherCollisionDetectionHandler::Broad_BoundingSphere_Cone(const FTetherShape_BoundingSphere* A, const FTetherShape_Cone* B)
-{
-	// Implement the broad-phase logic for BoundingSphere vs Cone
-	FTetherShape_AxisAlignedBoundingBox ConeAABB = B->GetBoundingBox();
-	return Broad_BoundingSphere_AABB(A, &ConeAABB);
 }
 
 // OBB vs AABB
@@ -435,13 +320,6 @@ bool UTetherCollisionDetectionHandler::Broad_OBB_Capsule(const FTetherShape_Orie
 	return Broad_Capsule_OBB(B, A);
 }
 
-// OBB vs Cone
-bool UTetherCollisionDetectionHandler::Broad_OBB_Cone(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_Cone* B)
-{
-	// Reuse the logic from Broad_Cone_OBB since OBB vs Cone and Cone vs OBB are symmetrical
-	return Broad_Cone_OBB(B, A);
-}
-
 // Capsule vs AABB
 bool UTetherCollisionDetectionHandler::Broad_Capsule_AABB(const FTetherShape_Capsule* A, const FTetherShape_AxisAlignedBoundingBox* B)
 {
@@ -471,58 +349,6 @@ bool UTetherCollisionDetectionHandler::Broad_Capsule_OBB(const FTetherShape_Caps
 bool UTetherCollisionDetectionHandler::Broad_Capsule_Capsule(const FTetherShape_Capsule* A, const FTetherShape_Capsule* B)
 {
 	// Implement the broad-phase logic for Capsule vs Capsule
-	FTetherShape_AxisAlignedBoundingBox AABB_A = A->GetBoundingBox();
-	FTetherShape_AxisAlignedBoundingBox AABB_B = B->GetBoundingBox();
-	return Broad_AABB_AABB(&AABB_A, &AABB_B);
-}
-
-// Capsule vs Cone
-bool UTetherCollisionDetectionHandler::Broad_Capsule_Cone(const FTetherShape_Capsule* A, const FTetherShape_Cone* B)
-{
-	// Implement the broad-phase logic for Capsule vs Cone
-	FTetherShape_AxisAlignedBoundingBox CapsuleAABB = A->GetBoundingBox();
-	FTetherShape_AxisAlignedBoundingBox ConeAABB = B->GetBoundingBox();
-	return Broad_AABB_AABB(&CapsuleAABB, &ConeAABB);
-}
-
-// Cone vs AABB
-bool UTetherCollisionDetectionHandler::Broad_Cone_AABB(const FTetherShape_Cone* A, const FTetherShape_AxisAlignedBoundingBox* B)
-{
-	// Implement the broad-phase logic for Cone vs AABB
-	FTetherShape_AxisAlignedBoundingBox ConeAABB = A->GetBoundingBox();
-	return Broad_AABB_AABB(&ConeAABB, B);
-}
-
-// Cone vs BoundingSphere
-bool UTetherCollisionDetectionHandler::Broad_Cone_BoundingSphere(const FTetherShape_Cone* A, const FTetherShape_BoundingSphere* B)
-{
-	// Implement the broad-phase logic for Cone vs BoundingSphere
-	FTetherShape_AxisAlignedBoundingBox ConeAABB = A->GetBoundingBox();
-	return Broad_BoundingSphere_AABB(B, &ConeAABB);
-}
-
-// Cone vs OBB
-bool UTetherCollisionDetectionHandler::Broad_Cone_OBB(const FTetherShape_Cone* A, const FTetherShape_OrientedBoundingBox* B)
-{
-	// Implement the broad-phase logic for Cone vs OBB
-	FTetherShape_AxisAlignedBoundingBox ConeAABB = A->GetBoundingBox();
-	FTetherShape_AxisAlignedBoundingBox OBBAABB = B->GetBoundingBox();
-	return Broad_AABB_AABB(&ConeAABB, &OBBAABB);
-}
-
-// Cone vs Capsule
-bool UTetherCollisionDetectionHandler::Broad_Cone_Capsule(const FTetherShape_Cone* A, const FTetherShape_Capsule* B)
-{
-	// Implement the broad-phase logic for Cone vs Capsule
-	FTetherShape_AxisAlignedBoundingBox ConeAABB = A->GetBoundingBox();
-	FTetherShape_AxisAlignedBoundingBox CapsuleAABB = B->GetBoundingBox();
-	return Broad_AABB_AABB(&ConeAABB, &CapsuleAABB);
-}
-
-// Cone vs Cone
-bool UTetherCollisionDetectionHandler::Broad_Cone_Cone(const FTetherShape_Cone* A, const FTetherShape_Cone* B)
-{
-	// Implement the broad-phase logic for Cone vs Cone
 	FTetherShape_AxisAlignedBoundingBox AABB_A = A->GetBoundingBox();
 	FTetherShape_AxisAlignedBoundingBox AABB_B = B->GetBoundingBox();
 	return Broad_AABB_AABB(&AABB_A, &AABB_B);
@@ -595,40 +421,6 @@ bool UTetherCollisionDetectionHandler::Narrow_AABB_Capsule(const FTetherShape_Ax
 	return false;
 }
 
-// Narrow-phase collision check for AABB vs Cone
-bool UTetherCollisionDetectionHandler::Narrow_AABB_Cone(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output)
-{
-	// Step 1: Transform the cone's apex and base center to the AABB's local space
-	FVector ConeApex = B->BaseCenter + B->Rotation.RotateVector(FVector::UpVector) * B->Height;
-	FVector ConeBaseCenter = B->BaseCenter;
-	FVector ConeAxis = (ConeApex - ConeBaseCenter).GetSafeNormal();
-
-	// Step 2: Calculate the closest point on the AABB to the cone's axis
-	FVector ClosestPointOnAABB = ClampVector(ConeBaseCenter, A->Min, A->Max);
-
-	// Step 3: Project the closest point onto the cone's axis
-	FVector ClosestPointOnAxis = ConeBaseCenter + ConeAxis * FVector::DotProduct(ClosestPointOnAABB - ConeBaseCenter, ConeAxis);
-
-	// Step 4: Calculate the distance from the cone's axis to the closest point on the AABB
-	float DistanceToAxisSquared = FVector::DistSquared(ClosestPointOnAABB, ClosestPointOnAxis);
-
-	// Step 5: Calculate the cone's radius at the projection point
-	float HeightRatio = FVector::Dist(ClosestPointOnAxis, ConeApex) / B->Height;
-	float ConeRadiusAtProjection = FMath::Lerp(0.0f, B->BaseRadius, HeightRatio);
-
-	// Step 6: Determine if the AABB intersects the cone
-	if (DistanceToAxisSquared <= FMath::Square(ConeRadiusAtProjection))
-	{
-		// The AABB intersects the cone
-		Output.bHasCollision = true;
-		Output.ContactPoint = ClosestPointOnAABB;
-		Output.PenetrationDepth = ConeRadiusAtProjection - FMath::Sqrt(DistanceToAxisSquared);
-		return true;
-	}
-
-	return false;
-}
-
 // Narrow-phase collision check for BoundingSphere vs AABB
 bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_AABB(const FTetherShape_BoundingSphere* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output)
 {
@@ -672,21 +464,6 @@ bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_Capsule(const FTeth
 {
 	// Implement a more precise narrow-phase check for BoundingSphere vs Capsule
 	if (Broad_BoundingSphere_Capsule(A, B))
-	{
-		// Placeholder: Assume collision at center points
-		Output.bHasCollision = true;
-		Output.ContactPoint = (A->Center + B->GetCenter()) * 0.5f;
-		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
-		return true;
-	}
-	return false;
-}
-
-// Narrow-phase collision check for BoundingSphere vs Cone
-bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_Cone(const FTetherShape_BoundingSphere* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output)
-{
-	// Implement a more precise narrow-phase check for BoundingSphere vs Cone
-	if (Broad_BoundingSphere_Cone(A, B))
 	{
 		// Placeholder: Assume collision at center points
 		Output.bHasCollision = true;
@@ -850,21 +627,6 @@ bool UTetherCollisionDetectionHandler::Narrow_OBB_Capsule(const FTetherShape_Ori
 	return false;
 }
 
-// Narrow-phase collision check for OBB vs Cone
-bool UTetherCollisionDetectionHandler::Narrow_OBB_Cone(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output)
-{
-	// Implement a more precise narrow-phase check for OBB vs Cone
-	if (Broad_OBB_Cone(A, B))
-	{
-		// Placeholder: Assume collision at center points
-		Output.bHasCollision = true;
-		Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
-		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
-		return true;
-	}
-	return false;
-}
-
 // Narrow-phase collision check for Capsule vs AABB
 bool UTetherCollisionDetectionHandler::Narrow_Capsule_AABB(const FTetherShape_Capsule* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output)
 {
@@ -934,92 +696,3 @@ bool UTetherCollisionDetectionHandler::Narrow_Capsule_Capsule(const FTetherShape
     // UE_LOG(LogTether, Warning, TEXT("No collision detected."));
     return false;
 }
-
-// Narrow-phase collision check for Capsule vs Cone
-bool UTetherCollisionDetectionHandler::Narrow_Capsule_Cone(const FTetherShape_Capsule* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output)
-{
-	// Implement a more precise narrow-phase check for Capsule vs Cone
-	if (Broad_Capsule_Cone(A, B))
-	{
-		// Placeholder: Assume collision at center points
-		Output.bHasCollision = true;
-		Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
-		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
-		return true;
-	}
-	return false;
-}
-
-// Narrow-phase collision check for Cone vs AABB
-bool UTetherCollisionDetectionHandler::Narrow_Cone_AABB(const FTetherShape_Cone* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output)
-{
-	return Narrow_AABB_Cone(B, A, Output); // Symmetric to AABB vs Cone
-}
-
-// Narrow-phase collision check for Cone vs BoundingSphere
-bool UTetherCollisionDetectionHandler::Narrow_Cone_BoundingSphere(const FTetherShape_Cone* A, const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionOutput& Output)
-{
-	return Narrow_BoundingSphere_Cone(B, A, Output); // Symmetric to BoundingSphere vs Cone
-}
-
-// Narrow-phase collision check for Cone vs OBB
-bool UTetherCollisionDetectionHandler::Narrow_Cone_OBB(const FTetherShape_Cone* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output)
-{
-	return Narrow_OBB_Cone(B, A, Output); // Symmetric to OBB vs Cone
-}
-
-// Narrow-phase collision check for Cone vs Capsule
-bool UTetherCollisionDetectionHandler::Narrow_Cone_Capsule(const FTetherShape_Cone* A, const FTetherShape_Capsule* B, FTetherNarrowPhaseCollisionOutput& Output)
-{
-	return Narrow_Capsule_Cone(B, A, Output); // Symmetric to Capsule vs Cone
-}
-
-// Narrow-phase collision check for Cone vs Cone
-bool UTetherCollisionDetectionHandler::Narrow_Cone_Cone(const FTetherShape_Cone* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output)
-{
-    // Calculate the tips of the cones in world space
-    FVector A_Tip = A->BaseCenter + A->Rotation.RotateVector(FVector::UpVector * A->Height);
-    FVector B_Tip = B->BaseCenter + B->Rotation.RotateVector(FVector::UpVector * B->Height);
-
-    // Calculate the axes of the cones
-    FVector A_Axis = (A_Tip - A->BaseCenter).GetSafeNormal();
-    FVector B_Axis = (B_Tip - B->BaseCenter).GetSafeNormal();
-
-    // Calculate the vector between the tips of the cones
-    FVector TipToTip = B_Tip - A_Tip;
-
-    // Project the TipToTip vector onto each cone's axis
-    float A_Projection = FVector::DotProduct(TipToTip, A_Axis);
-    float B_Projection = FVector::DotProduct(-TipToTip, B_Axis);
-
-    // Clamp the projections to the cones' height
-    A_Projection = FMath::Clamp(A_Projection, 0.0f, A->Height);
-    B_Projection = FMath::Clamp(B_Projection, 0.0f, B->Height);
-
-    // Determine the points along the cone axes that are closest to each other
-    FVector ClosestPointA = A->BaseCenter + A_Axis * A_Projection;
-    FVector ClosestPointB = B->BaseCenter + B_Axis * B_Projection;
-
-    // Calculate the distance between these closest points
-    float DistanceSquared = FVector::DistSquared(ClosestPointA, ClosestPointB);
-    float Distance = FMath::Sqrt(DistanceSquared);
-
-    // Calculate the radius at these points
-    float RadiusAtClosestPointA = A->BaseRadius * (1.0f - (A_Projection / A->Height));
-    float RadiusAtClosestPointB = B->BaseRadius * (1.0f - (B_Projection / B->Height));
-
-    // Combine the effective radii at these points
-    float CombinedRadii = RadiusAtClosestPointA + RadiusAtClosestPointB;
-
-    // Determine if there's an overlap
-    if (Distance <= CombinedRadii)
-    {
-        Output.bHasCollision = true;
-        Output.ContactPoint = (ClosestPointA + ClosestPointB) * 0.5f;
-        Output.PenetrationDepth = CombinedRadii - Distance;
-        return true;
-    }
-
-    return false;
-}
-

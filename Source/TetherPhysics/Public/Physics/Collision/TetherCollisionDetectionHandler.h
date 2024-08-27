@@ -7,7 +7,6 @@
 #include "UObject/Object.h"
 #include "TetherCollisionDetectionHandler.generated.h"
 
-struct FTetherShape_Cone;
 struct FTetherShape_Capsule;
 struct FTetherShape_OrientedBoundingBox;
 struct FTetherShape_BoundingSphere;
@@ -47,60 +46,40 @@ public:
 	static bool Broad_AABB_BoundingSphere(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_BoundingSphere* B);
 	static bool Broad_AABB_OBB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_OrientedBoundingBox* B);
 	static bool Broad_AABB_Capsule(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_Capsule* B);
-	static bool Broad_AABB_Cone(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_Cone* B);
 
 	static bool Broad_BoundingSphere_AABB(const FTetherShape_BoundingSphere* A, const FTetherShape_AxisAlignedBoundingBox* B);
 	static bool Broad_BoundingSphere_BoundingSphere(const FTetherShape_BoundingSphere* A, const FTetherShape_BoundingSphere* B);
 	static bool Broad_BoundingSphere_OBB(const FTetherShape_BoundingSphere* A, const FTetherShape_OrientedBoundingBox* B);
 	static bool Broad_BoundingSphere_Capsule(const FTetherShape_BoundingSphere* A, const FTetherShape_Capsule* B);
-	static bool Broad_BoundingSphere_Cone(const FTetherShape_BoundingSphere* A, const FTetherShape_Cone* B);
 
 	static bool Broad_OBB_AABB(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B);
 	static bool Broad_OBB_BoundingSphere(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_BoundingSphere* B);
 	static bool Broad_OBB_OBB(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_OrientedBoundingBox* B);
 	static bool Broad_OBB_Capsule(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_Capsule* B);
-	static bool Broad_OBB_Cone(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_Cone* B);
 
 	static bool Broad_Capsule_AABB(const FTetherShape_Capsule* A, const FTetherShape_AxisAlignedBoundingBox* B);
 	static bool Broad_Capsule_BoundingSphere(const FTetherShape_Capsule* A, const FTetherShape_BoundingSphere* B);
 	static bool Broad_Capsule_OBB(const FTetherShape_Capsule* A, const FTetherShape_OrientedBoundingBox* B);
 	static bool Broad_Capsule_Capsule(const FTetherShape_Capsule* A, const FTetherShape_Capsule* B);
-	static bool Broad_Capsule_Cone(const FTetherShape_Capsule* A, const FTetherShape_Cone* B);
-
-	static bool Broad_Cone_AABB(const FTetherShape_Cone* A, const FTetherShape_AxisAlignedBoundingBox* B);
-	static bool Broad_Cone_BoundingSphere(const FTetherShape_Cone* A, const FTetherShape_BoundingSphere* B);
-	static bool Broad_Cone_OBB(const FTetherShape_Cone* A, const FTetherShape_OrientedBoundingBox* B);
-	static bool Broad_Cone_Capsule(const FTetherShape_Cone* A, const FTetherShape_Capsule* B);
-	static bool Broad_Cone_Cone(const FTetherShape_Cone* A, const FTetherShape_Cone* B);
 
 	// Narrow-phase collision checks
 	static bool Narrow_AABB_AABB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_AABB_BoundingSphere(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_AABB_OBB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_AABB_Capsule(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_Capsule* B, FTetherNarrowPhaseCollisionOutput& Output);
-	static bool Narrow_AABB_Cone(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output);
 
 	static bool Narrow_BoundingSphere_AABB(const FTetherShape_BoundingSphere* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_BoundingSphere_BoundingSphere(const FTetherShape_BoundingSphere* A, const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_BoundingSphere_OBB(const FTetherShape_BoundingSphere* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_BoundingSphere_Capsule(const FTetherShape_BoundingSphere* A, const FTetherShape_Capsule* B, FTetherNarrowPhaseCollisionOutput& Output);
-	static bool Narrow_BoundingSphere_Cone(const FTetherShape_BoundingSphere* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output);
 
 	static bool Narrow_OBB_AABB(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_OBB_BoundingSphere(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_OBB_OBB(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_OBB_Capsule(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_Capsule* B, FTetherNarrowPhaseCollisionOutput& Output);
-	static bool Narrow_OBB_Cone(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output);
 
 	static bool Narrow_Capsule_AABB(const FTetherShape_Capsule* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_Capsule_BoundingSphere(const FTetherShape_Capsule* A, const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_Capsule_OBB(const FTetherShape_Capsule* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output);
 	static bool Narrow_Capsule_Capsule(const FTetherShape_Capsule* A, const FTetherShape_Capsule* B, FTetherNarrowPhaseCollisionOutput& Output);
-	static bool Narrow_Capsule_Cone(const FTetherShape_Capsule* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output);
-
-	static bool Narrow_Cone_AABB(const FTetherShape_Cone* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output);
-	static bool Narrow_Cone_BoundingSphere(const FTetherShape_Cone* A, const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionOutput& Output);
-	static bool Narrow_Cone_OBB(const FTetherShape_Cone* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output);
-	static bool Narrow_Cone_Capsule(const FTetherShape_Cone* A, const FTetherShape_Capsule* B, FTetherNarrowPhaseCollisionOutput& Output);
-	static bool Narrow_Cone_Cone(const FTetherShape_Cone* A, const FTetherShape_Cone* B, FTetherNarrowPhaseCollisionOutput& Output);
 };
