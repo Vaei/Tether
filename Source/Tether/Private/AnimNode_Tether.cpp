@@ -8,6 +8,7 @@
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
 #include "Physics/Collision/TetherCollisionDetectionNarrowPhase.h"
 #include "Physics/Hashing/TetherHashingSpatial.h"
+#include "Physics/Replay/TetherReplay.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverLinear.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverAngular.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
@@ -49,10 +50,10 @@ void FAnimNode_Tether::UpdateInternal(const FAnimationUpdateContext& Context)
 	}
 
 	// Detect gameplay tag changes and grab the newly referenced object
-	if (LastHashing != Hashing)
+	if (LastHashingSystem != HashingSystem)
 	{
-		LastHashing = Hashing;
-		CurrentHashing = UTetherDeveloperSettings::GetHashing<UTetherHashingSpatial>(Hashing);
+		LastHashingSystem = HashingSystem;
+		CurrentHashingSystem = UTetherDeveloperSettings::GetHashingSystem<UTetherHashingSpatial>(HashingSystem);
 	}
 
 	if (LastLinearSolver != LinearSolver)
@@ -65,6 +66,12 @@ void FAnimNode_Tether::UpdateInternal(const FAnimationUpdateContext& Context)
 	{
 		LastAngularSolver = AngularSolver;
 		CurrentAngularSolver = UTetherDeveloperSettings::GetSolver<UTetherPhysicsSolverAngular>(AngularSolver);
+	}
+
+	if (LastReplaySystem != ReplaySystem)
+	{
+		LastReplaySystem = ReplaySystem;
+		CurrentReplaySystem = UTetherDeveloperSettings::GetReplaySystem<UTetherReplay>(ReplaySystem);
 	}
 }
 
@@ -100,11 +107,11 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 	while (PhysicsUpdate.ShouldTick())
 	{
 		// 0. Spatial Hashing - Generate shape pairs based on proximity and efficiency ratings for priority
-		if (CurrentHashing)
+		if (CurrentHashingSystem)
 		{
 			// @todo use mesh or actor TM probably
-			CurrentHashing->Solve(&SpatialHashingInput, &SpatialHashingOutput, RootTM, PhysicsUpdate.TimeTick);
-			CurrentHashing->DrawDebug(&SpatialHashingInput, &SpatialHashingOutput, Output.AnimInstanceProxy, World);
+			CurrentHashingSystem->Solve(&SpatialHashingInput, &SpatialHashingOutput, RootTM, PhysicsUpdate.TimeTick);
+			CurrentHashingSystem->DrawDebug(&SpatialHashingInput, &SpatialHashingOutput, Output.AnimInstanceProxy, World);
 		}
 		
 		// 1. Solve Broad-Phase Collision
@@ -149,12 +156,18 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		// {
 		// 	ReplayPhysicsState();  // Implement this function to apply the recorded states
 		// }
+
+		if (CurrentReplaySystem)
+		{
+			CurrentReplaySystem->RecordPhysicsState(&RecordedData, World->GetTimeSeconds(), Shapes, &LinearInput, &AngularInput);
+			CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, RootTM, PhysicsUpdate.TimeTick);
+		}
 		
 		// 5. Spatial Hashing - Re-Generate shape pairs, because the shapes have moved and narrow-phase is expensive
-		if (CurrentHashing)
+		if (CurrentHashingSystem)
 		{
 			// @todo use mesh or actor TM probably
-			CurrentHashing->Solve(&SpatialHashingInput, &SpatialHashingOutput, RootTM, PhysicsUpdate.TimeTick);
+			CurrentHashingSystem->Solve(&SpatialHashingInput, &SpatialHashingOutput, RootTM, PhysicsUpdate.TimeTick);
 		}
 		
 		// 6. @todo Solve Narrow-Phase Collision

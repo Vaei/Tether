@@ -16,6 +16,12 @@ namespace FTetherGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics_Angular, "Tether.Solver.Physics.Angular");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Contact, "Tether.Solver.Contact");
 
+	/** Gameplay tags for tether replay system */
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Replay, "Tether.Replay");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Replay_Mode_Idle, "Tether.Replay.Mode.Idle");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Replay_Mode_Recording, "Tether.Replay.Mode.Recording");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Replay_Mode_Replaying, "Tether.Replay.Mode.Replaying");
+
 	/** Gameplay tags for tether shapes */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Shape, "Tether.Shape");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Tether_Shape_AxisAlignedBoundingBox, "Tether.Shape.AxisAlignedBoundingBox", "AABBs are simpler to compute, as they only require finding the minimum and maximum extents of the object along the coordinate axes. Because they are axis-aligned, checking for overlaps between two AABBs is computationally cheap");

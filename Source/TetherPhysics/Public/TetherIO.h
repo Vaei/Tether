@@ -22,7 +22,27 @@ enum class ETetherAngularShape : uint8
 {
 	Box,
 	Sphere,
-	Capsule
+	Capsule,
+};
+
+/**
+ * Determines the behavior of the replay system when handling multiple shapes.
+ *
+ * - Completion: This mode ensures that all shapes are checked, and the function will return true
+ *   if at least one shape successfully replays its physics state. This is useful when you want to
+ *   guarantee that all potential replays are evaluated, and the final result reflects whether any
+ *   shape matched the given timestamp.
+ *
+ * - ShortCircuit: This mode causes the replay process to halt as soon as a successful replay is found.
+ *   It returns true immediately after the first successful replay, making it more efficient in cases
+ *   where finding the first match is sufficient. This mode can be particularly useful for optimizing
+ *   performance when you do not need to evaluate all shapes.
+ */
+UENUM(BlueprintType)
+enum class ETetherReplayMode : uint8
+{
+	Completion			UMETA(ToolTip="This mode ensures that all shapes are checked, and the function will return true if at least one shape successfully replays its physics state. This is useful when you want to guarantee that all potential replays are evaluated, and the final result reflects whether any shape matched the given timestamp."),
+	ShortCircuit		UMETA(DisplayName="Short-Circuit", ToolTip="This mode causes the replay process to halt as soon as a successful replay is found. It returns true immediately after the first successful replay, making it more efficient in cases where finding the first match is sufficient. This mode can be particularly useful for optimizing performance when you do not need to evaluate all shapes."),
 };
 
 /**
@@ -413,7 +433,7 @@ struct TETHERPHYSICS_API FRecordedPhysicsFrame : public FTetherIO
 		: TimeStamp(0.f)
 	{}
 
-	FRecordedPhysicsFrame(float InTimeStamp, const FLinearInput& InLinearInput, const FAngularInput& InAngularInput)
+	FRecordedPhysicsFrame(double InTimeStamp, const FLinearInput& InLinearInput, const FAngularInput& InAngularInput)
 		: TimeStamp(InTimeStamp)
 		, LinearInput(InLinearInput)
 		, AngularInput(InAngularInput)
@@ -421,7 +441,7 @@ struct TETHERPHYSICS_API FRecordedPhysicsFrame : public FTetherIO
 
 	/** The time at which this frame was recorded */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	float TimeStamp;
+	double TimeStamp;
 
 	/** The linear input data at this frame */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
@@ -444,7 +464,7 @@ struct TETHERPHYSICS_API FRecordedPhysicsObject : public FTetherIO
 	GENERATED_BODY()
 
 	/** The shape being recorded */
-	FTetherShape* TetherShape;
+	const FTetherShape* TetherShape;
 
 	/** The sequence of recorded frames for this object */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Tether)
@@ -456,7 +476,7 @@ struct TETHERPHYSICS_API FRecordedPhysicsObject : public FTetherIO
 	 * @param LinearInput Pointer to the linear input data for the frame
 	 * @param AngularInput Pointer to the angular input data for the frame
 	 */
-	void AddFrame(float TimeStamp, const FLinearInput* LinearInput, const FAngularInput* AngularInput)
+	void AddFrame(double TimeStamp, const FLinearInput* LinearInput, const FAngularInput* AngularInput)
 	{
 		RecordedFrames.Add(FRecordedPhysicsFrame(TimeStamp, *LinearInput, *AngularInput));
 	}
@@ -482,7 +502,7 @@ struct TETHERPHYSICS_API FRecordedPhysicsData : public FTetherIO
 	 * @param InTetherShape A pointer to the FTetherShape object
 	 * @return A pointer to the recorded object data
 	 */
-	FRecordedPhysicsObject* FindOrCreateObjectRecording(FTetherShape* InTetherShape)
+	FRecordedPhysicsObject* FindOrCreateObjectRecording(const FTetherShape* InTetherShape)
 	{
 		for (FRecordedPhysicsObject& Obj : RecordedObjects)
 		{

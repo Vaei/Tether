@@ -7,6 +7,7 @@
 #include "Engine/DeveloperSettings.h"
 #include "TetherDeveloperSettings.generated.h"
 
+class UTetherReplay;
 class UTetherHashing;
 class UTetherCollisionDetectionHandler;
 class UTetherPhysicsSolver;
@@ -35,11 +36,15 @@ class TETHERPHYSICS_API UTetherDeveloperSettings : public UDeveloperSettings
 public:
 	/** A map of gameplay tags to available hashing solutions for Tether */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Hashing"))
-	TMap<FGameplayTag, TSubclassOf<UTetherHashing>> Hashing;
+	TMap<FGameplayTag, TSubclassOf<UTetherHashing>> HashingSystems;
 	
 	/** A map of gameplay tags to available solvers for Tether */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Solver"))
 	TMap<FGameplayTag, TSubclassOf<UTetherPhysicsSolver>> Solvers;
+	
+	/** A map of gameplay tags to available solvers for Tether */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Solver"))
+	TMap<FGameplayTag, TSubclassOf<UTetherReplay>> ReplaySystems;
 
 	/** The class used to handle collisions between different shapes in the Tether physics system */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, NoClear, Category=Tether)
@@ -60,9 +65,9 @@ public:
 
 	/** Retrieves a hashing solution based on the provided gameplay tag and casts it to the specified type */
 	template<typename T>
-	static T* GetHashing(const FGameplayTag& Tag)
+	static T* GetHashingSystem(const FGameplayTag& Tag)
 	{
-		return GetInternal<UTetherHashing, T>(Tag, Get()->Hashing);
+		return GetInternal<UTetherHashing, T>(Tag, Get()->HashingSystems);
 	}
 
 	/** Retrieves a solver based on the provided gameplay tag and casts it to the specified type */
@@ -70,6 +75,13 @@ public:
 	static T* GetSolver(const FGameplayTag& Tag)
 	{
 		return GetInternal<UTetherPhysicsSolver, T>(Tag, Get()->Solvers);
+	}
+
+	/** Retrieves a replay system based on the provided gameplay tag and casts it to the specified type */
+	template<typename T>
+	static T* GetReplaySystem(const FGameplayTag& Tag)
+	{
+		return GetInternal<UTetherReplay, T>(Tag, Get()->ReplaySystems);
 	}
 	
 #if WITH_EDITOR

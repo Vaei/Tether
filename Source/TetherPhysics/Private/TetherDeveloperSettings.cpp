@@ -16,7 +16,7 @@ UTetherDeveloperSettings::UTetherDeveloperSettings(const FObjectInitializer& Obj
 	: Super(ObjectInitializer)
 {
 	// Default Hashing (Spatial)
-	Hashing.Add({ FTetherGameplayTags::Tether_Hashing_Spatial.GetTag(), UTetherHashingSpatial::StaticClass() });
+	HashingSystems.Add({ FTetherGameplayTags::Tether_Hashing_Spatial.GetTag(), UTetherHashingSpatial::StaticClass() });
 	
 	// Default Solvers
 	Solvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Linear.GetTag(), UTetherPhysicsSolverLinear::StaticClass() });

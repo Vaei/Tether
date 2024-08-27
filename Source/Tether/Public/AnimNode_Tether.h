@@ -10,6 +10,7 @@
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
 #include "AnimNode_Tether.generated.h"
 
+class UTetherReplay;
 class UTetherPhysicsSolverAngular;
 class UTetherPhysicsSolverLinear;
 class UTetherCollisionDetectionNarrowPhase;
@@ -26,13 +27,16 @@ struct TETHER_API FAnimNode_Tether : public FAnimNode_SkeletalControlBase
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Hashing"))
-	FGameplayTag Hashing = FTetherGameplayTags::Tether_Hashing_Spatial;
+	FGameplayTag HashingSystem = FTetherGameplayTags::Tether_Hashing_Spatial;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Physics.Linear"))
 	FGameplayTag LinearSolver = FTetherGameplayTags::Tether_Solver_Physics_Linear;
 		
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Physics.Angular"))
 	FGameplayTag AngularSolver = FTetherGameplayTags::Tether_Solver_Physics_Angular;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Replay"))
+	FGameplayTag ReplaySystem = FTetherGameplayTags::Tether_Replay;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Contact"))
 	FGameplayTag ContactSolver;
@@ -78,22 +82,28 @@ protected:
 	FAngularOutput AngularOutput;
 
 	UPROPERTY()
+	FRecordedPhysicsData RecordedData;
+
+	UPROPERTY()
 	FTetherBroadPhaseCollisionOutput BroadPhaseOutput;
 
 	UPROPERTY()
 	TArray<FTetherNarrowPhaseCollisionOutput> NarrowPhaseOutput;
 
 	UPROPERTY(Transient)
-	FGameplayTag LastHashing = FGameplayTag::EmptyTag;
+	FGameplayTag LastHashingSystem = FGameplayTag::EmptyTag;
 	
 	UPROPERTY(Transient)
 	FGameplayTag LastLinearSolver = FGameplayTag::EmptyTag;
 
 	UPROPERTY(Transient)
 	FGameplayTag LastAngularSolver = FGameplayTag::EmptyTag;
+	
+	UPROPERTY(Transient)
+	FGameplayTag LastReplaySystem = FGameplayTag::EmptyTag;
 
 	UPROPERTY(Transient)
-	const UTetherHashing* CurrentHashing = nullptr;
+	const UTetherHashing* CurrentHashingSystem = nullptr;
 	
 	UPROPERTY(Transient)
 	const UTetherCollisionDetectionBroadPhase* CurrentBroadPhaseCollisionDetection = nullptr;
@@ -106,6 +116,9 @@ protected:
 	
 	UPROPERTY(Transient)
 	const UTetherPhysicsSolverAngular* CurrentAngularSolver = nullptr;
+	
+	UPROPERTY(Transient)
+	const UTetherReplay* CurrentReplaySystem = nullptr;
 
 protected:
 	FCompactPoseBoneIndex RootBoneIndex = FCompactPoseBoneIndex(INDEX_NONE);

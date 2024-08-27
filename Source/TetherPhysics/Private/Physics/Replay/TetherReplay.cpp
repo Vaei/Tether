@@ -5,41 +5,61 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherReplay)
 
-void UTetherReplay::RecordPhysicsState(FTetherIO* RecordedData, float TimeStamp, FTetherShape* TetherShape,
-	const FTetherIO* LinearInputData, const FTetherIO* AngularInputData) const
+void UTetherReplay::RecordPhysicsState(FTetherIO* RecordedData, double TimeStamp,
+	const TArray<FTetherShape>& TetherShapes, const FTetherIO* LinearInputData, const FTetherIO* AngularInputData) const
 {
 	auto* Record = RecordedData->GetDataIO<FRecordedPhysicsData>();
 	const auto* LinearInput = LinearInputData->GetDataIO<FLinearInput>();
 	const auto* AngularInput = AngularInputData->GetDataIO<FAngularInput>();
 
-	FRecordedPhysicsObject* ObjectRecording = Record->FindOrCreateObjectRecording(TetherShape);
-	if (ObjectRecording)
+	for (const FTetherShape& TetherShape : TetherShapes)
 	{
-		ObjectRecording->AddFrame(TimeStamp, LinearInput, AngularInput);
+		FRecordedPhysicsObject* ObjectRecording = Record->FindOrCreateObjectRecording(&TetherShape);
+		if (ObjectRecording)
+		{
+			ObjectRecording->AddFrame(TimeStamp, LinearInput, AngularInput);
+		}
 	}
 }
 
-bool UTetherReplay::ReplayPhysicsState(const FTetherIO* RecordedData, float TimeStamp, FTetherShape* TetherShape,
-	FTetherIO* OutLinearInput, FTetherIO* OutAngularInput) const
+bool UTetherReplay::ReplayPhysicsState(const FTetherIO* RecordedData, double TimeStamp, const TArray<FTetherShape>& TetherShapes, FTetherIO* OutLinearInput, FTetherIO* OutAngularInput, ETetherReplayMode ReplayMode) const
 {
 	auto* Record = RecordedData->GetDataIO<FRecordedPhysicsData>();
-	const FRecordedPhysicsObject* ObjectRecording = Record->RecordedObjects.FindByPredicate([&](const FRecordedPhysicsObject& Obj)
-	{
-		return Obj.TetherShape == TetherShape;
-	});
+	bool bSuccess = false;
 
-	if (ObjectRecording)
+	// Iterate over each TetherShape in the provided array
+	for (const FTetherShape& TetherShape : TetherShapes)
 	{
-		for (const FRecordedPhysicsFrame& Frame : ObjectRecording->RecordedFrames)
+		const FRecordedPhysicsObject* ObjectRecording = Record->RecordedObjects.FindByPredicate([&](const FRecordedPhysicsObject& Obj)
 		{
-			if (FMath::IsNearlyEqual(Frame.TimeStamp, TimeStamp, KINDA_SMALL_NUMBER))
+			return Obj.TetherShape == &TetherShape;
+		});
+
+		if (ObjectRecording)
+		{
+			// Check each frame within the object recording for a matching timestamp
+			for (const FRecordedPhysicsFrame& Frame : ObjectRecording->RecordedFrames)
 			{
-				OutLinearInput->SetDataIO<FLinearInput>(Frame.LinearInput);
-				OutAngularInput->SetDataIO<FAngularInput>(Frame.AngularInput);
-				return true;
+				if (FMath::IsNearlyEqual(Frame.TimeStamp, TimeStamp, KINDA_SMALL_NUMBER))
+				{
+					// Set the output data for the matching frame
+					OutLinearInput->SetDataIO<FLinearInput>(Frame.LinearInput);
+					OutAngularInput->SetDataIO<FAngularInput>(Frame.AngularInput);
+					
+					bSuccess = true;
+
+					// In ShortCircuit mode, return immediately after the first successful match
+					if (ReplayMode == ETetherReplayMode::ShortCircuit)
+					{
+						return true;
+					}
+
+					// Continue checking other shapes in Completion mode
+				}
 			}
 		}
 	}
 
-	return false;
+	// Return true if at least one TetherShape successfully replayed its state, otherwise false
+	return bSuccess;
 }
