@@ -5,15 +5,18 @@
 
 namespace FTetherGameplayTags
 {
+	/** Gameplay tags for tether hashing */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Hashing, "Tether.Hashing");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Hashing_Spatial, "Tether.Hashing.Spatial");
-	
+
+	/** Gameplay tags for tether solvers */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver, "Tether.Solver");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics, "Tether.Solver.Physics");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics_Linear, "Tether.Solver.Physics.Linear");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics_Angular, "Tether.Solver.Physics.Angular");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Contact, "Tether.Solver.Contact");
-	
+
+	/** Gameplay tags for tether shapes */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Shape, "Tether.Shape");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Tether_Shape_AxisAlignedBoundingBox, "Tether.Shape.AxisAlignedBoundingBox", "AABBs are simpler to compute, as they only require finding the minimum and maximum extents of the object along the coordinate axes. Because they are axis-aligned, checking for overlaps between two AABBs is computationally cheap");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Tether_Shape_OrientedBoundingBox, "Tether.Shape.OrientedBoundingBox", "Checking for overlaps between two OBBs is more computationally expensive than AABB, often requiring separating axis tests or other geometric methods.");

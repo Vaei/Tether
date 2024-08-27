@@ -10,19 +10,18 @@
 class UTetherShapeObject;
 
 /**
- * The settings and data container for a tether shape.
- * 
- * Virtual functions are handled by the UTetherShapeObject instead.
+ * The settings and data container for a tether shape in the Tether physics system.
  *
- * Clone() is the exception, effectively implementing manual polymorphism.
+ * FTetherShape is a lightweight struct that holds configuration data and metadata for a shape in the simulation.
+ * Unlike typical USTRUCTs, it avoids direct copying to prevent loss of specific shape data, as derived types
+ * may hold additional information not present in this base type. Instead, polymorphism is handled manually
+ * through the `Clone()` method, which creates a copy of the object while preserving its specific type and data.
  *
- * @TODO actually prevent copying
- * We prevent copying because :
- *		There is no need to copy this base type as it isn't used - other than for passing around
- *		We do not pass around derived types, we only pass this type
- *		We don't know what derived types may or may not exist
- *		If we try to copy any arbitrary type to a FTetherShape, we lose all the data pertaining to the specific shape
- *		FTetherShape::Clone() will give you an FTetherShape with the data intact
+ * Virtual functions and complex behaviors related to the shape are handled by a corresponding UTetherShapeObject class.
+ * This design allows for extended flexibility, enabling custom shapes and behaviors to be defined while maintaining
+ * the integrity and uniqueness of the shape data.
+ *
+ * @TODO Implement mechanisms to prevent unintended copying of this struct.
  */
 USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FTetherShape
@@ -33,36 +32,40 @@ public:
 	FTetherShape() = default;
 	virtual ~FTetherShape() = default;
 
-	/** Add a virtual clone method - this must be used instead of copying! */
+	/** 
+	 * Creates a copy of the shape, preserving its specific type and data.
+	 * This method must be used instead of copying the struct directly to ensure data integrity.
+	 */
 	virtual TSharedPtr<FTetherShape> Clone() const { return MakeShared<FTetherShape>(*this); }
 
 public:
+	/** The class that defines the shape's behavior and virtual functions */
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	TSubclassOf<UTetherShapeObject> TetherShapeClass = nullptr;
 
 	/**
-	 * The Shape with the higher efficiency rating will be evaluated in a pairing
-	 * 
-	 * Some pairings are potentially asymmetric during the narrow phase and can be more expensive
-	 * depending on the order of calculations
-	 *
-	 * You can compute the time it takes to evaluate by having ChatGPT convert the method to python
-	 * and evaluate how long it takes to run, but of course you will have to run all functions
-	 * for comparison. @see UTetherShapeCollisionControl.
+	 * The efficiency rating determines the order in which shapes are evaluated during collision checks.
+	 * Shapes with higher efficiency ratings are evaluated first, which can optimize certain types of
+	 * collision detection algorithms, particularly in asymmetric or computationally expensive pairings.
 	 */
 	UPROPERTY()
-	uint8 EfficiencyRating = 0;  // @todo implement for all shapes
+	uint8 EfficiencyRating = 0;  // @TODO Implement efficiency rating generation for all shapes
 
-	/** The bucket where we exist on the spatial grid */
+	/**
+	 * The spatial grid bucket where the shape is located, used in broad-phase collision detection
+	 * This may be any kind of index in a non-spatial hashing system
+	 */
 	UPROPERTY()
 	int32 Bucket = 0;
 
 	/** Cache local space data to avoid precision or rounding data loss over time */
 	TSharedPtr<FTetherShape> LocalSpaceData = nullptr;
 
+	/** Shapes that should be ignored during collision detection @TODO actually implement this */
 	UPROPERTY()
 	TArray<TWeakObjectPtr<UTetherShapeObject>> IgnoredShapes;
 
+	/** Tags to categorize shapes that should be ignored during collision detection @TODO actually implement this */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FGameplayTagContainer IgnoredShapeTypes;
 
@@ -76,42 +79,72 @@ public:
 
 	bool IsIgnored(const FTetherShape& Other) const;
 
-	/** Checks if two shapes are ignoring each other */
+	/** Checks if two shapes are set to ignore each other */
 	static bool AreShapesIgnoringEachOther(const FTetherShape& ShapeA, const FTetherShape& ShapeB);
 
+	/** Returns whether the shape is currently in world space */
 	bool IsWorldSpace() const { return bInWorldSpace; }
-	
+
+	/** Converts the shape's data to world space using the given transformation */
 	void ToWorldSpace(const FTransform& InWorldTransform);
 
+	/** Converts the shape's data back to local space */
 	void ToLocalSpace();
 
+	/** Returns the shape's world transformation */
 	const FTransform& GetWorldTransform() const { return WorldTransform; }
 
 protected:
+	/** The transformation that was applied to the shape when converting to world space */
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	FTransform WorldTransform = FTransform::Identity;
 
+	/** Indicates whether the shape is currently in world space */
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	bool bInWorldSpace = false;
 
 public:
+	/** Draws the shape for debugging purposes using the animation instance proxy */
 	void DrawDebug(FAnimInstanceProxy* AnimInstanceProxy, const FColor& Color = FColor::Red,
 		bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f) const;
 
+	/** Draws the shape for debugging purposes in the specified world */
 	void DrawDebug(UWorld* World, const FColor& Color = FColor::Red, bool bPersistentLines = false,
 		float LifeTime = -1.f, float Thickness = 0.f) const;
 };
 
+/**
+ * A simple struct representing a pair of shapes for collision detection.
+ *
+ * FTetherShapePair is used to store the indices of two shapes that are to be tested for collisions
+ * in the physics simulation. It includes a method to check if two pairs are equal, regardless of the order
+ * of the shapes, making it useful for identifying and managing unique collision pairs.
+ */
 struct TETHERPHYSICS_API FTetherShapePair
 {
-	int32 ShapeIndexA;  // Index of the first shape in the pair
-	int32 ShapeIndexB;  // Index of the second shape in the pair
+	/** Index of the first shape in the pair */
+	int32 ShapeIndexA;
 
-	// Constructor to initialize the pair
+	/** Index of the second shape in the pair */
+	int32 ShapeIndexB;
+
+	/** 
+	 * Constructor to initialize the pair with the indices of two shapes 
+	 * @param InShapeIndexA Index of the first shape
+	 * @param InShapeIndexB Index of the second shape
+	 */
 	FTetherShapePair(int32 InShapeIndexA, int32 InShapeIndexB)
-		: ShapeIndexA(InShapeIndexA), ShapeIndexB(InShapeIndexB) {}
+		: ShapeIndexA(InShapeIndexA)
+		, ShapeIndexB(InShapeIndexB)
+	{}
     
-	// Method to check equality between two shape pairs
+	/**
+	 * Checks if two shape pairs are equal, regardless of the order of shapes.
+	 * This method ensures that (A, B) is considered equal to (B, A).
+	 * 
+	 * @param Other The other shape pair to compare against.
+	 * @return True if the pairs are equal, false otherwise.
+	 */
 	bool operator==(const FTetherShapePair& Other) const
 	{
 		return (ShapeIndexA == Other.ShapeIndexA && ShapeIndexB == Other.ShapeIndexB) ||
@@ -120,8 +153,16 @@ struct TETHERPHYSICS_API FTetherShapePair
 };
 
 /**
- * This doesn't store any data as a rule, and is used as const - all functions must be const
- * It exists for the purpose of overriding functions, as USTRUCTs don't have vtables/polymorphism
+ * Base class for defining behavior and virtual functions for tether shapes.
+ *
+ * UTetherShapeObject provides the functionality needed for tether shapes that
+ * go beyond the data stored in FTetherShape. Since USTRUCTs don't support polymorphism,
+ * this class is used to override functions, handle complex behaviors, and manage
+ * operations like transformation and drawing that require virtual methods.
+ *
+ * This class is typically subclassed to define specific behaviors for different types of shapes
+ * in the physics system. All functions in this class should be `const` as the object is
+ * generally used in a read-only context to manage tether shapes.
  */
 UCLASS(Const, Abstract, NotBlueprintable, NotBlueprintType)
 class TETHERPHYSICS_API UTetherShapeObject : public UObject
@@ -129,13 +170,19 @@ class TETHERPHYSICS_API UTetherShapeObject : public UObject
 	GENERATED_BODY()
 
 public:
+	/** Returns the gameplay tag that identifies the type of shape */
 	virtual FGameplayTag GetShapeType() const { return FGameplayTag::EmptyTag; }
 
+	/** Returns the center of the shape in local space */
 	virtual FVector GetLocalSpaceShapeCenter(const FTetherShape& Shape) const { return FVector::ZeroVector; }
 
+	/** Transforms the shape data from local space to world space */
 	virtual void TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const {}
+	
+	/** Transforms the shape data from world space back to local space */
 	virtual void TransformToLocalSpace(FTetherShape& Shape) const {}
 
+	/** Draws the shape for debugging purposes */
 	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy = nullptr,
 		UWorld* World = nullptr, const FColor& Color = FColor::Red, bool bPersistentLines = false,
 		float LifeTime = -1.f, float Thickness = 0.f) const {}

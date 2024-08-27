@@ -8,6 +8,7 @@
 #include "TetherIO.generated.h"
 
 
+/** Damping model used for linear or angular motion. */
 UENUM(BlueprintType)
 enum class ETetherDampingModel : uint8
 {
@@ -15,6 +16,7 @@ enum class ETetherDampingModel : uint8
 	ExponentialDecay		UMETA(ToolTip="Angular velocity (a) decreases over time with rate of decrease proportional to current velocity. More realistic in many physical systems, especially for simulating air resistance or other forms of damping that don't depend linearly on velocity: a *= exp(-k * d)"),
 };
 
+/** Shape used for angular motion calculations. */
 UENUM(BlueprintType)
 enum class ETetherAngularShape : uint8
 {
@@ -23,8 +25,24 @@ enum class ETetherAngularShape : uint8
 	Capsule
 };
 
+/**
+ * Base struct for input/output operations in the Tether physics system.
+ *
+ * FTetherIO serves as a foundational structure designed to support polymorphism, allowing projects
+ * to extend and customize data types for various purposes within the physics system. 
+ * This includes creating custom solvers, hashing algorithms, and other physics-related components.
+ *
+ * By using FTetherIO as a base, derived structs can be seamlessly integrated into the Tether framework, 
+ * enabling flexible and reusable code. This struct provides templated methods for setting and retrieving data, 
+ * making it easier to manage different types of input/output operations.
+ *
+ * Key Features:
+ * - Polymorphism: Supports inheritance, allowing for custom extensions specific to your project’s needs.
+ * - Flexibility: Facilitates the creation of custom data structures for solvers, hashing, and other physics operations.
+ * - Reusability: Provides a standardized way to handle various input/output data types within the Tether system.
+ */
 USTRUCT()
-struct FTetherIO
+struct TETHERPHYSICS_API FTetherIO
 {
 	GENERATED_BODY()
 
@@ -50,6 +68,12 @@ struct FTetherIO
     }
 };
 
+/**
+ * Input data used in spatial hashing.
+ *
+ * This struct holds information required for performing spatial hashing, including bucket size,
+ * origin, and references to the shapes being processed.
+ */
 USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FSpatialHashingInput : public FTetherIO
 {
@@ -67,16 +91,25 @@ struct TETHERPHYSICS_API FSpatialHashingInput : public FTetherIO
 	{
 		Shapes = &InShapes;
 	}
-	
+
+	/** Size of each bucket in the spatial hash grid */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector BucketSize;
-	
+
+	/** Origin of the spatial hash grid */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector Origin;
 
+	/** Array of shapes to be hashed */
 	const TArray<FTetherShape>* Shapes;
 };
 
+/**
+ * Output data produced by spatial hashing.
+ *
+ * This struct stores the results of spatial hashing, including the pairs of shapes
+ * that should be tested for collisions and the spatial hash map itself.
+ */
 USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FSpatialHashingOutput : public FTetherIO
 {
@@ -85,11 +118,19 @@ struct TETHERPHYSICS_API FSpatialHashingOutput : public FTetherIO
 	FSpatialHashingOutput()
 	{}
 
+	/** Pairs of shapes that should be tested for collisions */
 	TArray<FTetherShapePair> ShapePairs;
-    
+
+	/** Spatial hash map storing shape indices by grid cell */
 	TMap<FIntVector, TArray<int32>> SpatialHashMap;
 };
 
+/**
+ * Input data for linear physics simulations.
+ *
+ * This struct includes properties for forces, mass, damping, and other factors
+ * that influence the linear motion of an object.
+ */
 USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FLinearInput : public FTetherIO
 {
@@ -134,6 +175,12 @@ struct TETHERPHYSICS_API FLinearInput : public FTetherIO
 	ETetherDampingModel DampingModel;
 };
 
+/**
+ * Input data for angular physics simulations.
+ *
+ * This struct includes properties for torques, mass, damping, shape, and other factors
+ * that influence the angular motion of an object.
+ */
 USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FAngularInput : public FTetherIO
 {
@@ -169,6 +216,7 @@ struct TETHERPHYSICS_API FAngularInput : public FTetherIO
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector CenterOfMass;
 
+	/** Shape used to calculate angular inertia */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	ETetherAngularShape Shape;
 	
@@ -181,6 +229,7 @@ struct TETHERPHYSICS_API FAngularInput : public FTetherIO
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(EditCondition="Shape==ETetherAngularShape::Box", EditConditionHides))
 	FVector BoxExtent;
 
+	/** Converts the extent of the shape to a box based on its type */
 	FVector GetBoxExtent() const
 	{
 		switch (Shape)
@@ -225,6 +274,12 @@ struct TETHERPHYSICS_API FAngularInput : public FTetherIO
 	ETetherDampingModel DampingModel;
 };
 
+/**
+ * Output data for linear physics simulations.
+ *
+ * This struct includes properties such as the linear velocity of an object
+ * after applying the linear physics calculations.
+ */
 USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FLinearOutput : public FTetherIO
 {
@@ -234,10 +289,17 @@ struct TETHERPHYSICS_API FLinearOutput : public FTetherIO
 		: LinearVelocity(FVector::ZeroVector)
 	{}
 
+	/** Linear velocity resulting from the physics simulation */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector LinearVelocity;
 };
 
+/**
+ * Output data for angular physics simulations.
+ *
+ * This struct includes properties such as the angular velocity and inertia
+ * of an object after applying the angular physics calculations.
+ */
 USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FAngularOutput : public FTetherIO
 {
@@ -248,15 +310,23 @@ struct TETHERPHYSICS_API FAngularOutput : public FTetherIO
 		, Inertia(FVector::OneVector)
 	{}
 
+	/** Angular velocity resulting from the physics simulation */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector AngularVelocity;
 
+	/** Inertia of the object influencing angular motion */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector Inertia;
 };
 
+/**
+ * Output data of a narrow-phase collision check.
+ *
+ * This struct includes properties such as whether a collision occurred,
+ * the contact point, and the penetration depth of the collision.
+ */
 USTRUCT(BlueprintType)
-struct FTetherNarrowPhaseCollisionOutput : public FTetherIO
+struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionOutput : public FTetherIO
 {
 	GENERATED_BODY()
 
@@ -266,18 +336,27 @@ struct FTetherNarrowPhaseCollisionOutput : public FTetherIO
 		, PenetrationDepth(0.f)
 	{}
 
+	/** Indicates whether a collision was detected */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	bool bHasCollision;
 
+	/** Contact point of the collision */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector ContactPoint;
 
+	/** Depth of penetration in the collision */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float PenetrationDepth;
 };
 
+/**
+ * Pair of indices for broad-phase collision checks.
+ *
+ * This struct is used to store the indices of two objects that should be tested
+ * for potential collisions during the broad-phase collision detection.
+ */
 USTRUCT(BlueprintType)
-struct FTetherBroadCollisionPair
+struct TETHERPHYSICS_API FTetherBroadCollisionPair
 {
 	GENERATED_BODY()
 
@@ -291,21 +370,30 @@ struct FTetherBroadCollisionPair
 		, SecondIndex(InSecondIndex)
 	{}
 
+	/** Index of the first object in the collision pair */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	int32 FirstIndex;
 
+	/** Index of the second object in the collision pair */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	int32 SecondIndex;
 };
 
+/**
+ * Output data of a broad-phase collision detection.
+ *
+ * This struct includes an array of collision pairs that should be further tested
+ * in the narrow-phase collision detection.
+ */
 USTRUCT(BlueprintType)
-struct FTetherBroadPhaseCollisionOutput : public FTetherIO
+struct TETHERPHYSICS_API FTetherBroadPhaseCollisionOutput : public FTetherIO
 {
 	GENERATED_BODY()
 
 	FTetherBroadPhaseCollisionOutput()
 	{}
 
+	/** Array of collision pairs detected in the broad-phase */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	TArray<FTetherBroadCollisionPair> CollisionPairings;
 };

@@ -8,8 +8,20 @@
 
 
 /**
- * Pair shapes by checking if they are either in the same bucket or a neighbouring bucket
- * This allows us to bypass overlap testing for shapes that aren't close enough to potentially collide
+ * Spatial hashing system used in physics simulations.
+ *
+ * UTetherHashingSpatial provides a framework for pairing shapes together in a physics simulation
+ * to determine the order of collision tests or to decide whether certain shapes should be tested for collisions at all.
+ * 
+ * Spatial hashing techniques help optimize collision detection by reducing the number of necessary collision checks,
+ * especially in complex scenes with many interacting objects.
+ * 
+ * This class is designed to be extended with specific hashing algorithms that implement the collision pairing logic.
+ * It also includes methods for debugging and visualizing the results of the spatial hashing process.
+ * 
+ * Key Responsibilities:
+ * - Solve: Pair shapes for collision testing based on spatial proximity and other criteria.
+ * - DrawDebug: Visualize the spatial hash grid and collision pairs for debugging and optimization.
  */
 UCLASS(NotBlueprintable)
 class TETHERPHYSICS_API UTetherHashingSpatial : public UTetherHashing
