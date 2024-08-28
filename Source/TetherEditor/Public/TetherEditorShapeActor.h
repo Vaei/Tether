@@ -6,9 +6,10 @@
 #include "GameplayTagContainer.h"
 #include "GameFramework/Actor.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
+#include "Shapes/TetherShape_OrientedBoundingBox.h"
 #include "Shapes/TetherShape_BoundingSphere.h"
 #include "Shapes/TetherShape_Capsule.h"
-#include "Shapes/TetherShape_OrientedBoundingBox.h"
+#include "Shapes/TetherShape_Pipe.h"
 #include "TetherEditorShapeActor.generated.h"
 
 /**
@@ -35,6 +36,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="Capsule"))
 	FTetherShape_Capsule Capsule;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="Pipe"))
+	FTetherShape_Pipe Pipe;
+	
 public:
 	ATetherEditorShapeActor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 

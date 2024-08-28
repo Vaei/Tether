@@ -27,6 +27,7 @@ const FTetherShape& ATetherEditorShapeActor::GetTetherShape() const
 	if (ShapeType == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox) { return OBB; }
 	if (ShapeType == FTetherGameplayTags::Tether_Shape_BoundingSphere) { return BoundingSphere; }
 	if (ShapeType == FTetherGameplayTags::Tether_Shape_Capsule) { return Capsule; }
+	if (ShapeType == FTetherGameplayTags::Tether_Shape_Pipe) { return Pipe; }
 	
 	return AABB;
 }

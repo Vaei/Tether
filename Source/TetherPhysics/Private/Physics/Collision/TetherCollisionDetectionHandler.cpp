@@ -9,6 +9,7 @@
 #include "Shapes/TetherShape_BoundingSphere.h"
 #include "Shapes/TetherShape_Capsule.h"
 #include "Shapes/TetherShape_OrientedBoundingBox.h"
+#include "Shapes/TetherShape_Pipe.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherCollisionDetectionHandler)
 
@@ -46,29 +47,10 @@ bool UTetherCollisionDetectionHandler::CheckBroadCollision(const FTetherShape& S
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Broad_AABB_Capsule(A, B);
 		}
-	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
-	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
-			return Broad_BoundingSphere_AABB(A, B);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
-			return Broad_BoundingSphere_BoundingSphere(A, B);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
-			return Broad_BoundingSphere_OBB(A, B);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
-			return Broad_BoundingSphere_Capsule(A, B);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			return Broad_AABB_Pipe(A, B);
 		}
 	}
 	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
@@ -94,6 +76,40 @@ bool UTetherCollisionDetectionHandler::CheckBroadCollision(const FTetherShape& S
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Broad_OBB_Capsule(A, B);
 		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			return Broad_OBB_Pipe(A, B);
+		}
+	}
+	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+	{
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeA);
+		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			return Broad_BoundingSphere_AABB(A, B);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			return Broad_BoundingSphere_BoundingSphere(A, B);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			return Broad_BoundingSphere_OBB(A, B);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			return Broad_BoundingSphere_Capsule(A, B);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			return Broad_BoundingSphere_Pipe(A, B);
+		}
 	}
 	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 	{
@@ -118,8 +134,42 @@ bool UTetherCollisionDetectionHandler::CheckBroadCollision(const FTetherShape& S
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Broad_Capsule_Capsule(A, B);
 		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			return Broad_Capsule_Pipe(A, B);
+		}
 	}
-
+	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+	{
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeA);
+		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			return Broad_Pipe_AABB(A, B);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			return Broad_Pipe_BoundingSphere(A, B);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			return Broad_Pipe_OBB(A, B);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			return Broad_Pipe_Capsule(A, B);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			return Broad_Pipe_Pipe(A, B);
+		}
+	}
+	
 	return false;
 }
 
@@ -148,29 +198,10 @@ bool UTetherCollisionDetectionHandler::CheckNarrowCollision(const FTetherShape& 
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Narrow_AABB_Capsule(A, B, Output);
 		}
-	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
-	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
-			return Narrow_BoundingSphere_AABB(A, B, Output);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
-			return Narrow_BoundingSphere_BoundingSphere(A, B, Output);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
-			return Narrow_BoundingSphere_OBB(A, B, Output);
-		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
-		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
-			return Narrow_BoundingSphere_Capsule(A, B, Output);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			return Narrow_AABB_Pipe(A, B, Output);
 		}
 	}
 	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
@@ -196,6 +227,40 @@ bool UTetherCollisionDetectionHandler::CheckNarrowCollision(const FTetherShape& 
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Narrow_OBB_Capsule(A, B, Output);
 		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			return Narrow_OBB_Pipe(A, B, Output);
+		}
+	}
+	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+	{
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeA);
+		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			return Narrow_BoundingSphere_AABB(A, B, Output);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			return Narrow_BoundingSphere_BoundingSphere(A, B, Output);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			return Narrow_BoundingSphere_OBB(A, B, Output);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			return Narrow_BoundingSphere_Capsule(A, B, Output);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			return Narrow_BoundingSphere_Pipe(A, B, Output);
+		}
 	}
 	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 	{
@@ -219,6 +284,40 @@ bool UTetherCollisionDetectionHandler::CheckNarrowCollision(const FTetherShape& 
 		{
 			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
 			return Narrow_Capsule_Capsule(A, B, Output);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			return Narrow_Capsule_Pipe(A, B, Output);
+		}
+	}
+	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+	{
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeA);
+		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			return Narrow_Pipe_AABB(A, B, Output);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			return Narrow_Pipe_BoundingSphere(A, B, Output);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			return Narrow_Pipe_OBB(A, B, Output);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			return Narrow_Pipe_Capsule(A, B, Output);
+		}
+		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		{
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			return Narrow_Pipe_Pipe(A, B, Output);
 		}
 	}
 
@@ -259,6 +358,15 @@ bool UTetherCollisionDetectionHandler::Broad_AABB_Capsule(const FTetherShape_Axi
 	return Broad_AABB_AABB(A, &CapsuleAABB);
 }
 
+// AABB vs Pipe
+bool UTetherCollisionDetectionHandler::Broad_AABB_Pipe(const FTetherShape_AxisAlignedBoundingBox* A,
+	const FTetherShape_Pipe* B)
+{
+	// Implement the broad-phase logic for AABB vs Pipe
+	FTetherShape_AxisAlignedBoundingBox PipeAABB = B->GetBoundingBox();
+	return Broad_AABB_AABB(A, &PipeAABB);
+}
+
 // BoundingSphere vs AABB
 bool UTetherCollisionDetectionHandler::Broad_BoundingSphere_AABB(const FTetherShape_BoundingSphere* A, const FTetherShape_AxisAlignedBoundingBox* B)
 {
@@ -287,6 +395,14 @@ bool UTetherCollisionDetectionHandler::Broad_BoundingSphere_Capsule(const FTethe
 	// Implement the broad-phase logic for BoundingSphere vs Capsule
 	FTetherShape_AxisAlignedBoundingBox CapsuleAABB = B->GetBoundingBox();
 	return Broad_BoundingSphere_AABB(A, &CapsuleAABB);
+}
+
+// BoundingSphere vs Pipe
+bool UTetherCollisionDetectionHandler::Broad_BoundingSphere_Pipe(const FTetherShape_BoundingSphere* A,
+	const FTetherShape_Pipe* B)
+{
+	FTetherShape_AxisAlignedBoundingBox PipeAABB = B->GetBoundingBox();
+	return Broad_AABB_BoundingSphere(&PipeAABB, A);
 }
 
 // OBB vs AABB
@@ -320,6 +436,15 @@ bool UTetherCollisionDetectionHandler::Broad_OBB_Capsule(const FTetherShape_Orie
 	return Broad_Capsule_OBB(B, A);
 }
 
+// OBB vs Pipe
+bool UTetherCollisionDetectionHandler::Broad_OBB_Pipe(const FTetherShape_OrientedBoundingBox* A,
+	const FTetherShape_Pipe* B)
+{
+	// Implement the broad-phase logic for OBB vs Pipe
+	FTetherShape_AxisAlignedBoundingBox PipeAABB = B->GetBoundingBox();
+	return Broad_OBB_AABB(A, &PipeAABB);
+}
+
 // Capsule vs AABB
 bool UTetherCollisionDetectionHandler::Broad_Capsule_AABB(const FTetherShape_Capsule* A, const FTetherShape_AxisAlignedBoundingBox* B)
 {
@@ -349,6 +474,55 @@ bool UTetherCollisionDetectionHandler::Broad_Capsule_OBB(const FTetherShape_Caps
 bool UTetherCollisionDetectionHandler::Broad_Capsule_Capsule(const FTetherShape_Capsule* A, const FTetherShape_Capsule* B)
 {
 	// Implement the broad-phase logic for Capsule vs Capsule
+	FTetherShape_AxisAlignedBoundingBox AABB_A = A->GetBoundingBox();
+	FTetherShape_AxisAlignedBoundingBox AABB_B = B->GetBoundingBox();
+	return Broad_AABB_AABB(&AABB_A, &AABB_B);
+}
+
+// Capsule vs Pipe
+bool UTetherCollisionDetectionHandler::Broad_Capsule_Pipe(const FTetherShape_Capsule* A, const FTetherShape_Pipe* B)
+{
+	// Implement the broad-phase logic for Capsule vs Pipe
+	FTetherShape_AxisAlignedBoundingBox PipeAABB = B->GetBoundingBox();
+	return Broad_Capsule_AABB(A, &PipeAABB);
+}
+
+// Pipe vs AABB
+bool UTetherCollisionDetectionHandler::Broad_Pipe_AABB(const FTetherShape_Pipe* A,
+	const FTetherShape_AxisAlignedBoundingBox* B)
+{
+	FTetherShape_AxisAlignedBoundingBox PipeAABB = A->GetBoundingBox();
+	return Broad_AABB_AABB(&PipeAABB, B);
+}
+
+// Pipe vs BoundingSphere
+bool UTetherCollisionDetectionHandler::Broad_Pipe_BoundingSphere(const FTetherShape_Pipe* A,
+	const FTetherShape_BoundingSphere* B)
+{
+	FTetherShape_AxisAlignedBoundingBox PipeAABB = A->GetBoundingBox();
+	return Broad_AABB_BoundingSphere(&PipeAABB, B);
+}
+
+// Pipe vs OBB
+bool UTetherCollisionDetectionHandler::Broad_Pipe_OBB(const FTetherShape_Pipe* A,
+	const FTetherShape_OrientedBoundingBox* B)
+{
+	FTetherShape_AxisAlignedBoundingBox PipeAABB = A->GetBoundingBox();
+	FTetherShape_AxisAlignedBoundingBox OBBAABB = B->GetBoundingBox();
+	return Broad_AABB_AABB(&PipeAABB, &OBBAABB);
+}
+
+// Pipe vs Capsule
+bool UTetherCollisionDetectionHandler::Broad_Pipe_Capsule(const FTetherShape_Pipe* A, const FTetherShape_Capsule* B)
+{
+	FTetherShape_AxisAlignedBoundingBox PipeAABB = A->GetBoundingBox();
+	FTetherShape_AxisAlignedBoundingBox CapsuleAABB = B->GetBoundingBox();
+	return Broad_AABB_AABB(&PipeAABB, &CapsuleAABB);
+}
+
+// Pipe vs Pipe
+bool UTetherCollisionDetectionHandler::Broad_Pipe_Pipe(const FTetherShape_Pipe* A, const FTetherShape_Pipe* B)
+{
 	FTetherShape_AxisAlignedBoundingBox AABB_A = A->GetBoundingBox();
 	FTetherShape_AxisAlignedBoundingBox AABB_B = B->GetBoundingBox();
 	return Broad_AABB_AABB(&AABB_A, &AABB_B);
@@ -421,6 +595,13 @@ bool UTetherCollisionDetectionHandler::Narrow_AABB_Capsule(const FTetherShape_Ax
 	return false;
 }
 
+// Narrow-phase collision check for Pipe vs AABB
+bool UTetherCollisionDetectionHandler::Narrow_AABB_Pipe(const FTetherShape_AxisAlignedBoundingBox* A,
+	const FTetherShape_Pipe* B, FTetherNarrowPhaseCollisionOutput& Output)
+{
+	return Narrow_Pipe_AABB(B, A, Output); // Symmetric to Pipe vs AABB
+}
+
 // Narrow-phase collision check for BoundingSphere vs AABB
 bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_AABB(const FTetherShape_BoundingSphere* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output)
 {
@@ -472,6 +653,13 @@ bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_Capsule(const FTeth
 		return true;
 	}
 	return false;
+}
+
+// Symmetric narrow-phase collision check for BoundingSphere vs Pipe
+bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_Pipe(const FTetherShape_BoundingSphere* A,
+	const FTetherShape_Pipe* B, FTetherNarrowPhaseCollisionOutput& Output)
+{
+	return Narrow_Pipe_BoundingSphere(B, A, Output); // Symmetric to Pipe vs BoundingSphere
 }
 
 // Narrow-phase collision check for OBB vs AABB
@@ -627,6 +815,13 @@ bool UTetherCollisionDetectionHandler::Narrow_OBB_Capsule(const FTetherShape_Ori
 	return false;
 }
 
+// Symmetric narrow-phase collision check for OBB vs Pipe
+bool UTetherCollisionDetectionHandler::Narrow_OBB_Pipe(const FTetherShape_OrientedBoundingBox* A,
+	const FTetherShape_Pipe* B, FTetherNarrowPhaseCollisionOutput& Output)
+{
+	return Narrow_Pipe_OBB(B, A, Output); // Symmetric to Pipe vs OBB
+}
+
 // Narrow-phase collision check for Capsule vs AABB
 bool UTetherCollisionDetectionHandler::Narrow_Capsule_AABB(const FTetherShape_Capsule* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output)
 {
@@ -695,4 +890,276 @@ bool UTetherCollisionDetectionHandler::Narrow_Capsule_Capsule(const FTetherShape
     // Log that no collision was detected
     // UE_LOG(LogTether, Warning, TEXT("No collision detected."));
     return false;
+}
+
+bool UTetherCollisionDetectionHandler::Narrow_Capsule_Pipe(const FTetherShape_Capsule* A, const FTetherShape_Pipe* B,
+	FTetherNarrowPhaseCollisionOutput& Output)
+{
+	// Calculate the top and bottom points of the capsule (including hemispheres)
+	FVector CapsuleTop = A->Center + A->Rotation.RotateVector(FVector::UpVector) * A->HalfHeight;
+	FVector CapsuleBottom = A->Center - A->Rotation.RotateVector(FVector::UpVector) * A->HalfHeight;
+
+	// Find the closest point on the pipe to the capsule's line segment
+	float ClosestDistanceSquared = FLT_MAX;
+	FVector ClosestPointOnPipe;
+
+	// Sample points along the arc of the pipe to find the closest one
+	constexpr int32 NumSamples = 36; // Adjust this for more precision
+	const float AngleStep = FMath::DegreesToRadians(B->ArcAngle) / NumSamples;
+
+	for (int32 i = 0; i <= NumSamples; ++i)
+	{
+		float Angle = i * AngleStep;
+
+		// Calculate a point on the outer surface of the pipe
+		FVector PointOnArcOuter = B->Center + B->Rotation.RotateVector(FVector(FMath::Cos(Angle) * B->OuterDimensions.X, FMath::Sin(Angle) * B->OuterDimensions.Y, 0.0f));
+
+		// Offset by the thickness in the Z direction to represent the 3D thickness
+		PointOnArcOuter.Z += B->OuterDimensions.Z * 0.5f;
+
+		// Find the closest point on the capsule's line segment to this point on the pipe's arc
+		FVector ClosestPointOnCapsule;
+		FMath::SegmentDistToSegmentSafe(CapsuleBottom, CapsuleTop, PointOnArcOuter, PointOnArcOuter, ClosestPointOnCapsule, PointOnArcOuter);
+
+		float DistanceSquared = FVector::DistSquared(ClosestPointOnCapsule, PointOnArcOuter);
+		if (DistanceSquared < ClosestDistanceSquared)
+		{
+			ClosestDistanceSquared = DistanceSquared;
+			ClosestPointOnPipe = PointOnArcOuter;
+		}
+	}
+
+	// Determine if the capsule's closest point is within the pipe's thickness
+	if (ClosestDistanceSquared <= FMath::Square(A->Radius))
+	{
+		Output.bHasCollision = true;
+		Output.ContactPoint = ClosestPointOnPipe;
+		Output.PenetrationDepth = A->Radius - FMath::Sqrt(ClosestDistanceSquared);
+		return true;
+	}
+
+	return false;
+}
+
+bool UTetherCollisionDetectionHandler::Narrow_Pipe_AABB(const FTetherShape_Pipe* A,
+	const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output)
+{
+	// 1. Transform the AABB and Pipe to world space
+	FVector PipeCenter = A->Center;
+	FVector PipeOuterDimensions = A->OuterDimensions;
+	float PipeArcAngle = A->ArcAngle;
+	FQuat PipeRotation = A->Rotation.Quaternion();
+
+	FVector AABBMin = B->Min;
+	FVector AABBMax = B->Max;
+
+	// 2. Approximate the pipe as a set of line segments and check for intersection with AABB
+
+	int32 NumSegments = FMath::Max(12, FMath::RoundToInt(PipeArcAngle / 5.f)); // More segments for smoother arcs
+	float AngleStep = PipeArcAngle / NumSegments;
+
+	for (int32 i = 0; i < NumSegments; ++i)
+	{
+		float AngleStart = FMath::DegreesToRadians(i * AngleStep);
+		float AngleEnd = FMath::DegreesToRadians((i + 1) * AngleStep);
+
+		// Start and end points of the pipe segment
+		FVector SegmentStart = PipeCenter + PipeRotation.RotateVector(FVector(PipeOuterDimensions.X * FMath::Cos(AngleStart), PipeOuterDimensions.Y * FMath::Sin(AngleStart), 0.0f));
+		FVector SegmentEnd = PipeCenter + PipeRotation.RotateVector(FVector(PipeOuterDimensions.X * FMath::Cos(AngleEnd), PipeOuterDimensions.Y * FMath::Sin(AngleEnd), 0.0f));
+
+		// Check if this segment intersects with the AABB
+		if (FMath::LineBoxIntersection(FBox(AABBMin, AABBMax), SegmentStart, SegmentEnd, FVector::ZeroVector))
+		{
+			Output.bHasCollision = true;
+			Output.ContactPoint = (SegmentStart + SegmentEnd) * 0.5f;
+			Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UTetherCollisionDetectionHandler::Narrow_Pipe_BoundingSphere(const FTetherShape_Pipe* A,
+	const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionOutput& Output)
+{
+	// Transform the pipe and sphere to world space
+	FVector PipeCenter = A->Center;
+	FVector PipeOuterDimensions = A->OuterDimensions;
+	float PipeArcAngle = A->ArcAngle;
+	FQuat PipeRotation = A->Rotation.Quaternion();
+
+	FVector SphereCenter = B->Center;
+	float SphereRadius = B->Radius;
+
+	// Approximate the pipe as a set of line segments
+	int32 NumSegments = FMath::Max(12, FMath::RoundToInt(PipeArcAngle / 5.f)); // More segments for smoother arcs
+	float AngleStep = PipeArcAngle / NumSegments;
+
+	for (int32 i = 0; i < NumSegments; ++i)
+	{
+		float AngleStart = FMath::DegreesToRadians(i * AngleStep);
+		float AngleEnd = FMath::DegreesToRadians((i + 1) * AngleStep);
+
+		// Start and end points of the pipe segment
+		FVector SegmentStart = PipeCenter + PipeRotation.RotateVector(FVector(PipeOuterDimensions.X * FMath::Cos(AngleStart), PipeOuterDimensions.Y * FMath::Sin(AngleStart), 0.0f));
+		FVector SegmentEnd = PipeCenter + PipeRotation.RotateVector(FVector(PipeOuterDimensions.X * FMath::Cos(AngleEnd), PipeOuterDimensions.Y * FMath::Sin(AngleEnd), 0.0f));
+
+		// Find the closest point on the segment to the sphere's center
+		FVector ClosestPoint = FMath::ClosestPointOnSegment(SphereCenter, SegmentStart, SegmentEnd);
+
+		// Check if the distance from the closest point to the sphere's center is less than the sphere's radius
+		if (FVector::DistSquared(ClosestPoint, SphereCenter) <= FMath::Square(SphereRadius))
+		{
+			Output.bHasCollision = true;
+			Output.ContactPoint = ClosestPoint;
+			Output.PenetrationDepth = SphereRadius - FVector::Dist(ClosestPoint, SphereCenter);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UTetherCollisionDetectionHandler::Narrow_Pipe_OBB(const FTetherShape_Pipe* A,
+	const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionOutput& Output)
+{
+	// Transform the pipe and OBB to world space
+	FVector PipeCenter = A->Center;
+	FVector PipeOuterDimensions = A->OuterDimensions;
+	float PipeArcAngle = A->ArcAngle;
+	FQuat PipeRotation = A->Rotation.Quaternion();
+
+	FVector OBBExtent = B->Extent;
+	FQuat OBBRotation = B->Rotation.Quaternion();
+	FVector OBBCenter = B->Center;
+
+	// Approximate the pipe as a set of line segments
+	int32 NumSegments = FMath::Max(12, FMath::RoundToInt(PipeArcAngle / 5.f)); // More segments for smoother arcs
+	float AngleStep = PipeArcAngle / NumSegments;
+
+	for (int32 i = 0; i < NumSegments; ++i)
+	{
+		float AngleStart = FMath::DegreesToRadians(i * AngleStep);
+		float AngleEnd = FMath::DegreesToRadians((i + 1) * AngleStep);
+
+		// Start and end points of the pipe segment
+		FVector SegmentStart = PipeCenter + PipeRotation.RotateVector(FVector(PipeOuterDimensions.X * FMath::Cos(AngleStart), PipeOuterDimensions.Y * FMath::Sin(AngleStart), 0.0f));
+		FVector SegmentEnd = PipeCenter + PipeRotation.RotateVector(FVector(PipeOuterDimensions.X * FMath::Cos(AngleEnd), PipeOuterDimensions.Y * FMath::Sin(AngleEnd), 0.0f));
+
+		// Project the segment onto the OBB's axes
+		if (FMath::LineBoxIntersection(FBox::BuildAABB(OBBCenter, OBBExtent), SegmentStart, SegmentEnd, OBBRotation.RotateVector(FVector::ZeroVector)))
+		{
+			Output.bHasCollision = true;
+			Output.ContactPoint = (SegmentStart + SegmentEnd) * 0.5f;
+			Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UTetherCollisionDetectionHandler::Narrow_Pipe_Capsule(const FTetherShape_Pipe* A, const FTetherShape_Capsule* B,
+	FTetherNarrowPhaseCollisionOutput& Output)
+{
+	// Transform the pipe and capsule to world space
+	FVector PipeCenter = A->Center;
+	FVector PipeOuterDimensions = A->OuterDimensions;
+	float PipeArcAngle = A->ArcAngle;
+	FQuat PipeRotation = A->Rotation.Quaternion();
+
+	FVector CapsuleCenter = B->Center;
+	float CapsuleHalfHeight = B->HalfHeight;
+	float CapsuleRadius = B->Radius;
+	FQuat CapsuleRotation = B->Rotation.Quaternion();
+
+	// Approximate the pipe as a set of line segments
+	int32 NumSegments = FMath::Max(12, FMath::RoundToInt(PipeArcAngle / 5.f)); // More segments for smoother arcs
+	float AngleStep = PipeArcAngle / NumSegments;
+
+	// Calculate the top and bottom points of the capsule
+	FVector CapsuleUp = CapsuleRotation.RotateVector(FVector::UpVector) * CapsuleHalfHeight;
+	FVector CapsuleTop = CapsuleCenter + CapsuleUp;
+	FVector CapsuleBottom = CapsuleCenter - CapsuleUp;
+
+	for (int32 i = 0; i < NumSegments; ++i)
+	{
+		float AngleStart = FMath::DegreesToRadians(i * AngleStep);
+		float AngleEnd = FMath::DegreesToRadians((i + 1) * AngleStep);
+
+		// Start and end points of the pipe segment
+		FVector SegmentStart = PipeCenter + PipeRotation.RotateVector(FVector(PipeOuterDimensions.X * FMath::Cos(AngleStart), PipeOuterDimensions.Y * FMath::Sin(AngleStart), 0.0f));
+		FVector SegmentEnd = PipeCenter + PipeRotation.RotateVector(FVector(PipeOuterDimensions.X * FMath::Cos(AngleEnd), PipeOuterDimensions.Y * FMath::Sin(AngleEnd), 0.0f));
+
+		// Find the closest points between the pipe segment and the capsule's segment
+		FVector ClosestPointOnCapsule, ClosestPointOnPipe;
+		FMath::SegmentDistToSegmentSafe(CapsuleBottom, CapsuleTop, SegmentStart, SegmentEnd, ClosestPointOnCapsule, ClosestPointOnPipe);
+
+		// Check if the distance between the closest points is less than the combined radii
+		if (FVector::DistSquared(ClosestPointOnCapsule, ClosestPointOnPipe) <= FMath::Square(CapsuleRadius))
+		{
+			Output.bHasCollision = true;
+			Output.ContactPoint = (ClosestPointOnCapsule + ClosestPointOnPipe) * 0.5f;
+			Output.PenetrationDepth = CapsuleRadius - FVector::Dist(ClosestPointOnCapsule, ClosestPointOnPipe);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UTetherCollisionDetectionHandler::Narrow_Pipe_Pipe(const FTetherShape_Pipe* A, const FTetherShape_Pipe* B,
+	FTetherNarrowPhaseCollisionOutput& Output)
+{
+	// Transform both pipes to world space
+	FVector PipeACenter = A->Center;
+	FVector PipeAOuterDimensions = A->OuterDimensions;
+	float PipeAArcAngle = A->ArcAngle;
+	FQuat PipeARotation = A->Rotation.Quaternion();
+
+	FVector PipeBCenter = B->Center;
+	FVector PipeBOuterDimensions = B->OuterDimensions;
+	float PipeBArcAngle = B->ArcAngle;
+	FQuat PipeBRotation = B->Rotation.Quaternion();
+
+	// Approximate both pipes as sets of line segments
+	int32 NumSegmentsA = FMath::Max(12, FMath::RoundToInt(PipeAArcAngle / 5.f));
+	int32 NumSegmentsB = FMath::Max(12, FMath::RoundToInt(PipeBArcAngle / 5.f));
+	float AngleStepA = PipeAArcAngle / NumSegmentsA;
+	float AngleStepB = PipeBArcAngle / NumSegmentsB;
+
+	for (int32 i = 0; i < NumSegmentsA; ++i)
+	{
+		float AngleStartA = FMath::DegreesToRadians(i * AngleStepA);
+		float AngleEndA = FMath::DegreesToRadians((i + 1) * AngleStepA);
+
+		FVector SegmentAStart = PipeACenter + PipeARotation.RotateVector(FVector(PipeAOuterDimensions.X * FMath::Cos(AngleStartA), PipeAOuterDimensions.Y * FMath::Sin(AngleStartA), 0.0f));
+		FVector SegmentAEnd = PipeACenter + PipeARotation.RotateVector(FVector(PipeAOuterDimensions.X * FMath::Cos(AngleEndA), PipeAOuterDimensions.Y * FMath::Sin(AngleEndA), 0.0f));
+
+		for (int32 j = 0; j < NumSegmentsB; ++j)
+		{
+			float AngleStartB = FMath::DegreesToRadians(j * AngleStepB);
+			float AngleEndB = FMath::DegreesToRadians((j + 1) * AngleStepB);
+
+			FVector SegmentBStart = PipeBCenter + PipeBRotation.RotateVector(FVector(PipeBOuterDimensions.X * FMath::Cos(AngleStartB), PipeBOuterDimensions.Y * FMath::Sin(AngleStartB), 0.0f));
+			FVector SegmentBEnd = PipeBCenter + PipeBRotation.RotateVector(FVector(PipeBOuterDimensions.X * FMath::Cos(AngleEndB), PipeBOuterDimensions.Y * FMath::Sin(AngleEndB), 0.0f));
+
+			// Find the closest points between the segments
+			FVector ClosestPointA, ClosestPointB;
+			FMath::SegmentDistToSegmentSafe(SegmentAStart, SegmentAEnd, SegmentBStart, SegmentBEnd, ClosestPointA, ClosestPointB);
+
+			// Check if the distance between the closest points is less than the combined thicknesses of the pipes
+			float CombinedThickness = PipeAOuterDimensions.Z + PipeBOuterDimensions.Z;
+			if (FVector::DistSquared(ClosestPointA, ClosestPointB) <= FMath::Square(CombinedThickness))
+			{
+				Output.bHasCollision = true;
+				Output.ContactPoint = (ClosestPointA + ClosestPointB) * 0.5f;
+				Output.PenetrationDepth = CombinedThickness - FVector::Dist(ClosestPointA, ClosestPointB);
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
