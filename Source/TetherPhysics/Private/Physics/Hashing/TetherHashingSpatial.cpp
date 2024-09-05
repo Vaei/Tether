@@ -12,7 +12,6 @@
 namespace FTether
 {
 	TAutoConsoleVariable<bool> CVarTetherLogSpatialHashingBucketSize(TEXT("p.Tether.LogSpatialHashingBucketSize"), false, TEXT("Print Tether Spatial Hashing automatic resizing changes to output log"));
-	TAutoConsoleVariable<bool> CVarTetherCheckSpatialHashingBounds(TEXT("p.Tether.CheckSpatialHashingBounds"), true, TEXT("Check Tether Spatial Hashing Bounds by comparing to the bounding boxes of each shape"));
 	TAutoConsoleVariable<bool> CVarTetherLogSpatialHashing(TEXT("p.Tether.LogSpatialHashing"), false, TEXT("Log Tether Spatial Hashing"));
 	TAutoConsoleVariable<bool> CVarTetherDrawSpatialHashingGrid(TEXT("p.Tether.DrawSpatialHashingGrid"), false, TEXT("Draw Tether Spatial Hashing Grid to world"));
 }
@@ -59,8 +58,11 @@ void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputD
 	// Set the bucket size globally to the largest found shape
 	Output->BucketSize = MaxBucketSize;
 
-	UE_LOG(LogTether, Log, TEXT("Final bucket size based on largest shape: (%f, %f, %f)"),
-		Output->BucketSize.X, Output->BucketSize.Y, Output->BucketSize.Z);
+	if (FTether::CVarTetherLogSpatialHashingBucketSize.GetValueOnAnyThread())
+	{
+		UE_LOG(LogTether, Log, TEXT("Final bucket size based on largest shape: (%f, %f, %f)"),
+			Output->BucketSize.X, Output->BucketSize.Y, Output->BucketSize.Z);
+	}
 
 	// Now add all shapes to the spatial hash map using the fixed bucket size
 	for (int32 i = 0; i < Input->Shapes->Num(); i++)
@@ -78,11 +80,7 @@ void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputD
 			UE_LOG(LogTether, Log, TEXT("%s"), *DebugString);
 		}
 	}
-
 	
-
-
-
 	// Generate pairs based on spatial proximity and efficiency rating
 	for (const auto& HashEntry : Output->SpatialHashMap)
 	{
