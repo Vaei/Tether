@@ -13,6 +13,11 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherEditorSubsystem)
 
+namespace FTether
+{
+	TAutoConsoleVariable<bool> CVarTetherMatchFramerateToSimRate(TEXT("p.Tether.MatchFramerateToSimRate"), true, TEXT("Set t.maxfps=SimulationFrameRate on BeginPlay so the render tick runs at the same rate as Tether, if it can manage to"));
+}
+
 void UTetherEditorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
@@ -20,6 +25,18 @@ void UTetherEditorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	bHasWorldBegunPlay = true;
 
 	PhysicsUpdate = { SimulationFrameRate };
+
+	// Match render tick to physics tick, if the engine can keep up
+	if (FTether::CVarTetherMatchFramerateToSimRate.GetValueOnGameThread())
+	{
+		if (GEngine)
+		{
+			// GEngine->SetMaxFPS(SimulationFrameRate);  // We don't use this, because we can't then clear it easily
+	
+			FString Command = FString::Printf(TEXT("t.maxfps %f"), SimulationFrameRate);
+			GEngine->Exec(nullptr, *Command);
+		}
+	}
 
 	SpatialHashingInput.BucketSizeMode = ETetherBucketSizingStrategy::Automatic;
 }
