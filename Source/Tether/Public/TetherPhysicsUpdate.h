@@ -35,7 +35,7 @@ struct TETHER_API FTetherPhysicsUpdate
 	float TimeTick;
 
 	/** The accumulated time since the last sub-tick, used to determine if a new sub-tick is needed */
-	double RemainingTime;
+	float RemainingTime;
 
 	/**
 	 * Initialize the time tick and remaining time based on the simulation frame rate.
