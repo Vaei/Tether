@@ -31,50 +31,42 @@ void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputD
 
 	// Initialize the resulting bucket size. The condition isn't needed but may aid debugging
 	Output->BucketSize = Input->BucketSizeMode != ETetherBucketSizingStrategy::Automatic ? Input->BucketSize : FVector::ZeroVector;
+	
+	// Establish a global minimum bucket size
+	constexpr float GlobalMinBucketSize = KINDA_SMALL_NUMBER;  // Set this as a reasonable lower limit for the bucket size
 
-	// Add all shapes to the spatial hash map
+	// First, determine the largest shape's bounding box
+	FVector MaxBucketSize { GlobalMinBucketSize };  // Start with a global minimum
+
+	// Loop through all shapes to find the maximum required bucket size
 	const TArray<FTetherShape*> Shapes = *Input->Shapes;
 	for (int32 i = 0; i < Input->Shapes->Num(); i++)
 	{
-		// Ensure that the bucket size exceeds the bounds of the shape, otherwise we will fail to test them for collision!
-		if (Input->BucketSizeMode != ETetherBucketSizingStrategy::Fixed || FTether::CVarTetherCheckSpatialHashingBounds.GetValueOnAnyThread())
-		{
-			// Get the bounding box for the current shape
-			FTetherShape_AxisAlignedBoundingBox AABB = Shapes[i]->GetTetherShapeObject()->GetBoundingBox(*Shapes[i]);
+		// Get the bounding box for the current shape in world space
+		FTetherShape_AxisAlignedBoundingBox AABB = Shapes[i]->GetTetherShapeObject()->GetBoundingBox(*Shapes[i]);
 
-			ensure(AABB.IsWorldSpace());
+		ensure(AABB.IsWorldSpace());
 
-			// Check if the bounding box exceeds the bucket size
-			FVector AABBSize = AABB.Max - AABB.Min;
+		// Calculate the AABB size in world space
+		FVector AABBSize = AABB.Max - AABB.Min;
 
-			if (AABBSize.X > Output->BucketSize.X || AABBSize.Y > Output->BucketSize.Y || AABBSize.Z > Output->BucketSize.Z)
-			{
-				// Log a warning or handle the case where the bounding box exceeds the bucket size
-				if (Input->BucketSizeMode != ETetherBucketSizingStrategy::Automatic && FTether::CVarTetherCheckSpatialHashingBounds.GetValueOnAnyThread())
-				{
-					UE_LOG(LogTether, Warning, TEXT("Shape at index %d has a bounding box that exceeds the bucket size: AABBSize(%f, %f, %f), BucketSize(%f, %f, %f)"),
-						i, AABBSize.X, AABBSize.Y, AABBSize.Z, Output->BucketSize.X, Output->BucketSize.Y, Output->BucketSize.Z);
-				}
+		// Compare with the current max bucket size and adjust accordingly
+		MaxBucketSize.X = FMath::Max(MaxBucketSize.X, AABBSize.X);
+		MaxBucketSize.Y = FMath::Max(MaxBucketSize.Y, AABBSize.Y);
+		MaxBucketSize.Z = FMath::Max(MaxBucketSize.Z, AABBSize.Z);
+	}
 
-				// Adjust the bucket size to fit the largest AABB
-				if (Input->BucketSizeMode == ETetherBucketSizingStrategy::Automatic || Input->BucketSizeMode == ETetherBucketSizingStrategy::AutomaticMax)
-				{
-					Output->BucketSize.X = FMath::Max(Output->BucketSize.X, AABBSize.X);
-					Output->BucketSize.Y = FMath::Max(Output->BucketSize.Y, AABBSize.Y);
-					Output->BucketSize.Z = FMath::Max(Output->BucketSize.Z, AABBSize.Z);
+	// Set the bucket size globally to the largest found shape
+	Output->BucketSize = MaxBucketSize;
 
-					if (FTether::CVarTetherLogSpatialHashingBucketSize.GetValueOnAnyThread())
-					{
-						// Log a message that the bucket size has been adjusted
-						UE_LOG(LogTether, Log, TEXT("Bucket size adjusted to: (%f, %f, %f)"), Output->BucketSize.X, Output->BucketSize.Y, Output->BucketSize.Z);
-					}
-				}
-			}
-			
-			// Transform the bounding box to local space
-			ensure(AABB.IsWorldSpace());
-			AABB.ToLocalSpace();
-		}
+	UE_LOG(LogTether, Log, TEXT("Final bucket size based on largest shape: (%f, %f, %f)"),
+		Output->BucketSize.X, Output->BucketSize.Y, Output->BucketSize.Z);
+
+	// Now add all shapes to the spatial hash map using the fixed bucket size
+	for (int32 i = 0; i < Input->Shapes->Num(); i++)
+	{
+		// Get the bounding box for the current shape in world space
+		FTetherShape_AxisAlignedBoundingBox AABB = Shapes[i]->GetTetherShapeObject()->GetBoundingBox(*Shapes[i]);
 
 		// Add shape to spatial hash
 		FString DebugString = FString::Printf(TEXT("{ %s }"), *Shapes[i]->GetTetherShapeObject()->GetShapeDebugString());
@@ -86,6 +78,10 @@ void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputD
 			UE_LOG(LogTether, Log, TEXT("%s"), *DebugString);
 		}
 	}
+
+	
+
+
 
 	// Generate pairs based on spatial proximity and efficiency rating
 	for (const auto& HashEntry : Output->SpatialHashMap)
