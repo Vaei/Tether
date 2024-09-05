@@ -11,7 +11,7 @@
 
 namespace FTether
 {
-	TAutoConsoleVariable<bool> CVarTetherLogNarrowPhaseCollision(TEXT("p.Tether.LogNarrowPhaseCollision"), false, TEXT("Log Tether Narrow-Phase collisions"));
+	TAutoConsoleVariable<bool> CVarTetherLogNarrowPhaseCollision(TEXT("p.Tether.NarrowPhase.Log"), false, TEXT("Log Tether Narrow-Phase collisions"));
 }
 
 void UTetherCollisionDetectionNarrowPhase::DetectCollision(const TArray<FTetherShape>& BoneShapes,

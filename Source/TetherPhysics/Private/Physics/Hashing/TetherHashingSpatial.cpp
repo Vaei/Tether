@@ -11,9 +11,9 @@
 
 namespace FTether
 {
-	TAutoConsoleVariable<bool> CVarTetherLogSpatialHashingBucketSize(TEXT("p.Tether.LogSpatialHashingBucketSize"), false, TEXT("Print Tether Spatial Hashing automatic resizing changes to output log"));
-	TAutoConsoleVariable<bool> CVarTetherLogSpatialHashing(TEXT("p.Tether.LogSpatialHashing"), false, TEXT("Log Tether Spatial Hashing"));
-	TAutoConsoleVariable<bool> CVarTetherDrawSpatialHashingGrid(TEXT("p.Tether.DrawSpatialHashingGrid"), false, TEXT("Draw Tether Spatial Hashing Grid to world"));
+	TAutoConsoleVariable<bool> CVarTetherLogSpatialHashingBucketSize(TEXT("p.Tether.SpatialHashing.BucketSize.Log"), false, TEXT("Print Tether Spatial Hashing automatic resizing changes to output log"));
+	TAutoConsoleVariable<bool> CVarTetherLogSpatialHashing(TEXT("p.Tether.SpatialHashing.Log"), false, TEXT("Log Tether Spatial Hashing"));
+	TAutoConsoleVariable<bool> CVarTetherDrawSpatialHashingGrid(TEXT("p.Tether.SpatialHashing.Grid.Draw"), false, TEXT("Draw Tether Spatial Hashing Grid to world"));
 }
 
 void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform,

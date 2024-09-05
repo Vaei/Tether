@@ -13,10 +13,10 @@
 
 namespace FTether
 {
-	TAutoConsoleVariable<bool> CVarTetherLogBroadPhaseCollision(TEXT("p.Tether.LogBroadPhaseCollision"), false, TEXT("Log Tether Broad-Phase collisions"));
+	TAutoConsoleVariable<bool> CVarTetherLogBroadPhaseCollision(TEXT("p.Tether.BroadPhase.Log"), false, TEXT("Log Tether Broad-Phase collisions"));
 
 #if ENABLE_DRAW_DEBUG
-	TAutoConsoleVariable<bool> CVarTetherDrawBroadPhaseCollision(TEXT("p.Tether.DrawBroadPhaseCollision"), false, TEXT("Draw Tether Broad-Phase collisions"));
+	TAutoConsoleVariable<bool> CVarTetherDrawBroadPhaseCollision(TEXT("p.Tether.BroadPhase.Draw"), false, TEXT("Draw Tether Broad-Phase collisions"));
 #endif
 }
 
