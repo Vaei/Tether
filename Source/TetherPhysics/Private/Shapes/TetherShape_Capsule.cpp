@@ -6,15 +6,6 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape_Capsule)
 
-FTetherShape_Capsule::FTetherShape_Capsule()
-	: Center(FVector::ZeroVector)
-	, HalfHeight(25.f)
-	, Radius(10.f)
-	, Rotation(FRotator::ZeroRotator)
-{
-	TetherShapeClass = UTetherShapeObject_Capsule::StaticClass();
-}
-
 FTetherShape_Capsule::FTetherShape_Capsule(const FVector& InCenter, float InHalfHeight, float InRadius, const FRotator& InRotation)
 	: Center(InCenter)
 	, HalfHeight(InHalfHeight)
@@ -22,10 +13,21 @@ FTetherShape_Capsule::FTetherShape_Capsule(const FVector& InCenter, float InHalf
 	, Rotation(InRotation)
 {
 	TetherShapeClass = UTetherShapeObject_Capsule::StaticClass();
+
+	// Caching initial local space data is required for duplication
+	if (!IsWorldSpace())
+	{
+		LocalSpaceData = MakeShared<FTetherShape_Capsule>(*this);
+	}
 }
 
 void FTetherShape_Capsule::ToLocalSpace_Implementation()
 {
+	if (!IsWorldSpace())
+	{
+		return;
+	}
+	
 	if (ensure(LocalSpaceData.IsValid()))
 	{
 		*this = *StaticCastSharedPtr<FTetherShape_Capsule>(LocalSpaceData);
@@ -34,12 +36,10 @@ void FTetherShape_Capsule::ToLocalSpace_Implementation()
 
 FTetherShape_AxisAlignedBoundingBox FTetherShape_Capsule::GetBoundingBox() const
 {
-	FTransform Transform = IsWorldSpace() ? WorldTransform : FTransform::Identity;
-
 	// Calculate the top and bottom points of the capsule
 	FVector Up = Rotation.RotateVector(FVector(0, 0, HalfHeight));
-	FVector Top = Transform.TransformPosition(Center + Up + FVector(0, 0, Radius));
-	FVector Bottom = Transform.TransformPosition(Center - Up - FVector(0, 0, Radius));
+	FVector Top = Center + Up + FVector(0, 0, Radius);
+	FVector Bottom = Center - Up - FVector(0, 0, Radius);
 
 	// Calculate min and max for the bounding box
 	FVector Min = Top.ComponentMin(Bottom);
@@ -48,24 +48,39 @@ FTetherShape_AxisAlignedBoundingBox FTetherShape_Capsule::GetBoundingBox() const
 	Min -= FVector(Radius, Radius, 0.0f);
 	Max += FVector(Radius, Radius, 0.0f);
 
-	return FTetherShape_AxisAlignedBoundingBox(Min, Max);
+	return FTetherShape_AxisAlignedBoundingBox(Min, Max, IsWorldSpace(), WorldTransform);
 }
 
 
 FVector UTetherShapeObject_Capsule::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
 {
-	const FTetherShape_Capsule* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
+	const auto* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
 	return Capsule->Center;
 }
 
 void UTetherShapeObject_Capsule::TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const
 {
-	FTetherShape_Capsule* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
+	auto* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
 
-	if (Shape.IsWorldSpace() && !Shape.GetWorldTransform().Equals(WorldTransform))
+	if (Shape.IsWorldSpace())
 	{
-		// Already in world space, but has a new transform. Convert it back first.
-		TransformToLocalSpace(Shape);
+		// Already in world space
+		if (!Shape.GetWorldTransform().Equals(WorldTransform))
+		{
+			// Transform has changed, revert to world first
+			TransformToLocalSpace(Shape);
+		}
+		else
+		{
+			// No changes required
+			return;
+		}
+	}
+
+	if (!Shape.IsWorldSpace())
+	{
+		// Cache local space data
+		Shape.LocalSpaceData = Shape.Clone();
 	}
 
 	// Clone current state prior to conversion
@@ -105,11 +120,17 @@ void UTetherShapeObject_Capsule::TransformToLocalSpace(FTetherShape& Shape) cons
 	CastShape->ToLocalSpace_Implementation();
 }
 
+FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_Capsule::GetBoundingBox(const FTetherShape& Shape) const
+{
+	const auto* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
+	return Capsule->GetBoundingBox();
+}
+
 void UTetherShapeObject_Capsule::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,
 	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
-	const FTetherShape_Capsule* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
+	const auto* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
 
 	// Draw the capsule using its center, half-height, radius, and rotation
 	if (AnimInstanceProxy)

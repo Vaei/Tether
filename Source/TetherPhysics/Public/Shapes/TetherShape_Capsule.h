@@ -21,7 +21,9 @@ struct TETHERPHYSICS_API FTetherShape_Capsule : public FTetherShape
 {
 	GENERATED_BODY()
 
-	FTetherShape_Capsule();
+	FTetherShape_Capsule()
+		: FTetherShape_Capsule(FVector::ZeroVector, 25.f, 10.f, FRotator::ZeroRotator)
+	{}
 
 	FTetherShape_Capsule(const FVector& InCenter, float InHalfHeight, float InRadius, const FRotator& InRotation);
 
@@ -32,7 +34,9 @@ struct TETHERPHYSICS_API FTetherShape_Capsule : public FTetherShape
 	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_Capsule; }
 
 	void ToLocalSpace_Implementation();
-	
+
+	FTetherShape_AxisAlignedBoundingBox GetBoundingBox() const;
+
 	/** Center of the capsule */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector Center;
@@ -48,8 +52,6 @@ struct TETHERPHYSICS_API FTetherShape_Capsule : public FTetherShape
 	/** Rotation of the capsule */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FRotator Rotation;
-	
-	FTetherShape_AxisAlignedBoundingBox GetBoundingBox() const;
 };
 
 /**
@@ -77,6 +79,9 @@ public:
 
 	/** Transforms the shape data from world space back to local space */
 	virtual void TransformToLocalSpace(FTetherShape& Shape) const override;
+
+	/** Gets the shape as a bounding box */
+	virtual FTetherShape_AxisAlignedBoundingBox GetBoundingBox(const FTetherShape& Shape) const override;
 
 	/** Draws the shape for debugging purposes */
 	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,

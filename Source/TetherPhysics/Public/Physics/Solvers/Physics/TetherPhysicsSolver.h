@@ -39,5 +39,5 @@ public:
 	 * @param Transform  The transformation to be applied during the physics calculations.
 	 * @param DeltaTime  The time step for the simulation, used to calculate time-dependent physics effects.
 	 */
-	virtual void Solve(FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const {}
+	virtual void Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const {}
 };

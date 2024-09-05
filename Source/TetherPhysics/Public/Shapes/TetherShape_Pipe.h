@@ -20,7 +20,9 @@ struct TETHERPHYSICS_API FTetherShape_Pipe : public FTetherShape
 {
 	GENERATED_BODY()
 
-	FTetherShape_Pipe();
+	FTetherShape_Pipe()
+		: FTetherShape_Pipe(FVector::ZeroVector, FVector(20.f, 20.f, 5.f), 360.f, FRotator::ZeroRotator)
+	{}
 
 	FTetherShape_Pipe(const FVector& InCenter, const FVector& InOuterDimensions, float InArcAngle, const FRotator& InRotation);
 
@@ -31,6 +33,9 @@ struct TETHERPHYSICS_API FTetherShape_Pipe : public FTetherShape
 	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_Pipe; }
 
 	void ToLocalSpace_Implementation();
+	
+	/** Calculates the axis-aligned bounding box that encapsulates the pipe */
+	FTetherShape_AxisAlignedBoundingBox GetBoundingBox() const;
 	
 	/** Center of the pipe */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
@@ -47,9 +52,6 @@ struct TETHERPHYSICS_API FTetherShape_Pipe : public FTetherShape
 	/** Rotation of the pipe */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FRotator Rotation;
-
-	/** Calculates the axis-aligned bounding box that encapsulates the pipe */
-	FTetherShape_AxisAlignedBoundingBox GetBoundingBox() const;
 };
 
 /**
@@ -77,6 +79,9 @@ public:
 
 	/** Transforms the shape data from world space back to local space */
 	virtual void TransformToLocalSpace(FTetherShape& Shape) const override;
+
+	/** Gets the shape as a bounding box */
+	virtual FTetherShape_AxisAlignedBoundingBox GetBoundingBox(const FTetherShape& Shape) const override;
 
 	/** Draws the shape for debugging purposes */
 	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,

@@ -20,7 +20,9 @@ struct TETHERPHYSICS_API FTetherShape_BoundingSphere : public FTetherShape
 {
 	GENERATED_BODY()
 
-	FTetherShape_BoundingSphere();
+	FTetherShape_BoundingSphere()
+		: FTetherShape_BoundingSphere(FVector::ZeroVector, 10.f)
+	{}
 
 	FTetherShape_BoundingSphere(const FVector& InCenter, float InRadius);
 
@@ -31,6 +33,8 @@ struct TETHERPHYSICS_API FTetherShape_BoundingSphere : public FTetherShape
 	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_BoundingSphere; }
 
 	void ToLocalSpace_Implementation();
+
+	FTetherShape_AxisAlignedBoundingBox GetBoundingBox() const;
 	
 	/** Center of the sphere */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
@@ -65,6 +69,9 @@ public:
 
 	/** Transforms the shape data from world space back to local space */
 	virtual void TransformToLocalSpace(FTetherShape& Shape) const override;
+
+	/** Gets the shape as a bounding box */
+	virtual FTetherShape_AxisAlignedBoundingBox GetBoundingBox(const FTetherShape& Shape) const override;
 
 	/** Draws the shape for debugging purposes */
 	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,

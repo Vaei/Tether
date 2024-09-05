@@ -21,7 +21,9 @@ struct TETHERPHYSICS_API FTetherShape_OrientedBoundingBox : public FTetherShape
 {
 	GENERATED_BODY()
 
-	FTetherShape_OrientedBoundingBox();
+	FTetherShape_OrientedBoundingBox()
+		: FTetherShape_OrientedBoundingBox(FVector::ZeroVector, FVector::OneVector * 10.f, FRotator::ZeroRotator)
+	{}
 
 	FTetherShape_OrientedBoundingBox(const FVector& InCenter, const FVector& InExtent, const FRotator& InRotation);
 
@@ -104,6 +106,9 @@ public:
 
 	/** Transforms the shape data from world space back to local space */
 	virtual void TransformToLocalSpace(FTetherShape& Shape) const override;
+
+	/** Gets the shape as a bounding box */
+	virtual FTetherShape_AxisAlignedBoundingBox GetBoundingBox(const FTetherShape& Shape) const override;
 
 	/** Draws the shape for debugging purposes */
 	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,

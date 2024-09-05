@@ -26,6 +26,21 @@ enum class ETetherAngularShape : uint8
 };
 
 /**
+ * Enum to define the strategy for sizing buckets in spatial hashing.
+ *
+ * This enumeration allows you to choose between automatic and fixed sizing strategies for buckets in the spatial grid.
+ * Depending on the chosen strategy, the system will either automatically adjust the bucket size based on the largest shape
+ * or use a fixed bucket size, with optional warnings when shapes do not fit within the bucket size.
+ */
+UENUM(BlueprintType)
+enum class ETetherBucketSizingStrategy : uint8
+{
+	Automatic				UMETA(ToolTip="Automatically size the spatial grid by setting the bucket size to the size of the bounds of the largest shape"),
+	AutomaticMax			UMETA(ToolTip="Only adjust the bucket size if it does not fit the largest shape, and optionally warn using: p.Tether.CheckSpatialHashingBounds 1"),
+	Fixed					UMETA(ToolTip="Do not make any adjustments to the bucket size, and optionally warn using: p.Tether.CheckSpatialHashingBounds 1"),
+};
+
+/**
  * Determines the behavior of the replay system when handling multiple shapes.
  *
  * - Completion: This mode ensures that all shapes are checked, and the function will return true
@@ -100,28 +115,34 @@ struct TETHERPHYSICS_API FSpatialHashingInput : public FTetherIO
 	GENERATED_BODY()
 
 	FSpatialHashingInput()
-		: BucketSize(50.f)
-		, Origin(FVector::ZeroVector)
+		: BucketSizeMode(ETetherBucketSizingStrategy::Fixed)
+		, BucketSize(50.f)
+		, OriginOffset(FVector::ZeroVector)
 		, Shapes(nullptr)
 	{}
     
-	FSpatialHashingInput(const FVector& InBucketSize, const FVector& InOrigin, const TArray<FTetherShape>& InShapes)
-		: BucketSize(InBucketSize)
-		, Origin(InOrigin)
+	FSpatialHashingInput(const ETetherBucketSizingStrategy& InBucketSizeMode, const FVector& InBucketSize, const FVector& InOrigin, const TArray<FTetherShape*>* InShapes)
+		: BucketSizeMode(InBucketSizeMode)
+		, BucketSize(InBucketSize)
+		, OriginOffset(InOrigin)
 	{
-		Shapes = &InShapes;
+		Shapes = InShapes;
 	}
 
-	/** Size of each bucket in the spatial hash grid */
+	/** Strategy for sizing buckets in spatial hashing. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	ETetherBucketSizingStrategy BucketSizeMode;
+
+	/** Size of each bucket in the spatial hash grid */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(EditCondition="BucketSizeMode!=ETetherBucketSizeMode::Automatic", EditConditionHides))
 	FVector BucketSize;
 
 	/** Origin of the spatial hash grid */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FVector Origin;
+	FVector OriginOffset;
 
 	/** Array of shapes to be hashed */
-	const TArray<FTetherShape>* Shapes;
+	const TArray<FTetherShape*>* Shapes;
 };
 
 /**
@@ -136,8 +157,12 @@ struct TETHERPHYSICS_API FSpatialHashingOutput : public FTetherIO
 	GENERATED_BODY()
 
 	FSpatialHashingOutput()
+		: BucketSize(FVector::ZeroVector)
 	{}
 
+	/** Size of each bucket in the spatial hash grid, after being computed according to FSpatialHashingInput::BucketSizeMode */
+	FVector BucketSize;
+	
 	/** Pairs of shapes that should be tested for collisions */
 	TArray<FTetherShapePair> ShapePairs;
 
@@ -370,33 +395,32 @@ struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionOutput : public FTetherIO
 };
 
 /**
- * Pair of indices for broad-phase collision checks.
+ * Input data for broad-phase collision detection.
  *
- * This struct is used to store the indices of two objects that should be tested
- * for potential collisions during the broad-phase collision detection.
+ * This struct contains information needed for performing broad-phase collision detection,
+ * including the array of shapes to be processed and the potential collision pairs identified
+ * during spatial hashing.
  */
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FTetherBroadCollisionPair
+struct TETHERPHYSICS_API FTetherBroadPhaseCollisionInput : public FTetherIO
 {
 	GENERATED_BODY()
 
-	FTetherBroadCollisionPair()
-		: FirstIndex(0)
-		, SecondIndex(0)
+	FTetherBroadPhaseCollisionInput()
+		: Shapes(nullptr)
+		, PotentialCollisionPairings(nullptr)
 	{}
 
-	FTetherBroadCollisionPair(int32 InFirstIndex, int32 InSecondIndex)
-		: FirstIndex(InFirstIndex)
-		, SecondIndex(InSecondIndex)
+	FTetherBroadPhaseCollisionInput(const TArray<FTetherShape*>* InShapes, const TArray<FTetherShapePair>* InPotentialPairs)
+		: Shapes(InShapes)
+		, PotentialCollisionPairings(InPotentialPairs)
 	{}
 
-	/** Index of the first object in the collision pair */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	int32 FirstIndex;
+	/** Array of shapes to be processed in the broad-phase collision detection */
+	const TArray<FTetherShape*>* Shapes;
 
-	/** Index of the second object in the collision pair */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	int32 SecondIndex;
+	/** Pairs of shapes that have been identified as potential collisions during spatial hashing */
+	const TArray<FTetherShapePair>* PotentialCollisionPairings;
 };
 
 /**
@@ -415,7 +439,7 @@ struct TETHERPHYSICS_API FTetherBroadPhaseCollisionOutput : public FTetherIO
 
 	/** Array of collision pairs detected in the broad-phase */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	TArray<FTetherBroadCollisionPair> CollisionPairings;
+	TArray<FTetherShapePair> CollisionPairings;
 };
 
 /**

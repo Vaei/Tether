@@ -6,15 +6,6 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape_Pipe)
 
-FTetherShape_Pipe::FTetherShape_Pipe()
-	: Center(FVector::ZeroVector)
-	, OuterDimensions(FVector(100.f, 100.f, 10.f)) // Example dimensions
-	, ArcAngle(360.f)
-	, Rotation(FRotator::ZeroRotator)
-{
-	TetherShapeClass = UTetherShapeObject_Pipe::StaticClass();
-}
-
 FTetherShape_Pipe::FTetherShape_Pipe(const FVector& InCenter, const FVector& InOuterDimensions, float InArcAngle, const FRotator& InRotation)
 	: Center(InCenter)
 	, OuterDimensions(InOuterDimensions)
@@ -22,10 +13,21 @@ FTetherShape_Pipe::FTetherShape_Pipe(const FVector& InCenter, const FVector& InO
 	, Rotation(InRotation)
 {
 	TetherShapeClass = UTetherShapeObject_Pipe::StaticClass();
+	
+	// Caching initial local space data is required for duplication
+	if (!IsWorldSpace())
+	{
+		LocalSpaceData = MakeShared<FTetherShape_Pipe>(*this);
+	}
 }
 
 void FTetherShape_Pipe::ToLocalSpace_Implementation()
 {
+	if (!IsWorldSpace())
+	{
+		return;
+	}
+	
 	if (ensure(LocalSpaceData.IsValid()))
 	{
 		*this = *StaticCastSharedPtr<FTetherShape_Pipe>(LocalSpaceData);
@@ -34,30 +36,43 @@ void FTetherShape_Pipe::ToLocalSpace_Implementation()
 
 FTetherShape_AxisAlignedBoundingBox FTetherShape_Pipe::GetBoundingBox() const
 {
-	FTransform Transform = IsWorldSpace() ? WorldTransform : FTransform::Identity;
-
 	// Calculate the bounding box based on the pipe's outer dimensions and rotation
 	FVector Extents = OuterDimensions * 0.5f;
-	FVector Min = Transform.TransformPosition(Center - Extents);
-	FVector Max = Transform.TransformPosition(Center + Extents);
+	FVector Min = Center - Extents;
+	FVector Max = Center + Extents;
 
-	return FTetherShape_AxisAlignedBoundingBox(Min, Max);
+	return FTetherShape_AxisAlignedBoundingBox(Min, Max, IsWorldSpace(), WorldTransform);
 }
 
 FVector UTetherShapeObject_Pipe::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
 {
-	const FTetherShape_Pipe* Pipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&Shape);
+	const auto* Pipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&Shape);
 	return Pipe->Center;
 }
 
 void UTetherShapeObject_Pipe::TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const
 {
-	FTetherShape_Pipe* Pipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&Shape);
+	auto* Pipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&Shape);
 
-	if (Shape.IsWorldSpace() && !Shape.GetWorldTransform().Equals(WorldTransform))
+	if (Shape.IsWorldSpace())
 	{
-		// Already in world space, but has a new transform. Convert it back first.
-		TransformToLocalSpace(Shape);
+		// Already in world space
+		if (!Shape.GetWorldTransform().Equals(WorldTransform))
+		{
+			// Transform has changed, revert to world first
+			TransformToLocalSpace(Shape);
+		}
+		else
+		{
+			// No changes required
+			return;
+		}
+	}
+
+	if (!Shape.IsWorldSpace())
+	{
+		// Cache local space data
+		Shape.LocalSpaceData = Shape.Clone();
 	}
 
 	// Clone current state prior to conversion
@@ -91,11 +106,17 @@ void UTetherShapeObject_Pipe::TransformToLocalSpace(FTetherShape& Shape) const
 	CastShape->ToLocalSpace_Implementation();
 }
 
+FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_Pipe::GetBoundingBox(const FTetherShape& Shape) const
+{
+	const auto* Pipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&Shape);
+	return Pipe->GetBoundingBox();
+}
+
 void UTetherShapeObject_Pipe::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,
 	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
-    const FTetherShape_Pipe* Pipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&Shape);
+    const auto* Pipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&Shape);
 
     const FVector& Center = Pipe->Center;
     const FVector& OuterDimensions = Pipe->OuterDimensions;

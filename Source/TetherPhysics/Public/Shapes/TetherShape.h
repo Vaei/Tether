@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 #include "TetherShape.generated.h"
 
+struct FTetherShape_AxisAlignedBoundingBox;
 class UTetherShapeObject;
 
 /**
@@ -52,11 +53,11 @@ public:
 	uint8 EfficiencyRating = 0;  // @TODO Implement efficiency rating generation for all shapes
 
 	/**
-	 * The spatial grid bucket where the shape is located, used in broad-phase collision detection
+	 * Typically represents the spatial grid bucket where the shape is located, used in broad-phase collision detection
 	 * This may be any kind of index in a non-spatial hashing system
 	 */
 	UPROPERTY()
-	int32 Bucket = 0;
+	int32 HashIndex = 0;
 
 	/** Cache local space data to avoid precision or rounding data loss over time */
 	TSharedPtr<FTetherShape> LocalSpaceData = nullptr;
@@ -69,7 +70,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FGameplayTagContainer IgnoredShapeTypes;
 
-	UTetherShapeObject* GetTetherShape() const;
+	UTetherShapeObject* GetTetherShapeObject() const;
 	FGameplayTag GetShapeType() const;
 	static FGameplayTag StaticShapeType() { return FGameplayTag::EmptyTag; }
 
@@ -83,7 +84,7 @@ public:
 	static bool AreShapesIgnoringEachOther(const FTetherShape& ShapeA, const FTetherShape& ShapeB);
 
 	/** Returns whether the shape is currently in world space */
-	bool IsWorldSpace() const { return bInWorldSpace; }
+	bool IsWorldSpace() const { return bWorldSpace; }
 
 	/** Converts the shape's data to world space using the given transformation */
 	void ToWorldSpace(const FTransform& InWorldTransform);
@@ -101,7 +102,7 @@ protected:
 
 	/** Indicates whether the shape is currently in world space */
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
-	bool bInWorldSpace = false;
+	bool bWorldSpace = false;
 
 public:
 	/** Draws the shape for debugging purposes using the animation instance proxy */
@@ -120,13 +121,21 @@ public:
  * in the physics simulation. It includes a method to check if two pairs are equal, regardless of the order
  * of the shapes, making it useful for identifying and managing unique collision pairs.
  */
+USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FTetherShapePair
 {
+	GENERATED_BODY()
+	
 	/** Index of the first shape in the pair */
 	int32 ShapeIndexA;
 
 	/** Index of the second shape in the pair */
 	int32 ShapeIndexB;
+
+	FTetherShapePair()
+		: ShapeIndexA(INDEX_NONE)
+		, ShapeIndexB(INDEX_NONE)
+	{}
 
 	/** 
 	 * Constructor to initialize the pair with the indices of two shapes 
@@ -137,7 +146,12 @@ struct TETHERPHYSICS_API FTetherShapePair
 		: ShapeIndexA(InShapeIndexA)
 		, ShapeIndexB(InShapeIndexB)
 	{}
-    
+
+	bool ContainsShape(int32 ShapeIndex) const
+	{
+		return ShapeIndexA == ShapeIndex || ShapeIndexB == ShapeIndex;
+	}
+	
 	/**
 	 * Checks if two shape pairs are equal, regardless of the order of shapes.
 	 * This method ensures that (A, B) is considered equal to (B, A).
@@ -181,6 +195,12 @@ public:
 	
 	/** Transforms the shape data from world space back to local space */
 	virtual void TransformToLocalSpace(FTetherShape& Shape) const {}
+
+	/** Gets the shape as a bounding box */
+	virtual FTetherShape_AxisAlignedBoundingBox GetBoundingBox(const FTetherShape& Shape) const;
+
+	/** Gets the shape identifier for debugging purposes */
+	virtual FString GetShapeDebugString() const { return GetShapeType().ToString(); }
 
 	/** Draws the shape for debugging purposes */
 	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy = nullptr,

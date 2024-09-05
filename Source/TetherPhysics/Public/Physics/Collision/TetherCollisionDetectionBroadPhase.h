@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TetherIO.h"
 #include "Shapes/TetherShape.h"
 #include "UObject/Object.h"
 #include "TetherCollisionDetectionBroadPhase.generated.h"
 
+class UTetherCollisionDetectionHandler;
 struct FTetherBroadPhaseCollisionOutput;
 
 /**
@@ -32,19 +34,29 @@ class TETHERPHYSICS_API UTetherCollisionDetectionBroadPhase : public UObject
 public:
 	/**
 	 * Detect potential collisions between objects using broad-phase techniques.
+	 * This typically involves converting to bounding boxes to compare overlaps.
 	 *
-	 * @param BoneShapes The array of shapes representing objects in the simulation.
-	 * @param Output The output data structure that will store the pairs of objects that should be further tested in the narrow-phase.
+	 * @param InputData The input data structure containing relevant information, such as the array of shapes representing objects in the simulation and other spatial hashing data.
+	 * @param OutputData The output data structure that will store the pairs of objects that should be further tested in the narrow-phase collision detection.
+	 * @param CollisionDetectionHandler The handler to use for collision detection
 	 */
-	virtual void DetectCollision(const TArray<FTetherShape>& BoneShapes, FTetherBroadPhaseCollisionOutput& Output) const;
+	virtual void DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData, const UTetherCollisionDetectionHandler* CollisionDetectionHandler) const;
 
 	/**
 	 * Visualize the results of the broad-phase collision detection.
 	 *
-	 * @param BoneShapes The array of shapes representing objects in the simulation.
-	 * @param CollisionOutput The results of the broad-phase collision detection.
-	 * @param AnimInstanceProxy Pointer to the animation instance proxy for drawing debug information.
-	 * @param bForceDraw Whether to force drawing of debug lines even if certain conditions are not met.
+	 * @param InputData The input data structure containing relevant information used during the broad-phase collision detection, such as object shapes.
+	 * @param OutputData The output data structure containing the results of the broad-phase collision detection, including potential collision pairs.
+	 * @param AnimInstanceProxy Pointer to the animation instance proxy for drawing debug information (if applicable).
+	 * @param World The world context in which the debug information will be drawn (optional).
+	 * @param LifeTime How long to draw the debug shapes for
+	 * @param bForceDraw Whether to force the drawing of debug lines regardless of the usual conditions (optional).
+	 * @param NoTestColor The default color used for drawing debug information for shapes that incurred no overlap testing (optional).
+	 * @param NoOverlapColor The color used for drawing debug information where collisions have NOT been detected (optional).
+	 * @param OverlapColor The color used for drawing debug information where collisions have been detected (optional).
 	 */
-	virtual void DrawDebug(const TArray<FTetherShape>& BoneShapes, const FTetherBroadPhaseCollisionOutput& CollisionOutput, FAnimInstanceProxy* AnimInstanceProxy, bool bForceDraw = false) const;
+	virtual void DrawDebug(const FTetherIO* InputData, const FTetherIO* OutputData,
+		FAnimInstanceProxy* AnimInstanceProxy, UWorld* World = nullptr, float LifeTime = -1.f, bool bForceDraw = false,
+		const FColor& NoTestColor = FColor::White, const FColor& OverlapColor = FColor::Orange,
+		const FColor& NoOverlapColor = FColor::Yellow) const;
 };

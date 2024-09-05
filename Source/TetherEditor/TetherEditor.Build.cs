@@ -14,6 +14,7 @@ public class TetherEditor : ModuleRules
                 "Core",
                 "TetherPhysics",
                 "GameplayTags",
+                "Tether",
             }
         );
 

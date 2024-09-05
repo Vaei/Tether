@@ -4,25 +4,26 @@
 #include "Shapes/TetherShape.h"
 
 #include "TetherGameplayTags.h"
+#include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
 
-UTetherShapeObject* FTetherShape::GetTetherShape() const
+UTetherShapeObject* FTetherShape::GetTetherShapeObject() const
 {
 	return TetherShapeClass ? TetherShapeClass.GetDefaultObject() : nullptr;
 }
 
 FGameplayTag FTetherShape::GetShapeType() const
 {
-	return GetTetherShape() ? GetTetherShape()->GetShapeType() : FGameplayTag::EmptyTag;
+	return GetTetherShapeObject() ? GetTetherShapeObject()->GetShapeType() : FGameplayTag::EmptyTag;
 }
 
 FVector FTetherShape::GetCenter() const
 {
-	return GetTetherShape() ? GetTetherShape()->GetLocalSpaceShapeCenter(*this) : FVector::ZeroVector;
+	return GetTetherShapeObject() ? GetTetherShapeObject()->GetLocalSpaceShapeCenter(*this) : FVector::ZeroVector;
 }
 
 bool FTetherShape::IsValid() const
 {
-	return GetTetherShape()
+	return GetTetherShapeObject()
 	&& GetShapeType().MatchesTag(FTetherGameplayTags::Tether_Shape)			// Starts with Tether.Shape
 	&& !GetShapeType().MatchesTagExact(FTetherGameplayTags::Tether_Shape);	// But not actually Tether.Shape
 }
@@ -33,7 +34,7 @@ bool FTetherShape::IsIgnored(const FTetherShape& Other) const
 	{
 		return true;
 	}
-	return IgnoredShapeTypes.HasTagExact(Other.GetShapeType()) || IgnoredShapes.Contains(Other.GetTetherShape());
+	return IgnoredShapeTypes.HasTagExact(Other.GetShapeType()) || IgnoredShapes.Contains(Other.GetTetherShapeObject());
 }
 
 bool FTetherShape::AreShapesIgnoringEachOther(const FTetherShape& ShapeA, const FTetherShape& ShapeB)
@@ -43,22 +44,22 @@ bool FTetherShape::AreShapesIgnoringEachOther(const FTetherShape& ShapeA, const 
 
 void FTetherShape::ToWorldSpace(const FTransform& InWorldTransform)
 {
-	GetTetherShape()->TransformToWorldSpace(*this, InWorldTransform);
-	bInWorldSpace = true;
+	GetTetherShapeObject()->TransformToWorldSpace(*this, InWorldTransform);
+	bWorldSpace = true;
 	WorldTransform = InWorldTransform;
 }
 
 void FTetherShape::ToLocalSpace()
 {
-	GetTetherShape()->TransformToLocalSpace(*this);
-	bInWorldSpace = false;
+	GetTetherShapeObject()->TransformToLocalSpace(*this);
+	bWorldSpace = false;
 }
 
 void FTetherShape::DrawDebug(FAnimInstanceProxy* AnimInstanceProxy, const FColor& Color, bool bPersistentLines,
 	float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
-	GetTetherShape()->DrawDebug(*this, AnimInstanceProxy, nullptr, Color, bPersistentLines, LifeTime, Thickness);
+	GetTetherShapeObject()->DrawDebug(*this, AnimInstanceProxy, nullptr, Color, bPersistentLines, LifeTime, Thickness);
 #endif
 }
 
@@ -66,6 +67,11 @@ void FTetherShape::DrawDebug(UWorld* World, const FColor& Color, bool bPersisten
 	float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
-	GetTetherShape()->DrawDebug(*this, nullptr, World, Color, bPersistentLines, LifeTime, Thickness);
+	GetTetherShapeObject()->DrawDebug(*this, nullptr, World, Color, bPersistentLines, LifeTime, Thickness);
 #endif
+}
+
+FTetherShape_AxisAlignedBoundingBox UTetherShapeObject::GetBoundingBox(const FTetherShape& Shape) const
+{
+	return FTetherShape_AxisAlignedBoundingBox();
 }

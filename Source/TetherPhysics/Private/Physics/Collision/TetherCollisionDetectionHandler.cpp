@@ -22,150 +22,150 @@ FVector UTetherCollisionDetectionHandler::ClampVector(const FVector& InVector, c
 	return Result;
 }
 
-bool UTetherCollisionDetectionHandler::CheckBroadCollision(const FTetherShape& ShapeA, const FTetherShape& ShapeB) const
+bool UTetherCollisionDetectionHandler::CheckBroadCollision(const FTetherShape* ShapeA, const FTetherShape* ShapeB) const
 {
-	if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+	if (ShapeA->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeA);
+		if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeB);
 			return Broad_AABB_AABB(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeB);
 			return Broad_AABB_BoundingSphere(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeB);
 			return Broad_AABB_OBB(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeB);
 			return Broad_AABB_Capsule(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeB);
 			return Broad_AABB_Pipe(A, B);
 		}
 	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+	else if (ShapeA->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeA);
+		if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeB);
 			return Broad_OBB_AABB(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeB);
 			return Broad_OBB_BoundingSphere(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeB);
 			return Broad_OBB_OBB(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeB);
 			return Broad_OBB_Capsule(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeB);
 			return Broad_OBB_Pipe(A, B);
 		}
 	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+	else if (ShapeA->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeA);
+		if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeB);
 			return Broad_BoundingSphere_AABB(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeB);
 			return Broad_BoundingSphere_BoundingSphere(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeB);
 			return Broad_BoundingSphere_OBB(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeB);
 			return Broad_BoundingSphere_Capsule(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeB);
 			return Broad_BoundingSphere_Pipe(A, B);
 		}
 	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+	else if (ShapeA->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeA);
+		if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeB);
 			return Broad_Capsule_AABB(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeB);
 			return Broad_Capsule_BoundingSphere(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeB);
 			return Broad_Capsule_OBB(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeB);
 			return Broad_Capsule_Capsule(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeB);
 			return Broad_Capsule_Pipe(A, B);
 		}
 	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+	else if (ShapeA->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeA);
+		if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeB);
 			return Broad_Pipe_AABB(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeB);
 			return Broad_Pipe_BoundingSphere(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeB);
 			return Broad_Pipe_OBB(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeB);
 			return Broad_Pipe_Capsule(A, B);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeB);
 			return Broad_Pipe_Pipe(A, B);
 		}
 	}
@@ -173,150 +173,150 @@ bool UTetherCollisionDetectionHandler::CheckBroadCollision(const FTetherShape& S
 	return false;
 }
 
-bool UTetherCollisionDetectionHandler::CheckNarrowCollision(const FTetherShape& ShapeA, const FTetherShape& ShapeB, FTetherNarrowPhaseCollisionOutput& Output) const
+bool UTetherCollisionDetectionHandler::CheckNarrowCollision(const FTetherShape* ShapeA, const FTetherShape* ShapeB, FTetherNarrowPhaseCollisionOutput& Output) const
 {
-	if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+	if (ShapeA->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeA);
+		if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeB);
 			return Narrow_AABB_AABB(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeB);
 			return Narrow_AABB_BoundingSphere(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeB);
 			return Narrow_AABB_OBB(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeB);
 			return Narrow_AABB_Capsule(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeB);
 			return Narrow_AABB_Pipe(A, B, Output);
 		}
 	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+	else if (ShapeA->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeA);
+		if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeB);
 			return Narrow_OBB_AABB(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeB);
 			return Narrow_OBB_BoundingSphere(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeB);
 			return Narrow_OBB_OBB(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeB);
 			return Narrow_OBB_Capsule(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeB);
 			return Narrow_OBB_Pipe(A, B, Output);
 		}
 	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+	else if (ShapeA->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeA);
+		if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeB);
 			return Narrow_BoundingSphere_AABB(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeB);
 			return Narrow_BoundingSphere_BoundingSphere(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeB);
 			return Narrow_BoundingSphere_OBB(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeB);
 			return Narrow_BoundingSphere_Capsule(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeB);
 			return Narrow_BoundingSphere_Pipe(A, B, Output);
 		}
 	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+	else if (ShapeA->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeA);
+		if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeB);
 			return Narrow_Capsule_AABB(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeB);
 			return Narrow_Capsule_BoundingSphere(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeB);
 			return Narrow_Capsule_OBB(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeB);
 			return Narrow_Capsule_Capsule(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeB);
 			return Narrow_Capsule_Pipe(A, B, Output);
 		}
 	}
-	else if (ShapeA.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+	else if (ShapeA->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 	{
-		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeA);
-		if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
+		const auto* A = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeA);
+		if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(ShapeB);
 			return Narrow_Pipe_AABB(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_BoundingSphere)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(ShapeB);
 			return Narrow_Pipe_BoundingSphere(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_OrientedBoundingBox)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(ShapeB);
 			return Narrow_Pipe_OBB(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Capsule)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(ShapeB);
 			return Narrow_Pipe_Capsule(A, B, Output);
 		}
-		else if (ShapeB.GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
+		else if (ShapeB->GetShapeType() == FTetherGameplayTags::Tether_Shape_Pipe)
 		{
-			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&ShapeB);
+			const auto* B = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(ShapeB);
 			return Narrow_Pipe_Pipe(A, B, Output);
 		}
 	}

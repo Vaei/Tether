@@ -7,7 +7,7 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherPhysicsSolverAngular)
 
-void UTetherPhysicsSolverAngular::Solve(FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform,
+void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform,
 	float DeltaTime) const
 {
 	const auto* Input = InputData->GetDataIO<FAngularInput>();

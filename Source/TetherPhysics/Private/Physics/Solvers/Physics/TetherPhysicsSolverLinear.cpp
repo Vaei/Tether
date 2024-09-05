@@ -5,7 +5,7 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherPhysicsSolverLinear)
 
-void UTetherPhysicsSolverLinear::Solve(FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const
+void UTetherPhysicsSolverLinear::Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const
 {
 	const auto* Input = InputData->GetDataIO<FLinearInput>();
 	auto* Output = OutputData->GetDataIO<FLinearOutput>();

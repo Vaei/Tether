@@ -40,13 +40,14 @@ public:
 	 * @param Transform  The transformation to be applied during the hashing process, if applicable.
 	 * @param DeltaTime  The time step for the simulation, used for time-dependent hashing calculations, if applicable.
 	 */
-	virtual void Solve(FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const {}
+	virtual void Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const {}
 
 	/**
 	 * Visualizes the results of the hashing process for debugging purposes.
 	 * 
 	 * @param Input                Pointer to the input data used in the hashing process.
 	 * @param Output               Pointer to the output data containing the results of the hashing.
+	 * @param Transform			   The transformation to be applied, if applicable.
 	 * @param AnimInstanceProxy    Pointer to the animation instance proxy for drawing debug information.
 	 * @param World                Pointer to the world context in which the debugging visualization occurs.
 	 * @param bDrawAll             Whether to draw all relevant elements or just those involved in processing.
@@ -56,6 +57,7 @@ public:
 	 * @param Thickness            The thickness of the debug lines.
 	 */
 	virtual void DrawDebug(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
-		FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAll = true, const FColor& Color = FColor::Green,
-		bool bPersistentLines = false, float LifeTime = -1.0f, float Thickness = 1.0f) const {}
+		const FTransform& Transform, FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAll = true,
+		const FColor& Color = FColor::Green, bool bPersistentLines = false, float LifeTime = -1.0f,
+		float Thickness = 1.0f) const {}
 };

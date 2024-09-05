@@ -3,73 +3,131 @@
 
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
 
+#include "TetherSettings.h"
 #include "TetherIO.h"
 #include "TetherStatics.h"
+#include "Physics/Collision/TetherCollisionDetectionHandler.h"
+#include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherCollisionDetectionBroadPhase)
 
 namespace FTether
 {
-	TAutoConsoleVariable<bool> CVarTetherLogBroadPhaseCollision(TEXT("a.Tether.LogBroadPhaseCollision"), false, TEXT("Log Tether Broad-Phase collisions"));
-	TAutoConsoleVariable<bool> CVarTetherDrawBroadPhaseCollision(TEXT("a.Tether.DrawBroadPhaseCollision"), false, TEXT("Draw Tether Broad-Phase collisions"));
+	TAutoConsoleVariable<bool> CVarTetherLogBroadPhaseCollision(TEXT("p.Tether.LogBroadPhaseCollision"), false, TEXT("Log Tether Broad-Phase collisions"));
+
+#if ENABLE_DRAW_DEBUG
+	TAutoConsoleVariable<bool> CVarTetherDrawBroadPhaseCollision(TEXT("p.Tether.DrawBroadPhaseCollision"), false, TEXT("Draw Tether Broad-Phase collisions"));
+#endif
 }
 
-void UTetherCollisionDetectionBroadPhase::DetectCollision(const TArray<FTetherShape>& BoneShapes, FTetherBroadPhaseCollisionOutput& Output) const
+void UTetherCollisionDetectionBroadPhase::DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData, const UTetherCollisionDetectionHandler* CollisionDetectionHandler) const
 {
-	// Output.CollisionPairings.Reset();
-	//
-	// // Loop through all pairs of bone shapes
-	// for (int32 i = 0; i < BoneShapes.Num(); ++i)
-	// {
-	// 	for (int32 j = i + 1; j < BoneShapes.Num(); ++j)
-	// 	{
-	// 		const FTetherShape& ShapeA = BoneShapes[i];
-	// 		const FTetherShape& ShapeB = BoneShapes[j];
-	//
-	// 		// Check for overlap
-	// 		if (ShapeA.IsValid() && ShapeB.IsValid() && ShapeA.CheckOverlap(ShapeB))
-	// 		{
-	// 			// Skip collision based on ignored TYPE
-	// 			if (FTetherShape::AreShapesIgnoringEachOther(ShapeA, ShapeB))
-	// 			{
-	// 				continue;
-	// 			}
-	//
-	// 			if (FTether::CVarTetherLogBroadPhaseCollision.GetValueOnAnyThread())
-	// 			{
-	// 				UE_LOG(LogTether, Log, TEXT("Potential broad-phase collision detected between Shape %d and Shape %d."), i, j);
-	// 			}
-	// 			
-	// 			// Add the collision pair to the output
-	// 			Output.CollisionPairings.Add(FTetherBroadCollisionPair(i, j));
-	// 		}
-	// 	}
-	// }
+	const auto* Input = InputData->GetDataIO<FTetherBroadPhaseCollisionInput>();
+	auto* Output = OutputData->GetDataIO<FTetherBroadPhaseCollisionOutput>();
+
+	// Clear the output before starting
+	Output->CollisionPairings.Reset();
+
+	// Iterate through each potential collision pair
+	for (const FTetherShapePair& Pair : *Input->PotentialCollisionPairings)
+	{
+		const FTetherShape* ShapeA = (*Input->Shapes)[Pair.ShapeIndexA];
+		const FTetherShape* ShapeB = (*Input->Shapes)[Pair.ShapeIndexB];
+
+		// Perform broad-phase collision checks between ShapeA and ShapeB
+		if (CollisionDetectionHandler->CheckBroadCollision(ShapeA, ShapeB))
+		{
+			// If a collision is detected, add it to the output
+			Output->CollisionPairings.Add(Pair);
+
+			// Debug logging
+			if (FTether::CVarTetherLogBroadPhaseCollision.GetValueOnAnyThread())
+			{
+				UE_LOG(LogTether, Warning, TEXT("[ %s ] Shape { %s } broad-phase overlap with { %s }"),
+					*FString(__FUNCTION__),
+					*ShapeA->GetTetherShapeObject()->GetShapeDebugString(),
+					*ShapeB->GetTetherShapeObject()->GetShapeDebugString());
+			}
+		}
+	}
 }
 
-void UTetherCollisionDetectionBroadPhase::DrawDebug(const TArray<FTetherShape>& BoneShapes,
-	const FTetherBroadPhaseCollisionOutput& CollisionOutput, FAnimInstanceProxy* AnimInstanceProxy, bool bForceDraw) const
+void UTetherCollisionDetectionBroadPhase::DrawDebug(const FTetherIO* InputData, const FTetherIO* OutputData,
+	FAnimInstanceProxy* AnimInstanceProxy, UWorld* World, float LifeTime, bool bForceDraw,
+	const FColor& NoTestColor, const FColor& OverlapColor, const FColor& NoOverlapColor) const
 {
 #if ENABLE_DRAW_DEBUG
-	if (!bForceDraw || !FTether::CVarTetherDrawBroadPhaseCollision.GetValueOnAnyThread())
+	if (!bForceDraw && !FTether::CVarTetherDrawBroadPhaseCollision.GetValueOnAnyThread())
 	{
 		return;
 	}
 	
-	// Draw all bounding volumes
-	for (const FTetherShape& Shape : BoneShapes)
+	if (!AnimInstanceProxy && !World)
 	{
-		Shape.DrawDebug(AnimInstanceProxy, FColor::Blue); // Draw all shapes in blue by default
+		return;
 	}
+	
+	const auto* Input = InputData->GetDataIO<FTetherBroadPhaseCollisionInput>();
+	const auto* Output = OutputData->GetDataIO<FTetherBroadPhaseCollisionOutput>();
 
-	// Highlight potential collisions
-	for (const FTetherBroadCollisionPair& Pair : CollisionOutput.CollisionPairings)
+	// Draw bounding boxes - this is O(n^2) at least, but it isn't in shipping builds
+	for (int32 ShapeIndex = 0; ShapeIndex < Input->Shapes->Num(); ShapeIndex++)
 	{
-		const FTetherShape& ShapeA = BoneShapes[Pair.FirstIndex];
-		const FTetherShape& ShapeB = BoneShapes[Pair.SecondIndex];
+		// Index in the Shapes array corresponds to the shape's index
+		const FTetherShape* Shape = (*Input->Shapes)[ShapeIndex];
+		
+		bool bFoundInCollisionPairings = false;
+		bool bFoundInPotentialCollisionPairings = false;
 
-		ShapeA.DrawDebug(AnimInstanceProxy, FColor::Yellow); // Highlight potential collision shapes in yellow
-		ShapeB.DrawDebug(AnimInstanceProxy, FColor::Yellow);
+		// Check in Output->CollisionPairings - did it overlap something?
+		for (const FTetherShapePair& Pair : Output->CollisionPairings)
+		{
+			if (Pair.ContainsShape(ShapeIndex))
+			{
+				bFoundInCollisionPairings = true;
+				break;  // Stop searching once found
+			}
+		}
+
+		// Check in Input->PotentialCollisionPairings if it wasn't found in Output->CollisionPairings
+		if (!bFoundInCollisionPairings)
+		{
+			for (const FTetherShapePair& Pair : *Input->PotentialCollisionPairings)
+			{
+				if (Pair.ContainsShape(ShapeIndex))
+				{
+					bFoundInPotentialCollisionPairings = true;
+					break;  // Stop searching once found
+				}
+			}
+		}
+
+		// Now decide which color to draw it as based on where the shape was found
+		FColor DebugColor;
+		if (bFoundInCollisionPairings)
+		{
+			// Overlapped
+			DebugColor = OverlapColor;
+		}
+		else if (bFoundInPotentialCollisionPairings)
+		{
+			// No overlap
+			DebugColor = NoOverlapColor;
+		}
+		else
+		{
+			// Shape wasn't found in either array, wasn't tested
+			DebugColor = NoTestColor;
+		}
+		FTetherShape_AxisAlignedBoundingBox AABB = Shape->GetTetherShapeObject()->GetBoundingBox(*Shape);
+		if (AnimInstanceProxy)
+		{
+			AABB.DrawDebug(AnimInstanceProxy, DebugColor, false, LifeTime, 0.f);
+		}
+		else
+		{
+			AABB.DrawDebug(World, DebugColor, false, LifeTime, 0.f);
+		}
 	}
 #endif
 }

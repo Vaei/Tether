@@ -72,6 +72,8 @@ protected:
 	UPROPERTY()
 	TArray<FTetherShape> Shapes;  // @todo remove
 
+	TArray<FTetherShape*> ShapePtrs;
+
 	UPROPERTY()
 	FSpatialHashingOutput SpatialHashingOutput;
 	

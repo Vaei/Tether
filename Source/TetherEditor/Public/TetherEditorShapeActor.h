@@ -42,7 +42,10 @@ public:
 public:
 	ATetherEditorShapeActor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	virtual const FTetherShape& GetTetherShape() const;
+	virtual void BeginPlay() override;
+	virtual void Destroyed() override;
+	
+	virtual FTetherShape* GetTetherShape();
 	
 	void TestCollisions(const TArray<ATetherEditorShapeActor*>& OtherShapeActors) const;
 

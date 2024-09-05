@@ -37,10 +37,10 @@ public:
 	static FVector ClampVector(const FVector& InVector, const FVector& Min, const FVector& Max);
 	
 	/** Broad Collision is a simple overlap test that occurs prior to physics simulation */
-	virtual bool CheckBroadCollision(const FTetherShape& ShapeA, const FTetherShape& ShapeB) const;
+	virtual bool CheckBroadCollision(const FTetherShape* ShapeA, const FTetherShape* ShapeB) const;
 	
 	/** Narrow Collision is a complex collision that occurs after the physics simulation */
-	virtual bool CheckNarrowCollision(const FTetherShape& ShapeA, const FTetherShape& ShapeB, FTetherNarrowPhaseCollisionOutput& Output) const;
+	virtual bool CheckNarrowCollision(const FTetherShape* ShapeA, const FTetherShape* ShapeB, FTetherNarrowPhaseCollisionOutput& Output) const;
 
 	// Broad-phase collision checks
 	static bool Broad_AABB_AABB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B);

@@ -2,7 +2,7 @@
 
 #include "AnimNode_Tether.h"
 
-#include "TetherDeveloperSettings.h"
+#include "TetherSettings.h"
 #include "TetherStatics.h"
 #include "Animation/AnimInstanceProxy.h"
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
@@ -32,8 +32,14 @@ void FAnimNode_Tether::Initialize_AnyThread(const FAnimationInitializeContext& C
 	Shapes.Add(Sphere0);
 	Shapes.Add(Sphere1);
 
+	// // Generate pointer array
+	// Algo::Transform(Shapes, ShapePtrs, [](FTetherShape& Shape)
+	// {
+	// 	return &Shape;
+	// });
+
 	// @todo Does this need to ever be re-assigned?
-	SpatialHashingInput.Shapes = &Shapes;
+	SpatialHashingInput.Shapes = &ShapePtrs;
 }
 
 void FAnimNode_Tether::UpdateInternal(const FAnimationUpdateContext& Context)
@@ -53,25 +59,25 @@ void FAnimNode_Tether::UpdateInternal(const FAnimationUpdateContext& Context)
 	if (LastHashingSystem != HashingSystem)
 	{
 		LastHashingSystem = HashingSystem;
-		CurrentHashingSystem = UTetherDeveloperSettings::GetHashingSystem<UTetherHashingSpatial>(HashingSystem);
+		CurrentHashingSystem = UTetherSettings::GetHashingSystem(HashingSystem);
 	}
 
 	if (LastLinearSolver != LinearSolver)
 	{
 		LastLinearSolver = LinearSolver;
-		CurrentLinearSolver = UTetherDeveloperSettings::GetSolver<UTetherPhysicsSolverLinear>(LinearSolver);
+		CurrentLinearSolver = UTetherSettings::GetSolver<UTetherPhysicsSolverLinear>(LinearSolver);
 	}
 
 	if (LastAngularSolver != AngularSolver)
 	{
 		LastAngularSolver = AngularSolver;
-		CurrentAngularSolver = UTetherDeveloperSettings::GetSolver<UTetherPhysicsSolverAngular>(AngularSolver);
+		CurrentAngularSolver = UTetherSettings::GetSolver<UTetherPhysicsSolverAngular>(AngularSolver);
 	}
 
 	if (LastReplaySystem != ReplaySystem)
 	{
 		LastReplaySystem = ReplaySystem;
-		CurrentReplaySystem = UTetherDeveloperSettings::GetReplaySystem<UTetherReplay>(ReplaySystem);
+		CurrentReplaySystem = UTetherSettings::GetReplaySystem(ReplaySystem);
 	}
 }
 
@@ -111,18 +117,18 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		{
 			// @todo use mesh or actor TM probably
 			CurrentHashingSystem->Solve(&SpatialHashingInput, &SpatialHashingOutput, RootTM, PhysicsUpdate.TimeTick);
-			CurrentHashingSystem->DrawDebug(&SpatialHashingInput, &SpatialHashingOutput, Output.AnimInstanceProxy, World);
+			// CurrentHashingSystem->DrawDebug(&SpatialHashingInput, &SpatialHashingOutput, Output.AnimInstanceProxy, World);
 		}
 		
-		// 1. Solve Broad-Phase Collision
-		if (CurrentBroadPhaseCollisionDetection)
-		{
-			// Optional but common optimization step where you quickly check if objects are close enough to potentially
-			// collide. It reduces the number of detailed collision checks needed in the narrow phase.
-		
-			CurrentBroadPhaseCollisionDetection->DetectCollision(Shapes, BroadPhaseOutput);
-			CurrentBroadPhaseCollisionDetection->DrawDebug(Shapes, BroadPhaseOutput, Output.AnimInstanceProxy);
-		}
+		// // 1. Solve Broad-Phase Collision
+		// if (CurrentBroadPhaseCollisionDetection)
+		// {
+		// 	// Optional but common optimization step where you quickly check if objects are close enough to potentially
+		// 	// collide. It reduces the number of detailed collision checks needed in the narrow phase.
+		//
+		// 	CurrentBroadPhaseCollisionDetection->DetectCollision(Shapes, BroadPhaseOutput);
+		// 	CurrentBroadPhaseCollisionDetection->DrawDebug(Shapes, BroadPhaseOutput, Output.AnimInstanceProxy);
+		// }
 
 		// 2. Solve Linear & Angular Physics
 		

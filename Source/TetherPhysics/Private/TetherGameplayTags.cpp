@@ -5,9 +5,14 @@
 
 namespace FTetherGameplayTags
 {
-	/** Gameplay tags for tether hashing */
+	/** Gameplay tags for tether hashing systems */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Hashing, "Tether.Hashing");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Hashing_Spatial, "Tether.Hashing.Spatial");
+
+	/** Gameplay tags for tether detection systems */
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Detection_BroadPhase, "Tether.Detection.BroadPhase");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Detection_NarrowPhase, "Tether.Detection.NarrowPhase");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Detection_CollisionHandler, "Tether.Detection.CollisionHandler");
 
 	/** Gameplay tags for tether solvers */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver, "Tether.Solver");

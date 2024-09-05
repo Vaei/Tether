@@ -20,9 +20,16 @@ struct TETHERPHYSICS_API FTetherShape_AxisAlignedBoundingBox : public FTetherSha
 {
 	GENERATED_BODY()
 
-	FTetherShape_AxisAlignedBoundingBox();
+	FTetherShape_AxisAlignedBoundingBox()
+		: FTetherShape_AxisAlignedBoundingBox(FVector::OneVector * -10.f, FVector::OneVector * 10.f)
+	{}
 
-	FTetherShape_AxisAlignedBoundingBox(const FVector& InMin, const FVector& InMax);
+	FTetherShape_AxisAlignedBoundingBox(const FVector& InMin, const FVector& InMax)
+		: FTetherShape_AxisAlignedBoundingBox(InMin, InMax, false, FTransform::Identity)
+	{}
+
+	FTetherShape_AxisAlignedBoundingBox(const FVector& InMin, const FVector& InMax, bool bInWorldSpace,
+		const FTransform& InWorldTransform);
 
 	/** Creates a clone of the AABB shape, preserving its specific type and data */
 	virtual TSharedPtr<FTetherShape> Clone() const override { return MakeShared<FTetherShape_AxisAlignedBoundingBox>(*this); }
@@ -65,6 +72,9 @@ public:
 
 	/** Transforms the shape data from world space back to local space */
 	virtual void TransformToLocalSpace(FTetherShape& Shape) const override;
+
+	/** Gets the shape as a bounding box */
+	virtual FTetherShape_AxisAlignedBoundingBox GetBoundingBox(const FTetherShape& Shape) const override;
 
 	/** Draws the shape for debugging purposes */
 	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,

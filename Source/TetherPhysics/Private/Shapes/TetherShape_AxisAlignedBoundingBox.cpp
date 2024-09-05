@@ -8,22 +8,37 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape_AxisAlignedBoundingBox)
 
-FTetherShape_AxisAlignedBoundingBox::FTetherShape_AxisAlignedBoundingBox()
-	: Min(FVector::OneVector * -10.f)
-    , Max(FVector::OneVector * 10.f)
-{
-	TetherShapeClass = UTetherShapeObject_AxisAlignedBoundingBox::StaticClass();
-}
-
-FTetherShape_AxisAlignedBoundingBox::FTetherShape_AxisAlignedBoundingBox(const FVector& InMin, const FVector& InMax)
+FTetherShape_AxisAlignedBoundingBox::FTetherShape_AxisAlignedBoundingBox(const FVector& InMin, const FVector& InMax,
+	bool bInWorldSpace, const FTransform& InWorldTransform)
 	: Min(InMin)
 	, Max(InMax)
 {
 	TetherShapeClass = UTetherShapeObject_AxisAlignedBoundingBox::StaticClass();
+
+	// Caching initial local space data is required both for AABB being created to represent the bounds of other shapes,
+	// and also for duplication
+	if (!IsWorldSpace())
+	{
+		LocalSpaceData = MakeShared<FTetherShape_AxisAlignedBoundingBox>(*this);
+	}
+
+	// Bounding boxes are created from other shapes,
+	// special handling is required when a world space shape wants a bounding box vs a local space shape
+	if (bInWorldSpace)
+	{
+		// Now cache our world space data
+		bWorldSpace = bInWorldSpace;
+		WorldTransform = InWorldTransform;
+	}
 }
 
 void FTetherShape_AxisAlignedBoundingBox::ToLocalSpace_Implementation()
 {
+	if (!IsWorldSpace())
+	{
+		return;
+	}
+	
 	if (ensure(LocalSpaceData.IsValid()))
 	{
 		*this = *StaticCastSharedPtr<FTetherShape_AxisAlignedBoundingBox>(LocalSpaceData);
@@ -32,25 +47,47 @@ void FTetherShape_AxisAlignedBoundingBox::ToLocalSpace_Implementation()
 
 FVector UTetherShapeObject_AxisAlignedBoundingBox::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
 {
-	const FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
+	const auto* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
 	return (AABB->Min + AABB->Max) * 0.5f;
 }
 
 void UTetherShapeObject_AxisAlignedBoundingBox::TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const
 {
-	FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
+	auto* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
 
-	if (Shape.IsWorldSpace() && !Shape.GetWorldTransform().Equals(WorldTransform))
+	if (Shape.IsWorldSpace())
 	{
-		// Already in world space, but has a new transform. Convert it back first.
-		TransformToLocalSpace(Shape);
+		// Already in world space
+		if (!Shape.GetWorldTransform().Equals(WorldTransform))
+		{
+			// Transform has changed, revert to world first
+			TransformToLocalSpace(Shape);
+		}
+		else
+		{
+			// No changes required
+			return;
+		}
 	}
+
+	if (!Shape.IsWorldSpace())
+	{
+		// Cache local space data
+		Shape.LocalSpaceData = Shape.Clone();
+	}
+
+	// Extract the scale from the WorldTransform
+	FVector Scale = WorldTransform.GetScale3D();
+
+	// Apply the scale to the Min and Max points of the AABB
+	FVector ScaledMin = AABB->Min * Scale;
+	FVector ScaledMax = AABB->Max * Scale;
 	
 	// Transform both the min and max points
 	FTransform Transform = WorldTransform;
 	Transform.SetRotation(FQuat::Identity);
-	FVector TransformedMin = Transform.TransformPosition(AABB->Min);
-	FVector TransformedMax = Transform.TransformPosition(AABB->Max);
+	FVector TransformedMin = Transform.TransformPosition(ScaledMin);
+	FVector TransformedMax = Transform.TransformPosition(ScaledMax);
 
 	// Ensure the transformed min and max are correctly aligned
 	AABB->Min = FVector(FMath::Min(TransformedMin.X, TransformedMax.X), 
@@ -74,11 +111,17 @@ void UTetherShapeObject_AxisAlignedBoundingBox::TransformToLocalSpace(FTetherSha
 	CastShape->ToLocalSpace_Implementation();
 }
 
+FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_AxisAlignedBoundingBox::GetBoundingBox(const FTetherShape& Shape) const
+{
+	const auto* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
+	return *AABB;
+}
+
 void UTetherShapeObject_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy,
 	UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
-	const FTetherShape_AxisAlignedBoundingBox* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
+	const auto* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
 
 	FVector Vertices[8];
 	Vertices[0] = AABB->Min;
