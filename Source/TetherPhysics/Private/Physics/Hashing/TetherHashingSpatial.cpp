@@ -67,12 +67,9 @@ void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputD
 	// Now add all shapes to the spatial hash map using the fixed bucket size
 	for (int32 i = 0; i < Input->Shapes->Num(); i++)
 	{
-		// Get the bounding box for the current shape in world space
-		FTetherShape_AxisAlignedBoundingBox AABB = Shapes[i]->GetTetherShapeObject()->GetBoundingBox(*Shapes[i]);
-
 		// Add shape to spatial hash
 		FString DebugString = FString::Printf(TEXT("{ %s }"), *Shapes[i]->GetTetherShapeObject()->GetShapeDebugString());
-		AddShapeToSpatialHash(Input, Output, i, Shapes[i], Transform, DebugString);
+		AddShapeToSpatialHash(Input, Output, i, Shapes[i], DebugString);
 
 		// Output debug info
 		if (FTether::CVarTetherLogSpatialHashing.GetValueOnAnyThread())
@@ -115,28 +112,25 @@ void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputD
 }
 
 void UTetherHashingSpatial::AddShapeToSpatialHash(const FSpatialHashingInput* Input, FSpatialHashingOutput* Output,
-	int32 ShapeIndex, const FTetherShape* Shape, const FTransform& WorldOrigin, FString& DebugString)
+	int32 ShapeIndex, const FTetherShape* Shape, FString& DebugString)
 {
-	FIntVector HashKey = ComputeSpatialHashKey(Input, Output, Shape, WorldOrigin, DebugString);
+	FIntVector HashKey = ComputeSpatialHashKey(Input, Output, Shape, DebugString);
 	DebugString += FString::Printf(TEXT(" HashKey: %s"), *HashKey.ToString());
 	TArray<int32>& HashValue = Output->SpatialHashMap.FindOrAdd(HashKey);
 	HashValue.Add(ShapeIndex);
 }
 
 FIntVector UTetherHashingSpatial::ComputeSpatialHashKey(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
-	const FTetherShape* Shape, const FTransform& WorldOrigin, FString& DebugString)
+	const FTetherShape* Shape, FString& DebugString)
 {
-	// Rotate Input.Origin by the rotation of WorldOrigin and then translate it
-	FVector Origin = WorldOrigin.TransformPosition(Input->OriginOffset);
-    
 	// Get the position of the shape's center
-	FVector Position = Shape->GetCenter();
+	FVector Position = Shape->LocalSpaceData->GetCenter();
 
 	// Calculate the hash key based on the bucket size and position relative to the new origin
 	return FIntVector(
-		FMath::FloorToInt((Position.X - Origin.X) / Output->BucketSize.X),
-		FMath::FloorToInt((Position.Y - Origin.Y) / Output->BucketSize.Y),
-		FMath::FloorToInt((Position.Z - Origin.Z) / Output->BucketSize.Z)
+		FMath::FloorToInt((Position.X) / Output->BucketSize.X),
+		FMath::FloorToInt((Position.Y) / Output->BucketSize.Y),
+		FMath::FloorToInt((Position.Z) / Output->BucketSize.Z)
 	);
 }
 

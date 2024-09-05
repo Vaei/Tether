@@ -34,10 +34,10 @@ public:
 protected:
 	// Function to add shapes to the spatial hash map
 	static void AddShapeToSpatialHash(const FSpatialHashingInput* Input, FSpatialHashingOutput* Output,
-		int32 ShapeIndex, const FTetherShape* Shape, const FTransform& WorldOrigin, FString& DebugString);
+		int32 ShapeIndex, const FTetherShape* Shape, FString& DebugString);
 
 	/** Compute the spatial hash key for a given shape */
-	static FIntVector ComputeSpatialHashKey(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output, const FTetherShape* Shape, const FTransform& WorldOrigin, FString& DebugString);
+	static FIntVector ComputeSpatialHashKey(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output, const FTetherShape* Shape, FString& DebugString);
 
 	static bool AreBucketsAdjacent(int32 BucketA, int32 BucketB);
 
