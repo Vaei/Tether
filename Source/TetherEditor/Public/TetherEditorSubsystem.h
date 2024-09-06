@@ -4,20 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "TetherGameplayTags.h"
 #include "TetherIO.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "Tether/Public/TetherPhysicsUpdate.h"
 #include "TetherEditorSubsystem.generated.h"
 
-class UTetherCollisionDetectionHandler;
+class ATetherEditorShapeActor;
 class UTetherReplay;
 class UTetherPhysicsSolverAngular;
 class UTetherPhysicsSolverLinear;
 class UTetherCollisionDetectionNarrowPhase;
 class UTetherCollisionDetectionBroadPhase;
+class UTetherCollisionDetectionHandler;
 class UTetherHashing;
-class ATetherEditorShapeActor;
+class UTetherDataAsset;
 
 /**
  * Wrapper run Tether in the editor for testing purposes
@@ -33,54 +33,24 @@ public:
 		return World ? World->GetSubsystem<UTetherEditorSubsystem>() : nullptr;
 	}
 	
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Hashing"))
-	FGameplayTag HashingSystem = FTetherGameplayTags::Tether_Hashing_Spatial;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Detection.CollisionHandler"))
-	FGameplayTag CollisionDetectionHandler = FTetherGameplayTags::Tether_Detection_CollisionHandler;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Detection.BroadPhase"))
-	FGameplayTag BroadPhaseCollisionDetection = FTetherGameplayTags::Tether_Detection_BroadPhase;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Detection.NarrowPhase"))
-	FGameplayTag NarrowPhaseCollisionDetection = FTetherGameplayTags::Tether_Detection_NarrowPhase;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Physics.Linear"))
-	FGameplayTag LinearSolver = FTetherGameplayTags::Tether_Solver_Physics_Linear;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Physics.Angular"))
-	FGameplayTag AngularSolver = FTetherGameplayTags::Tether_Solver_Physics_Angular;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Replay"))
-	FGameplayTag ReplaySystem = FTetherGameplayTags::Tether_Replay;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Contact"))
-	FGameplayTag ContactSolver;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	FSpatialHashingInput SpatialHashingInput;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault))
-	FLinearInput LinearInput;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault))
-	FAngularInput AngularInput;
-
-	/** 
-	 * Target frame rate for the physics simulation. This value determines the frequency at which physics calculations
-	 * are performed per second. A higher frame rate results in more accurate simulations but increases computational
-	 * cost.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, ClampMin="1", UIMin="1", UIMax="120"))
-	float SimulationFrameRate = 60.f;
+	UPROPERTY(BlueprintReadOnly, Category=Tether)
+	const UTetherDataAsset* Data;
 
 protected:
-	FTetherPhysicsUpdate PhysicsUpdate = { SimulationFrameRate };
+	FTetherPhysicsUpdate PhysicsUpdate = { 60.f };
 
 	UPROPERTY()
 	FSpatialHashingOutput SpatialHashingOutput;
-	
+
+	UPROPERTY()
+	FLinearInput LinearInput;
+
+	UPROPERTY()
+	FAngularInput AngularInput;
+
 	UPROPERTY()
 	FLinearOutput LinearOutput;
 

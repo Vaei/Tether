@@ -3,6 +3,7 @@
 
 #include "TetherEditorSubsystem.h"
 
+#include "TetherDataAsset.h"
 #include "TetherSettings.h"
 #include "TetherEditorShapeActor.h"
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
@@ -22,9 +23,23 @@ void UTetherEditorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 
+	const TSoftObjectPtr<UTetherDataAsset>& SoftData = UTetherSettings::Get()->EditorSubsystemDataAsset;
+	if (SoftData.IsValid())
+	{
+		Data = SoftData.LoadSynchronous();
+	}
+
+	if (!ensureAlways(Data))
+	{
+		// Can never run
+		return;
+	}
+
 	bHasWorldBegunPlay = true;
 
-	PhysicsUpdate = { SimulationFrameRate };
+	SpatialHashingInput = Data->SpatialHashingInput;
+
+	PhysicsUpdate = { Data->SimulationFrameRate };
 
 	// Match render tick to physics tick, if the engine can keep up
 	if (FTether::CVarTetherMatchFramerateToSimRate.GetValueOnGameThread())
@@ -33,12 +48,10 @@ void UTetherEditorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		{
 			// GEngine->SetMaxFPS(SimulationFrameRate);  // We don't use this, because we can't then clear it easily
 	
-			FString Command = FString::Printf(TEXT("t.maxfps %f"), SimulationFrameRate);
+			FString Command = FString::Printf(TEXT("t.maxfps %f"), Data->SimulationFrameRate);
 			GEngine->Exec(nullptr, *Command);
 		}
 	}
-
-	SpatialHashingInput.BucketSizeMode = ETetherBucketSizingStrategy::Automatic;
 }
 
 void UTetherEditorSubsystem::Tick(float DeltaTime)
@@ -79,46 +92,46 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	BroadPhaseInput.Shapes = &Shapes;
 
 	// Detect gameplay tag changes and grab the newly referenced object
-	if (LastHashingSystem != HashingSystem)
+	if (LastHashingSystem != Data->HashingSystem)
 	{
-		LastHashingSystem = HashingSystem;
-		CurrentHashingSystem = UTetherSettings::GetHashingSystem(HashingSystem);
+		LastHashingSystem = Data->HashingSystem;
+		CurrentHashingSystem = UTetherSettings::GetHashingSystem(Data->HashingSystem);
 	}
 	
-	if (LastCollisionDetectionHandler != CollisionDetectionHandler)
+	if (LastCollisionDetectionHandler != Data->CollisionDetectionHandler)
 	{
-		LastCollisionDetectionHandler = CollisionDetectionHandler;
-		CurrentCollisionDetectionHandler = UTetherSettings::GetCollisionDetectionHandler(CollisionDetectionHandler);
+		LastCollisionDetectionHandler = Data->CollisionDetectionHandler;
+		CurrentCollisionDetectionHandler = UTetherSettings::GetCollisionDetectionHandler(Data->CollisionDetectionHandler);
 	}
 
-	if (LastBroadPhaseCollisionDetection != BroadPhaseCollisionDetection)
+	if (LastBroadPhaseCollisionDetection != Data->BroadPhaseCollisionDetection)
 	{
-		LastBroadPhaseCollisionDetection = BroadPhaseCollisionDetection;
-		CurrentBroadPhaseCollisionDetection = UTetherSettings::GetBroadPhaseSystem(BroadPhaseCollisionDetection);
+		LastBroadPhaseCollisionDetection = Data->BroadPhaseCollisionDetection;
+		CurrentBroadPhaseCollisionDetection = UTetherSettings::GetBroadPhaseSystem(Data->BroadPhaseCollisionDetection);
 	}
 
-	if (LastNarrowPhaseCollisionDetection != NarrowPhaseCollisionDetection)
+	if (LastNarrowPhaseCollisionDetection != Data->NarrowPhaseCollisionDetection)
 	{
-		LastNarrowPhaseCollisionDetection = NarrowPhaseCollisionDetection;
-		CurrentNarrowPhaseCollisionDetection = UTetherSettings::GetNarrowPhaseSystem(NarrowPhaseCollisionDetection);
+		LastNarrowPhaseCollisionDetection = Data->NarrowPhaseCollisionDetection;
+		CurrentNarrowPhaseCollisionDetection = UTetherSettings::GetNarrowPhaseSystem(Data->NarrowPhaseCollisionDetection);
 	}
 
-	if (LastLinearSolver != LinearSolver)
+	if (LastLinearSolver != Data->LinearSolver)
 	{
-		LastLinearSolver = LinearSolver;
-		CurrentLinearSolver = UTetherSettings::GetSolver<UTetherPhysicsSolverLinear>(LinearSolver);
+		LastLinearSolver = Data->LinearSolver;
+		CurrentLinearSolver = UTetherSettings::GetSolver<UTetherPhysicsSolverLinear>(Data->LinearSolver);
 	}
 
-	if (LastAngularSolver != AngularSolver)
+	if (LastAngularSolver != Data->AngularSolver)
 	{
-		LastAngularSolver = AngularSolver;
-		CurrentAngularSolver = UTetherSettings::GetSolver<UTetherPhysicsSolverAngular>(AngularSolver);
+		LastAngularSolver = Data->AngularSolver;
+		CurrentAngularSolver = UTetherSettings::GetSolver<UTetherPhysicsSolverAngular>(Data->AngularSolver);
 	}
 
-	if (LastReplaySystem != ReplaySystem)
+	if (LastReplaySystem != Data->ReplaySystem)
 	{
-		LastReplaySystem = ReplaySystem;
-		CurrentReplaySystem = UTetherSettings::GetReplaySystem(ReplaySystem);
+		LastReplaySystem = Data->ReplaySystem;
+		CurrentReplaySystem = UTetherSettings::GetReplaySystem(Data->ReplaySystem);
 	}
 
 	if (!ensure(CurrentCollisionDetectionHandler))
