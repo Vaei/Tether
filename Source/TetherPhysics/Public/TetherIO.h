@@ -177,11 +177,11 @@ struct TETHERPHYSICS_API FSpatialHashingOutput : public FTetherIO
  * that influence the linear motion of an object.
  */
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FLinearInput : public FTetherIO
+struct TETHERPHYSICS_API FLinearInputSettings
 {
 	GENERATED_BODY()
 
-	FLinearInput()
+	FLinearInputSettings()
 		: Force(FVector::ZeroVector)						// Default to no initial force
 		, Mass(1.f)											// Default to a mass of 1.0 for reasonable physics interaction
 		, LinearDamping(0.05f)								// A small default damping to simulate some resistance to linear motion
@@ -221,17 +221,34 @@ struct TETHERPHYSICS_API FLinearInput : public FTetherIO
 };
 
 /**
+ * Input data for linear physics simulations.
+ *
+ * This struct includes properties for forces, mass, damping, and other factors
+ * that influence the linear motion of an object.
+ */
+USTRUCT()
+struct TETHERPHYSICS_API FLinearInput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FLinearInput()
+	{}
+
+	TMap<const FTetherShape*, FLinearInputSettings> ShapeSettings;
+};
+
+/**
  * Input data for angular physics simulations.
  *
  * This struct includes properties for torques, mass, damping, shape, and other factors
  * that influence the angular motion of an object.
  */
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FAngularInput : public FTetherIO
+struct TETHERPHYSICS_API FAngularInputSettings : public FTetherIO
 {
 	GENERATED_BODY()
 
-	FAngularInput()
+	FAngularInputSettings()
 		: Torque(FVector::ZeroVector)						// No initial torque
 		, PointOfApplication(FVector::ZeroVector)			// Origin (center of the object)
 		, CenterOfMass(FVector::ZeroVector)					// Geometric center of the object
@@ -317,6 +334,23 @@ struct TETHERPHYSICS_API FAngularInput : public FTetherIO
 	/** Toggle to apply advanced damping effects */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	ETetherDampingModel DampingModel;
+};
+
+/**
+ * Input data for angular physics simulations.
+ *
+ * This struct includes properties for torques, mass, damping, shape, and other factors
+ * that influence the angular motion of an object.
+ */
+USTRUCT()
+struct TETHERPHYSICS_API FAngularInput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FAngularInput()
+	{}
+
+	TMap<const FTetherShape*, FAngularInputSettings> ShapeSettings;
 };
 
 /**
@@ -468,11 +502,9 @@ struct TETHERPHYSICS_API FRecordedPhysicsFrame : public FTetherIO
 	double TimeStamp;
 
 	/** The linear input data at this frame */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FLinearInput LinearInput;
 
 	/** The angular input data at this frame */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FAngularInput AngularInput;
 };
 
