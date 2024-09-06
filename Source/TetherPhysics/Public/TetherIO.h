@@ -114,8 +114,8 @@ struct TETHERPHYSICS_API FSpatialHashingInput : public FTetherIO
 {
 	GENERATED_BODY()
 
-	FSpatialHashingInput()
-		: BucketSizeMode(ETetherBucketSizingStrategy::Fixed)
+	FSpatialHashingInput(const ETetherBucketSizingStrategy& InBucketSizeMode = ETetherBucketSizingStrategy::Fixed)
+		: BucketSizeMode(InBucketSizeMode)
 		, BucketSize(50.f)
 		, OriginOffset(FVector::ZeroVector)
 		, Shapes(nullptr)
