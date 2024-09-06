@@ -36,6 +36,22 @@ UTetherSettings::UTetherSettings(const FObjectInitializer& ObjectInitializer)
 
 #if WITH_EDITORONLY_DATA
 	// Default Editor Subsystem Data Asset
-	EditorSubsystemDataAsset = UTetherDataAsset::StaticClass();
+	EditorSubsystemDataAsset = UTetherDataAsset::StaticClass()->GetDefaultObject();
 #endif
 }
+
+#if WITH_EDITOR
+void UTetherSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.GetPropertyName().IsEqual(GET_MEMBER_NAME_CHECKED(ThisClass, EditorSubsystemDataAsset)))
+	{
+		if (EditorSubsystemDataAsset.IsNull())
+		{
+			// Default Editor Subsystem Data Asset
+			EditorSubsystemDataAsset = UTetherDataAsset::StaticClass()->GetDefaultObject();
+		}
+	}
+}
+#endif

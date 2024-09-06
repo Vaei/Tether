@@ -40,7 +40,7 @@ public:
 	FGameplayTag ReplaySystem = FTetherGameplayTags::Tether_Replay;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Contact"))
-	FGameplayTag ContactSolver;
+	FGameplayTag ContactSolver = FTetherGameplayTags::Tether_Solver_Contact;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FSpatialHashingInput SpatialHashingInput;

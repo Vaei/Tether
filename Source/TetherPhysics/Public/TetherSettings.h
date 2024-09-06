@@ -62,12 +62,16 @@ public:
 	TMap<FGameplayTag, TSubclassOf<UTetherReplay>> ReplaySystems;
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(MetaClass="UTetherDataAsset"))
-	TSoftClassPtr<UTetherDataAsset> EditorSubsystemDataAsset;
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether)
+	TSoftObjectPtr<UTetherDataAsset> EditorSubsystemDataAsset;
 #endif
 	
 public:
 	UTetherSettings(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
 	/** Retrieves the default instance of UTetherDeveloperSettings */
 	static const UTetherSettings* Get() { return GetDefault<UTetherSettings>(); }
