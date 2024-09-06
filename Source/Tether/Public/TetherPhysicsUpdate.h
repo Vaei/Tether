@@ -42,7 +42,7 @@ struct TETHER_API FTetherPhysicsUpdate
 	 * 
 	 * @param SimulationFrameRate The desired number of physics ticks per second.
 	 */
-	FTetherPhysicsUpdate(float SimulationFrameRate)
+	FTetherPhysicsUpdate(float SimulationFrameRate = 60.f)
 		: TimeTick(1.f / SimulationFrameRate)	// Calculate the time per tick
 		, RemainingTime(0.f)					// Initialize the remaining time to zero
 	{}
