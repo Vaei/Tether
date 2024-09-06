@@ -13,6 +13,8 @@
 #include "Physics/Solvers/Physics/TetherPhysicsSolver.h"
 #include "TetherSettings.generated.h"
 
+class UTetherDataAsset;
+
 /**
  * Configuration settings for the Tether physics system, accessible through Unreal Engine's developer settings.
  *
@@ -59,6 +61,11 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Replay"))
 	TMap<FGameplayTag, TSubclassOf<UTetherReplay>> ReplaySystems;
 
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(MetaClass="UTetherDataAsset"))
+	TSoftClassPtr<UTetherDataAsset> EditorSubsystemDataAsset;
+#endif
+	
 public:
 	UTetherSettings(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 

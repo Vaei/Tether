@@ -3,6 +3,7 @@
 
 #include "TetherSettings.h"
 
+#include "TetherDataAsset.h"
 #include "TetherGameplayTags.h"
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
 #include "Physics/Collision/TetherCollisionDetectionHandler.h"
@@ -32,4 +33,9 @@ UTetherSettings::UTetherSettings(const FObjectInitializer& ObjectInitializer)
 
 	// Default Replay System
 	ReplaySystems.Add({ FTetherGameplayTags::Tether_Replay.GetTag(), UTetherReplay::StaticClass() });
+
+#if WITH_EDITORONLY_DATA
+	// Default Editor Subsystem Data Asset
+	EditorSubsystemDataAsset = UTetherDataAsset::StaticClass();
+#endif
 }
