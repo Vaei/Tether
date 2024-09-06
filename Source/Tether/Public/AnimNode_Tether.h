@@ -44,12 +44,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FSpatialHashingInput SpatialHashingInput;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault))
-	FLinearInput LinearInput;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault))
-	FAngularInput AngularInput;
-
 	/** 
 	 * Target frame rate for the physics simulation. This value determines the frequency at which physics calculations
 	 * are performed per second. A higher frame rate results in more accurate simulations but increases computational
@@ -76,6 +70,12 @@ protected:
 
 	UPROPERTY()
 	FSpatialHashingOutput SpatialHashingOutput;
+
+	UPROPERTY()
+	FLinearInput LinearInput;
+
+	UPROPERTY()
+	FAngularInput AngularInput;
 	
 	UPROPERTY()
 	FLinearOutput LinearOutput;

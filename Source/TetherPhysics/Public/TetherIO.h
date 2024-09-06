@@ -16,15 +16,6 @@ enum class ETetherDampingModel : uint8
 	ExponentialDecay		UMETA(ToolTip="Angular velocity (a) decreases over time with rate of decrease proportional to current velocity. More realistic in many physical systems, especially for simulating air resistance or other forms of damping that don't depend linearly on velocity: a *= exp(-k * d)"),
 };
 
-/** Shape used for angular motion calculations. */
-UENUM(BlueprintType)
-enum class ETetherAngularShape : uint8
-{
-	Box,
-	Sphere,
-	Capsule,
-};
-
 /**
  * Enum to define the strategy for sizing buckets in spatial hashing.
  *
@@ -252,10 +243,6 @@ struct TETHERPHYSICS_API FAngularInputSettings : public FTetherIO
 		: Torque(FVector::ZeroVector)						// No initial torque
 		, PointOfApplication(FVector::ZeroVector)			// Origin (center of the object)
 		, CenterOfMass(FVector::ZeroVector)					// Geometric center of the object
-		, Shape(ETetherAngularShape::Sphere)				// Default to a simple sphere
-		, Radius(10.f)										// Sane default radius
-		, HalfHeight(20.f)									// Sane default half height
-		, BoxExtent(FVector::OneVector * 10.f)				// Sane default box extent
 		, bUseDynamicInertia(true)							// Dynamic inertia calculation based on the object's dimensions
 		, Inertia(FVector::OneVector)						// Reasonable non-zero default for static inertia
 		, Mass(1.f)											// Mass of 1.0 for reasonable physics interaction
@@ -278,31 +265,6 @@ struct TETHERPHYSICS_API FAngularInputSettings : public FTetherIO
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector CenterOfMass;
 
-	/** Shape used to calculate angular inertia */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	ETetherAngularShape Shape;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(EditCondition="Shape==ETetherAngularShape::Sphere||Shape==ETetherAngularShape::Capsule", EditConditionHides))
-	float Radius;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(EditCondition="Shape==ETetherAngularShape::Capsule", EditConditionHides))
-	float HalfHeight;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(EditCondition="Shape==ETetherAngularShape::Box", EditConditionHides))
-	FVector BoxExtent;
-
-	/** Converts the extent of the shape to a box based on its type */
-	FVector GetBoxExtent() const
-	{
-		switch (Shape)
-		{
-		case ETetherAngularShape::Box: return BoxExtent;
-		case ETetherAngularShape::Sphere: return FVector(Radius);
-		case ETetherAngularShape::Capsule: return FVector(Radius, Radius, HalfHeight);
-		}
-		return BoxExtent;
-	}
-	
 	/** If enabled, factors in the extents of the object when computing Inertia */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	bool bUseDynamicInertia;

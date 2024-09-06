@@ -37,6 +37,8 @@ struct TETHERPHYSICS_API FTetherShape_AxisAlignedBoundingBox : public FTetherSha
 	/** Returns the gameplay tag associated with this shape type */
 	static FGameplayTag StaticShapeType() { return FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox; }
 
+	FVector GetBoxExtents() const {	return (Max - Min) * 0.5f; }
+	
 	void ToLocalSpace_Implementation();
 	
 	/** Minimum corner of the AABB, representing the smallest x, y, and z coordinates */
