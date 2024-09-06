@@ -6,6 +6,8 @@
 #include "TetherGameplayTags.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape)
+
 UTetherShapeObject* FTetherShape::GetTetherShapeObject() const
 {
 	return TetherShapeClass ? TetherShapeClass.GetDefaultObject() : nullptr;
