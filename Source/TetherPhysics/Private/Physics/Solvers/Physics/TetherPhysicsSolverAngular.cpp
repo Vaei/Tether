@@ -41,7 +41,17 @@ void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* O
 			Inertia = Settings.Inertia;  // Use the predefined inertia value
 		}
 
-		const FVector Torque = FVector::CrossProduct(Settings.PointOfApplication - Settings.CenterOfMass, Settings.Torque);
+		FVector Torque;
+		if (Settings.PointOfApplication.IsNearlyZero())
+		{
+			// Apply the torque directly if there's no lever arm
+			Torque = Settings.Torque;
+		}
+		else
+		{
+			// Calculate the torque based on the lever arm (cross product)
+			Torque = FVector::CrossProduct(Settings.PointOfApplication - Settings.CenterOfMass, Settings.Torque);
+		}
 
 		// Clamp small inertia values to avoid division by zero
 		Inertia.X = FMath::Max(Inertia.X, KINDA_SMALL_NUMBER);
@@ -83,5 +93,7 @@ void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* O
 				AngularVelocity = FVector::ZeroVector;
 			}
 		}
+
+		UE_LOG(LogTemp, Log, TEXT("AngularVelocity %s"), *AngularVelocity.ToString());
 	}
 }
