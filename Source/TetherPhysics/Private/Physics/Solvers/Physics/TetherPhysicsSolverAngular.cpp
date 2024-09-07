@@ -41,10 +41,15 @@ void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* O
 			Inertia = Settings.Inertia;  // Use the predefined inertia value
 		}
 
-		FVector Torque = FVector::CrossProduct(Settings.PointOfApplication - Settings.CenterOfMass, Settings.Torque);
+		const FVector Torque = FVector::CrossProduct(Settings.PointOfApplication - Settings.CenterOfMass, Settings.Torque);
+
+		// Clamp small inertia values to avoid division by zero
+		Inertia.X = FMath::Max(Inertia.X, KINDA_SMALL_NUMBER);
+		Inertia.Y = FMath::Max(Inertia.Y, KINDA_SMALL_NUMBER);
+		Inertia.Z = FMath::Max(Inertia.Z, KINDA_SMALL_NUMBER);
 
 		// Calculate angular acceleration based on the net torque and inertia
-		FVector AngularAcceleration = (Torque - Settings.FrictionTorque) * (FVector::OneVector / Inertia);
+		const FVector AngularAcceleration = (Torque - Settings.FrictionTorque) * (FVector::OneVector / Inertia);
 
 		// Update angular velocity using the angular acceleration
 		AngularVelocity += AngularAcceleration * DeltaTime;
@@ -69,7 +74,14 @@ void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* O
 		float AngularVelocityMagnitude = AngularVelocity.Size();
 		if (AngularVelocityMagnitude > Settings.MaxAngularVelocity)
 		{
-			AngularVelocity *= Settings.MaxAngularVelocity / AngularVelocityMagnitude;
+			if (!FMath::IsNearlyZero(AngularVelocityMagnitude))
+			{
+				AngularVelocity *= Settings.MaxAngularVelocity / AngularVelocityMagnitude;
+			}
+			else
+			{
+				AngularVelocity = FVector::ZeroVector;
+			}
 		}
 	}
 }
