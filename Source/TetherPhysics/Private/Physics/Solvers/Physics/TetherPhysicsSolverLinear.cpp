@@ -46,9 +46,16 @@ void UTetherPhysicsSolverLinear::Solve(const FTetherIO* InputData, FTetherIO* Ou
 		float LinearVelocityMagnitude = LinearVelocity.Size();
 		if (LinearVelocityMagnitude > Settings.MaxLinearVelocity)
 		{
-			LinearVelocity *= Settings.MaxLinearVelocity / LinearVelocityMagnitude;
+			if (!FMath::IsNearlyZero(LinearVelocityMagnitude))
+			{
+				LinearVelocity *= Settings.MaxLinearVelocity / LinearVelocityMagnitude;
+			}
+			else
+			{
+				LinearVelocity = FVector::ZeroVector;
+			}
 		}
 
-		UE_LOG(LogTemp, Log, TEXT("LinearVelocity %s"), *LinearVelocity.ToString());
+		// UE_LOG(LogTemp, Log, TEXT("LinearVelocity %s"), *LinearVelocity.ToString());
 	}
 }
