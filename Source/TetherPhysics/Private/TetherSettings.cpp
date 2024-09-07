@@ -10,6 +10,9 @@
 #include "Physics/Collision/TetherCollisionDetectionNarrowPhase.h"
 #include "Physics/Hashing/TetherHashingSpatial.h"
 #include "Physics/Replay/TetherReplay.h"
+#include "Physics/Solvers/Integration/TetherIntegrationSolverEuler.h"
+#include "Physics/Solvers/Integration/TetherIntegrationSolverRK4.h"
+#include "Physics/Solvers/Integration/TetherIntegrationSolverVerlet.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverLinear.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverAngular.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
@@ -27,9 +30,14 @@ UTetherSettings::UTetherSettings(const FObjectInitializer& ObjectInitializer)
 	NarrowPhaseDetectionSystems.Add({ FTetherGameplayTags::Tether_Detection_NarrowPhase.GetTag(), UTetherCollisionDetectionNarrowPhase::StaticClass() });
 	CollisionDetectionHandlers.Add({ FTetherGameplayTags::Tether_Detection_CollisionHandler.GetTag(), UTetherCollisionDetectionHandler::StaticClass() });
 	
-	// Default Solvers
-	Solvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Linear.GetTag(), UTetherPhysicsSolverLinear::StaticClass() });
-	Solvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Angular.GetTag(), UTetherPhysicsSolverAngular::StaticClass() });
+	// Default Physics Solvers
+	PhysicsSolvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Linear.GetTag(), UTetherPhysicsSolverLinear::StaticClass() });
+	PhysicsSolvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Angular.GetTag(), UTetherPhysicsSolverAngular::StaticClass() });
+	
+	// Default Integration Solvers
+	IntegrationSolvers.Add({ FTetherGameplayTags::Tether_Solver_Integration_Euler.GetTag(), UTetherIntegrationSolverEuler::StaticClass() });
+	IntegrationSolvers.Add({ FTetherGameplayTags::Tether_Solver_Integration_RK4.GetTag(), UTetherIntegrationSolverRK4::StaticClass() });
+	IntegrationSolvers.Add({ FTetherGameplayTags::Tether_Solver_Integration_Verlet.GetTag(), UTetherIntegrationSolverVerlet::StaticClass() });
 
 	// Default Replay System
 	ReplaySystems.Add({ FTetherGameplayTags::Tether_Replay.GetTag(), UTetherReplay::StaticClass() });

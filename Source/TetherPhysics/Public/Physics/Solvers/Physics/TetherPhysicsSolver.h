@@ -15,7 +15,7 @@
  * other custom physics calculations. As an abstract base class, it is designed to be extended
  * to implement specific types of solvers that operate on different types of physical data.
  *
- * The `Solve` method is the core of the solver, where the actual physics computations take place.
+ * The Solve() method is the core of the solver, where the actual physics computations take place.
  * Derived classes should implement this method to define how input data is processed to produce
  * the desired physical outcomes.
  *

@@ -16,9 +16,19 @@ namespace FTetherGameplayTags
 
 	/** Gameplay tags for tether solvers */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver, "Tether.Solver");
+
+	/** Gameplay tags for tether physics solvers */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics, "Tether.Solver.Physics");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics_Linear, "Tether.Solver.Physics.Linear");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics_Angular, "Tether.Solver.Physics.Angular");
+
+	/** Gameplay tags for tether integration solvers */
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Integration, "Tether.Solver.Integration");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Integration_Euler, "Tether.Solver.Integration.Euler");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Integration_RK4, "Tether.Solver.Integration.RK4");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Integration_Verlet, "Tether.Solver.Integration.Verlet");
+	
+	/** Gameplay tags for tether contact solvers */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Contact, "Tether.Solver.Contact");
 
 	/** Gameplay tags for tether replay system */

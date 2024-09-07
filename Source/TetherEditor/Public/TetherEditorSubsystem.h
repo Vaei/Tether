@@ -9,6 +9,7 @@
 #include "Tether/Public/TetherPhysicsUpdate.h"
 #include "TetherEditorSubsystem.generated.h"
 
+class UTetherIntegrationSolver;
 class ATetherEditorShapeActor;
 class UTetherReplay;
 class UTetherPhysicsSolverAngular;
@@ -58,6 +59,12 @@ protected:
 	FAngularOutput AngularOutput;
 
 	UPROPERTY()
+	FIntegrationInput IntegrationInput;
+
+	UPROPERTY()
+	FIntegrationOutput IntegrationOutput;
+
+	UPROPERTY()
 	FRecordedPhysicsData RecordedData;
 	
 	UPROPERTY()
@@ -86,6 +93,9 @@ protected:
 
 	UPROPERTY(Transient)
 	FGameplayTag LastAngularSolver = FGameplayTag::EmptyTag;
+
+	UPROPERTY(Transient)
+	FGameplayTag LastIntegrationSolver = FGameplayTag::EmptyTag;
 	
 	UPROPERTY(Transient)
 	FGameplayTag LastReplaySystem = FGameplayTag::EmptyTag;
@@ -107,6 +117,9 @@ protected:
 	
 	UPROPERTY(Transient)
 	const UTetherPhysicsSolverAngular* CurrentAngularSolver = nullptr;
+
+	UPROPERTY(Transient)
+	const UTetherIntegrationSolver* CurrentIntegrationSolver = nullptr;
 	
 	UPROPERTY(Transient)
 	const UTetherReplay* CurrentReplaySystem = nullptr;

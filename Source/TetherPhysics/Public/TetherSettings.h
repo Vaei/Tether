@@ -10,6 +10,7 @@
 #include "Physics/Collision/TetherCollisionDetectionHandler.h"
 #include "Physics/Hashing/TetherHashing.h"
 #include "Physics/Replay/TetherReplay.h"
+#include "Physics/Solvers/Integration/TetherIntegrationSolver.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolver.h"
 #include "TetherSettings.generated.h"
 
@@ -54,8 +55,12 @@ public:
 	TMap<FGameplayTag, TSubclassOf<UTetherCollisionDetectionHandler>> CollisionDetectionHandlers;
 
 	/** A map of gameplay tags to available solvers for Tether */
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Solver"))
-	TMap<FGameplayTag, TSubclassOf<UTetherPhysicsSolver>> Solvers;
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Solver.Physics"))
+	TMap<FGameplayTag, TSubclassOf<UTetherPhysicsSolver>> PhysicsSolvers;
+
+	/** A map of gameplay tags to available solvers for Tether */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Solver.Integration"))
+	TMap<FGameplayTag, TSubclassOf<UTetherIntegrationSolver>> IntegrationSolvers;
 	
 	/** A map of gameplay tags to available solvers for Tether */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Replay"))
@@ -120,17 +125,28 @@ public:
 		return GetInternal<UTetherHashing, T>(Tag, Get()->HashingSystems);
 	}
 
-	/** Retrieves a solver based on the provided gameplay tag and casts it to the specified type */
+	/** Retrieves a physics solver based on the provided gameplay tag and casts it to the specified type */
 	template<typename T>
-	static const T* GetSolver(const FGameplayTag& Tag)
+	static const T* GetPhysicsSolver(const FGameplayTag& Tag)
 	{
-		return GetInternal<UTetherPhysicsSolver, T>(Tag, Get()->Solvers);
+		return GetInternal<UTetherPhysicsSolver, T>(Tag, Get()->PhysicsSolvers);
 	}
-	static const UTetherPhysicsSolver* GetSolver(const FGameplayTag& Tag)
+	static const UTetherPhysicsSolver* GetPhysicsSolver(const FGameplayTag& Tag)
 	{
-		return GetInternal<UTetherPhysicsSolver>(Tag, Get()->Solvers);
+		return GetInternal<UTetherPhysicsSolver>(Tag, Get()->PhysicsSolvers);
 	}
-
+	
+	/** Retrieves an integration solver based on the provided gameplay tag and casts it to the specified type */
+	template<typename T>
+	static const T* GetIntegrationSolver(const FGameplayTag& Tag)
+	{
+		return GetInternal<UTetherIntegrationSolver, T>(Tag, Get()->IntegrationSolvers);
+	}
+	static const UTetherIntegrationSolver* GetIntegrationSolver(const FGameplayTag& Tag)
+	{
+		return GetInternal<UTetherIntegrationSolver>(Tag, Get()->IntegrationSolvers);
+	}
+	
 	/** Retrieves a replay system based on the provided gameplay tag and casts it to the specified type */
 	template<typename T>
 	static const T* GetReplaySystem(const FGameplayTag& Tag)

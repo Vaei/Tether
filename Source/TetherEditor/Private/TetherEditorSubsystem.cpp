@@ -78,14 +78,28 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	OriginPoint /= Origins.Num();
 	FTransform Origin = { FQuat::Identity, OriginPoint };
 	
-	// Grab all shapes from each actor
+	// Build Arrays, Maps, Input data for each shape
 	TArray<FTetherShape*> Shapes;
-	Algo::Transform(ShapeActors, Shapes, [](ATetherEditorShapeActor* Actor)
+	TMap<FTetherShape*, ATetherEditorShapeActor*> ShapeActorMap;
+	for (ATetherEditorShapeActor* Actor : ShapeActors)
 	{
 		FTetherShape* Shape = Actor->GetTetherShape();
 		Shape->ToWorldSpace(Actor->GetActorTransform());
-		return Shape;
-	});
+
+		// Add to Shapes Array
+		Shapes.Add(Shape);
+
+		// Add to ShapeActorMap TMap
+		ShapeActorMap.Add(Shape, Actor);
+
+		// Cache LinearInputs
+		FLinearInputSettings& LinearSettings = LinearInput.ShapeSettings.FindOrAdd(Shape);
+		LinearSettings = Actor->LinearInputSettings;
+
+		// Cache AngularInputs
+		FAngularInputSettings& AngularSettings = AngularInput.ShapeSettings.FindOrAdd(Shape);
+		AngularSettings = Actor->AngularInputSettings;
+	}
 
 	// Pass shapes to Inputs
 	SpatialHashingInput.Shapes = &Shapes;
@@ -104,28 +118,33 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		CurrentCollisionDetectionHandler = UTetherSettings::GetCollisionDetectionHandler(Data->CollisionDetectionHandler);
 	}
 
+	if (!ensure(CurrentCollisionDetectionHandler))
+	{
+		return;
+	}
+	
 	if (LastBroadPhaseCollisionDetection != Data->BroadPhaseCollisionDetection)
 	{
 		LastBroadPhaseCollisionDetection = Data->BroadPhaseCollisionDetection;
 		CurrentBroadPhaseCollisionDetection = UTetherSettings::GetBroadPhaseSystem(Data->BroadPhaseCollisionDetection);
 	}
 
-	if (LastNarrowPhaseCollisionDetection != Data->NarrowPhaseCollisionDetection)
-	{
-		LastNarrowPhaseCollisionDetection = Data->NarrowPhaseCollisionDetection;
-		CurrentNarrowPhaseCollisionDetection = UTetherSettings::GetNarrowPhaseSystem(Data->NarrowPhaseCollisionDetection);
-	}
-
 	if (LastLinearSolver != Data->LinearSolver)
 	{
 		LastLinearSolver = Data->LinearSolver;
-		CurrentLinearSolver = UTetherSettings::GetSolver<UTetherPhysicsSolverLinear>(Data->LinearSolver);
+		CurrentLinearSolver = UTetherSettings::GetPhysicsSolver<UTetherPhysicsSolverLinear>(Data->LinearSolver);
 	}
 
 	if (LastAngularSolver != Data->AngularSolver)
 	{
 		LastAngularSolver = Data->AngularSolver;
-		CurrentAngularSolver = UTetherSettings::GetSolver<UTetherPhysicsSolverAngular>(Data->AngularSolver);
+		CurrentAngularSolver = UTetherSettings::GetPhysicsSolver<UTetherPhysicsSolverAngular>(Data->AngularSolver);
+	}
+
+	if (LastIntegrationSolver != Data->IntegrationSolver)
+	{
+		LastIntegrationSolver = Data->IntegrationSolver;
+		CurrentIntegrationSolver = UTetherSettings::GetIntegrationSolver<UTetherIntegrationSolver>(Data->IntegrationSolver);
 	}
 
 	if (LastReplaySystem != Data->ReplaySystem)
@@ -134,11 +153,12 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		CurrentReplaySystem = UTetherSettings::GetReplaySystem(Data->ReplaySystem);
 	}
 
-	if (!ensure(CurrentCollisionDetectionHandler))
+	if (LastNarrowPhaseCollisionDetection != Data->NarrowPhaseCollisionDetection)
 	{
-		return;
+		LastNarrowPhaseCollisionDetection = Data->NarrowPhaseCollisionDetection;
+		CurrentNarrowPhaseCollisionDetection = UTetherSettings::GetNarrowPhaseSystem(Data->NarrowPhaseCollisionDetection);
 	}
-	
+
 	// Start the frame with the current DeltaTime
 	PhysicsUpdate.StartFrame(DeltaTime);
 
@@ -159,7 +179,6 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		{
 			// Optional but common optimization step where you quickly check if objects are close enough to potentially
 			// collide. It reduces the number of detailed collision checks needed in the narrow phase.
-			BroadPhaseInput.Shapes = &Shapes;
 			BroadPhaseInput.PotentialCollisionPairings = &SpatialHashingOutput.ShapePairs;
 			CurrentBroadPhaseCollisionDetection->DetectCollision(&BroadPhaseInput, &BroadPhaseOutput, CurrentCollisionDetectionHandler);
 			CurrentBroadPhaseCollisionDetection->DrawDebug(&BroadPhaseInput, &BroadPhaseOutput, nullptr, GetWorld(), TimeTick);
@@ -170,22 +189,27 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		// These steps calculate the velocities that will be applied to the object. By solving linear and angular
 		// physics first, you get the raw velocities that are then used in integration.
 		
-		// if (CurrentLinearSolver)
-		// {
-		// 	CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, Origin, TimeTick);
-		// }
-		//
-		// if (CurrentAngularSolver)
-		// {
-		// 	CurrentAngularSolver->Solve(&AngularInput, &AngularOutput, Origin, TimeTick);
-		// }
-		//
-		// // 3. @todo Solve Integration
-		//
-		// // This part of the solver takes the results from the linear and angular solvers and updates the position and
-		// // orientation of objects over time. It essentially integrates the calculated forces and torques to determine
-		// // how an object should move in the next time step.
-		//
+		if (CurrentLinearSolver)
+		{
+			CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, Origin, TimeTick);
+		}
+		
+		if (CurrentAngularSolver)
+		{
+			CurrentAngularSolver->Solve(&AngularInput, &AngularOutput, Origin, TimeTick);
+		}
+		
+		// 3. Solve Integration
+		
+		// This part of the solver takes the results from the linear and angular solvers and updates the position and
+		// orientation of objects over time. It essentially integrates the calculated forces and torques to determine
+		// how an object should move in the next time step.
+
+		if (CurrentIntegrationSolver)
+		{
+			CurrentIntegrationSolver->Solve(&IntegrationInput, &IntegrationOutput, TimeTick);
+		}
+		
 		// // 4. @todo Record state of all objects post-integration for replay purposes
 		// // if (bIsRecording)
 		// // {

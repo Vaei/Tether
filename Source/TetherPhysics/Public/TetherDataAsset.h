@@ -35,6 +35,9 @@ public:
 		
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Physics.Angular"))
 	FGameplayTag AngularSolver = FTetherGameplayTags::Tether_Solver_Physics_Angular;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Integration"))
+	FGameplayTag IntegrationSolver = FTetherGameplayTags::Tether_Solver_Integration;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Replay"))
 	FGameplayTag ReplaySystem = FTetherGameplayTags::Tether_Replay;

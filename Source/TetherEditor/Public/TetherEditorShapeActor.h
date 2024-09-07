@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "TetherIO.h"
 #include "GameFramework/Actor.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
 #include "Shapes/TetherShape_OrientedBoundingBox.h"
@@ -38,6 +39,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(DisplayName="Pipe"))
 	FTetherShape_Pipe Pipe;
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FLinearInputSettings LinearInputSettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FAngularInputSettings AngularInputSettings;
 	
 public:
 	ATetherEditorShapeActor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());

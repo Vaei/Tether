@@ -65,13 +65,13 @@ void FAnimNode_Tether::UpdateInternal(const FAnimationUpdateContext& Context)
 	if (LastLinearSolver != LinearSolver)
 	{
 		LastLinearSolver = LinearSolver;
-		CurrentLinearSolver = UTetherSettings::GetSolver<UTetherPhysicsSolverLinear>(LinearSolver);
+		CurrentLinearSolver = UTetherSettings::GetPhysicsSolver<UTetherPhysicsSolverLinear>(LinearSolver);
 	}
 
 	if (LastAngularSolver != AngularSolver)
 	{
 		LastAngularSolver = AngularSolver;
-		CurrentAngularSolver = UTetherSettings::GetSolver<UTetherPhysicsSolverAngular>(AngularSolver);
+		CurrentAngularSolver = UTetherSettings::GetPhysicsSolver<UTetherPhysicsSolverAngular>(AngularSolver);
 	}
 
 	if (LastReplaySystem != ReplaySystem)

@@ -173,21 +173,29 @@ struct TETHERPHYSICS_API FLinearInputSettings
 	GENERATED_BODY()
 
 	FLinearInputSettings()
-		: Force(FVector::ZeroVector)						// Default to no initial force
-		, Mass(1.f)											// Default to a mass of 1.0 for reasonable physics interaction
-		, LinearDamping(0.05f)								// A small default damping to simulate some resistance to linear motion
-		, MaxLinearVelocity(1000.f)							// A high cap on linear velocity to prevent instability
-		, FrictionForce(0.f)								// Default to no additional frictional force
-		, LinearDragCoefficient(0.01f)						// A small drag coefficient to account for air resistance
-		, DampingModel(ETetherDampingModel::SimpleLinear)	// Default to simple linear damping
+		: Force(FVector::ZeroVector)							// Default to no initial force
+		, Acceleration(FVector(0.f, 0.f, -980.f))		// Default to real-world gravity
+		, Mass(1.f)												// Default to a mass of 1.0 for reasonable physics interaction
+		, LinearDamping(0.05f)									// A small default damping to simulate some resistance to linear motion
+		, MaxLinearVelocity(1000.f)								// A high cap on linear velocity to prevent instability
+		, FrictionForce(0.f)									// Default to no additional frictional force
+		, LinearDragCoefficient(0.001f)							// A small drag coefficient to account for air resistance
+		, DampingModel(ETetherDampingModel::SimpleLinear)		// Default to simple linear damping
 	{}
 
-	/** Applied force causing linear acceleration */
+	/** Applied force causing linear acceleration (Newtons) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector Force;
 
-	/** Mass of the object */
+	/**
+	 * Applied force causing linear acceleration (cm/s²), ignoring Mass and Friction
+	 * Intended for Gravity
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FVector Acceleration;
+
+	/** Mass of the object (kg) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(UIMin="0.0001", ClampMin="0.0001"))
 	float Mass;
 
 	/** Resistance to motion, slows down linear velocity */
@@ -316,17 +324,18 @@ struct TETHERPHYSICS_API FAngularInput : public FTetherIO
 };
 
 /**
- * Output data for linear physics simulations.
- *
- * This struct includes properties such as the linear velocity of an object
- * after applying the linear physics calculations.
+ * Data structure representing the linear output for each shape in the physics simulation.
+ * 
+ * This struct holds the resulting linear velocity for each individual shape after 
+ * the linear physics calculations have been applied. The velocity is updated based 
+ * on forces and other effects during the simulation.
  */
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FLinearOutput : public FTetherIO
+struct TETHERPHYSICS_API FLinearOutputData : public FTetherIO
 {
 	GENERATED_BODY()
 
-	FLinearOutput()
+	FLinearOutputData()
 		: LinearVelocity(FVector::ZeroVector)
 	{}
 
@@ -336,17 +345,37 @@ struct TETHERPHYSICS_API FLinearOutput : public FTetherIO
 };
 
 /**
- * Output data for angular physics simulations.
+ * Output data for linear physics simulations, containing results for multiple shapes.
  *
- * This struct includes properties such as the angular velocity and inertia
- * of an object after applying the angular physics calculations.
+ * This struct stores the linear output data for each shape being simulated. It includes
+ * the resulting linear velocity for each shape after the linear physics calculations
+ * have been performed, stored in a map keyed by the shape.
  */
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FAngularOutput : public FTetherIO
+struct TETHERPHYSICS_API FLinearOutput : public FTetherIO
 {
 	GENERATED_BODY()
 
-	FAngularOutput()
+	FLinearOutput()
+	{}
+
+	/** Linear velocity results for each shape in the simulation */
+	TMap<const FTetherShape*, FLinearOutputData> ShapeData;
+};
+
+/**
+ * Data structure representing the angular output for each shape in the physics simulation.
+ * 
+ * This struct holds the resulting angular velocity and inertia for each individual shape 
+ * after the angular physics calculations have been applied. The angular velocity is 
+ * influenced by forces such as torque and the object's inertia.
+ */
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FAngularOutputData : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FAngularOutputData()
 		: AngularVelocity(FVector::ZeroVector)
 		, Inertia(FVector::OneVector)
 	{}
@@ -358,6 +387,101 @@ struct TETHERPHYSICS_API FAngularOutput : public FTetherIO
 	/** Inertia of the object influencing angular motion */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector Inertia;
+};
+
+/**
+ * Output data for angular physics simulations, containing results for multiple shapes.
+ *
+ * This struct stores the angular output data for each shape being simulated. It includes
+ * the resulting angular velocity and inertia for each shape after the angular physics
+ * calculations have been performed, stored in a map keyed by the shape.
+ */
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FAngularOutput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FAngularOutput()
+	{}
+
+	/** Angular velocity results for each shape in the simulation */
+	TMap<const FTetherShape*, FAngularOutputData> ShapeData;
+};
+
+/**
+ * Input data for physics integration.
+ *
+ * This struct holds input data for all shapes being simulated in the physics system. 
+ * Each shape has its own set of input data, including linear, angular motion, and 
+ * transform information.
+ */
+USTRUCT()
+struct TETHERPHYSICS_API FIntegrationInput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FIntegrationInput()
+	{}
+	
+	/** Current linear motion data (velocity, force, etc.) */
+	UPROPERTY()
+	FLinearInput LinearInput;
+
+	/** Current angular motion data (torque, angular velocity, etc.) */
+	UPROPERTY()
+	FAngularInput AngularInput;
+
+	/** Current linear motion data (velocity, force, etc.) */
+	UPROPERTY()
+	FLinearOutput LinearOutput;
+
+	/** Current angular motion data (torque, angular velocity, etc.) */
+	UPROPERTY()
+	FAngularOutput AngularOutput;
+
+	/** Each shape being simulated */
+	TArray<const FTetherShape*> Shapes;
+};
+
+/**
+ * Output data for each shape after the physics simulation step.
+ *
+ * This struct contains the updated transform of the object after integration,
+ * along with the previous transform to help in Verlet integration. This data is 
+ * used to store the result of the integration and will be applied back to the object.
+ */
+USTRUCT()
+struct TETHERPHYSICS_API FIntegrationOutputData : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FIntegrationOutputData()
+		: Transform(FTransform::Identity)
+	{}
+
+	/** Updated transform (position, rotation, scale) after the physics step */
+	UPROPERTY()
+	FTransform Transform;
+
+};
+
+/**
+ * Output data for physics integration.
+ *
+ * This struct holds the output data for all shapes after the integration step. 
+ * Each shape has an updated transform and its previous transform, used for 
+ * calculating the next frame in Verlet integration.
+ */
+USTRUCT()
+struct TETHERPHYSICS_API FIntegrationOutput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FIntegrationOutput()
+	{}
+
+	/** A map of each shape being simulated to its respective output data */
+	TMap<const FTetherShape*, FIntegrationOutputData> ShapeTransform;
 };
 
 /**
