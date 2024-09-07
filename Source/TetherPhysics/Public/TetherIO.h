@@ -257,7 +257,7 @@ struct TETHERPHYSICS_API FAngularInputSettings : public FTetherIO
 		, AngularDamping(0.05f)								// Small default damping to simulate some resistance to rotation
 		, MaxAngularVelocity(1000.f)						// High cap on angular velocity to prevent instability
 		, FrictionTorque(0.f)								// Default to no additional frictional torque
-		, AngularDragCoefficient(0.01f)						// Small drag coefficient to account for air resistance
+		, AngularDragCoefficient(0.001f)					// Small drag coefficient to account for air resistance
 		, DampingModel(ETetherDampingModel::SimpleLinear)	// Simple linear damping
 	{}
 
