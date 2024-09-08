@@ -128,27 +128,18 @@ void UTetherStatics::DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* 
 	int32 Segments, const FColor& VelocityColor, const FColor& XAxisColor, const FColor& YAxisColor,
 	const FColor& ZAxisColor, bool bPersistentLines, float LifeTime, float Thickness)
 {
-	// Calculate the vectors for the X, Y, and Z axes of the object in world space
-	FVector XAxis = Rotation.GetAxisX();
-	FVector YAxis = Rotation.GetAxisY();
-	FVector ZAxis = Rotation.GetAxisZ();
+	// Generate a transform from the rotation to create stable axes
+	FTransform RotationTransform(Rotation);
 
-	// Ensure the axes have valid perpendicular vectors for circle drawing
-	FVector PerpendicularX, PerpendicularY, PerpendicularZ;
+	// Use the transformed axes for drawing the gizmo
+	FVector XAxis = RotationTransform.TransformVector(FVector::ForwardVector);  // X-axis (local forward)
+	FVector YAxis = RotationTransform.TransformVector(FVector::RightVector);    // Y-axis (local right)
+	FVector ZAxis = RotationTransform.TransformVector(FVector::UpVector);       // Z-axis (local up)
 
-	// Use FindBestAxisVectors for more accurate perpendicular vectors
-	XAxis.FindBestAxisVectors(PerpendicularX, PerpendicularY);
-	YAxis.FindBestAxisVectors(PerpendicularY, PerpendicularZ);
-	ZAxis.FindBestAxisVectors(PerpendicularZ, PerpendicularX);
-
-	// Draw the X-axis rotation gizmo (red)
-	DrawCircle(World, Proxy, Center, Radius, Segments, XAxisColor, XAxis, PerpendicularX, bPersistentLines, LifeTime, Thickness);
-	
-	// Draw the Y-axis rotation gizmo (green)
-	DrawCircle(World, Proxy, Center, Radius, Segments, YAxisColor, YAxis, PerpendicularY, bPersistentLines, LifeTime, Thickness);
-	
-	// Draw the Z-axis rotation gizmo (blue)
-	DrawCircle(World, Proxy, Center, Radius, Segments, ZAxisColor, ZAxis, PerpendicularZ, bPersistentLines, LifeTime, Thickness);
+	// Now draw the rotation gizmo circles using stable axes
+	DrawCircle(World, Proxy, Center, Radius, Segments, XAxisColor, XAxis, YAxis, bPersistentLines, LifeTime, Thickness); // X-axis circle
+	DrawCircle(World, Proxy, Center, Radius, Segments, YAxisColor, YAxis, ZAxis, bPersistentLines, LifeTime, Thickness); // Y-axis circle
+	DrawCircle(World, Proxy, Center, Radius, Segments, ZAxisColor, ZAxis, XAxis, bPersistentLines, LifeTime, Thickness); // Z-axis circle
 
 	// Optionally, draw an arrow showing the angular velocity direction
 	if (!AngularVelocity.IsNearlyZero() && ArrowSize > 0.f)
