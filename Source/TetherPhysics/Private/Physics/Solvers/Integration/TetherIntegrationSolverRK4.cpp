@@ -10,18 +10,24 @@ void UTetherIntegrationSolverRK4::Solve(const FTetherIO* InputData, FTetherIO* O
 	const auto* Input = InputData->GetDataIO<FIntegrationInput>();
 	auto* Output = OutputData->GetDataIO<FIntegrationOutput>();
 
+	Output->Shapes.Reset();
+
 	// Loop through each shape being simulated
-	for (const FTetherShape* Shape : Input->Shapes)
+	for (const auto& ShapeItr : *Input->Shapes)
 	{
+		// Retrieve shape data
+		const FTetherShape* const& Shape = ShapeItr.Key;
+		const FTransform* CurrentTransform = ShapeItr.Value;
+		FTransform Transform = *CurrentTransform;
+		
 		// Get the shape-specific input and output data
-		const FLinearOutputData& LinearOutput = Input->LinearOutput.ShapeData[Shape];
-		const FAngularOutputData& AngularOutput = Input->AngularOutput.ShapeData[Shape];
-		FIntegrationOutputData& ShapeOutput = Output->ShapeTransform[Shape];
+		const FLinearOutputData& LinearOutput = Input->LinearOutput->ShapeData[Shape];
+		const FAngularOutputData& AngularOutput = Input->AngularOutput->ShapeData[Shape];
 
 		// ---- Linear Motion (Position) ----
 
 		// Get the current position from the transform
-		const FVector& CurrentPosition = ShapeOutput.Transform.GetLocation();
+		const FVector& CurrentPosition = Transform.GetLocation();
 
 		// Use the linear velocity calculated by the linear solver
 		const FVector& LinearVelocity = LinearOutput.LinearVelocity;
@@ -36,12 +42,12 @@ void UTetherIntegrationSolverRK4::Solve(const FTetherIO* InputData, FTetherIO* O
 		const FVector NewPosition = CurrentPosition + (K1 + 2.f * K2 + 2.f * K3 + K4) / 6.f;
 
 		// Update the output data for position
-		ShapeOutput.Transform.SetLocation(NewPosition);
+		Transform.SetLocation(NewPosition);
 
 		// ---- Angular Motion (Rotation) ----
 
 		// Get the current rotation from the transform
-		const FQuat CurrentRotation = ShapeOutput.Transform.GetRotation();
+		const FQuat CurrentRotation = Transform.GetRotation();
 
 		// Use the angular velocity calculated by the angular solver
 		const FVector AngularVelocity = AngularOutput.AngularVelocity;
@@ -59,6 +65,7 @@ void UTetherIntegrationSolverRK4::Solve(const FTetherIO* InputData, FTetherIO* O
 		NewRotation.Normalize();
 
 		// Update the output data for rotation
-		ShapeOutput.Transform.SetRotation(NewRotation);
+		Transform.SetRotation(NewRotation);
+		Output->Shapes.Add(Shape, Transform);
 	}
 }

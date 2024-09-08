@@ -37,7 +37,7 @@ public:
 	FGameplayTag AngularSolver = FTetherGameplayTags::Tether_Solver_Angular;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Integration"))
-	FGameplayTag IntegrationSolver = FTetherGameplayTags::Tether_Solver_Integration;
+	FGameplayTag IntegrationSolver = FTetherGameplayTags::Tether_Solver_Integration_Euler;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Replay"))
 	FGameplayTag ReplaySystem = FTetherGameplayTags::Tether_Replay;

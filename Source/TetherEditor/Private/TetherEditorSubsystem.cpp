@@ -177,6 +177,11 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	// Pass shapes to Inputs
 	SpatialHashingInput.Shapes = &Shapes;
 	BroadPhaseInput.Shapes = &Shapes;
+	IntegrationInput.Shapes = &ShapeTransforms;
+	IntegrationInput.LinearInput = &LinearInput;
+	IntegrationInput.LinearOutput = &LinearOutput;
+	IntegrationInput.AngularInput = &AngularInput;
+	IntegrationInput.AngularOutput = &AngularOutput;
 	
 	// Compute an origin at the center of all shape actors
 	FVector OriginPoint = FVector::ZeroVector;
@@ -240,6 +245,21 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		if (CurrentIntegrationSolver)
 		{
 			CurrentIntegrationSolver->Solve(&IntegrationInput, &IntegrationOutput, TimeTick);
+
+			// Update actual transforms based on integration result
+			for (const auto& ActorItr : ShapeActorMap)
+			{
+				const FTetherShape* const& Shape = ActorItr.Key;
+				ATetherEditorShapeActor* Actor = ActorItr.Value;
+				if (ensure(IsValid(Actor)))
+				{
+					const FTransform* Transform = IntegrationOutput.Shapes.Find(Shape);
+					if (ensure(Transform))
+					{
+						Actor->SetActorTransform(*Transform);
+					}
+				}
+			}
 		}
 		
 		// // 4. @todo Record state of all objects post-integration for replay purposes

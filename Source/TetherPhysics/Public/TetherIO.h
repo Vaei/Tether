@@ -409,6 +409,25 @@ struct TETHERPHYSICS_API FAngularOutput : public FTetherIO
 };
 
 /**
+ * Input data for each shape after the physics simulation step.
+ *
+ * This struct contains the input transform of the object before integration
+ */
+USTRUCT()
+struct TETHERPHYSICS_API FIntegrationInputData : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FIntegrationInputData()
+		: Transform(FTransform::Identity)
+	{}
+
+	/** Updated transform (position, rotation, scale) after the physics step */
+	UPROPERTY()
+	FTransform Transform;
+};
+
+/**
  * Input data for physics integration.
  *
  * This struct holds input data for all shapes being simulated in the physics system. 
@@ -421,26 +440,27 @@ struct TETHERPHYSICS_API FIntegrationInput : public FTetherIO
 	GENERATED_BODY()
 
 	FIntegrationInput()
+		: LinearInput(nullptr)
+		, AngularInput(nullptr)
+		, LinearOutput(nullptr)
+		, AngularOutput(nullptr)
+		, Shapes(nullptr)
 	{}
-	
-	/** Current linear motion data (velocity, force, etc.) */
-	UPROPERTY()
-	FLinearInput LinearInput;
-
-	/** Current angular motion data (torque, angular velocity, etc.) */
-	UPROPERTY()
-	FAngularInput AngularInput;
 
 	/** Current linear motion data (velocity, force, etc.) */
-	UPROPERTY()
-	FLinearOutput LinearOutput;
+	FLinearInput* LinearInput;
 
 	/** Current angular motion data (torque, angular velocity, etc.) */
-	UPROPERTY()
-	FAngularOutput AngularOutput;
+	FAngularInput* AngularInput;
+
+	/** Current linear motion data (velocity, force, etc.) */
+	FLinearOutput* LinearOutput;
+
+	/** Current angular motion data (torque, angular velocity, etc.) */
+	FAngularOutput* AngularOutput;
 
 	/** Each shape being simulated */
-	TArray<const FTetherShape*> Shapes;
+	TMap<const FTetherShape*, const FTransform*>* Shapes;
 };
 
 /**
@@ -462,7 +482,6 @@ struct TETHERPHYSICS_API FIntegrationOutputData : public FTetherIO
 	/** Updated transform (position, rotation, scale) after the physics step */
 	UPROPERTY()
 	FTransform Transform;
-
 };
 
 /**
@@ -481,7 +500,7 @@ struct TETHERPHYSICS_API FIntegrationOutput : public FTetherIO
 	{}
 
 	/** A map of each shape being simulated to its respective output data */
-	TMap<const FTetherShape*, FIntegrationOutputData> ShapeTransform;
+	TMap<const FTetherShape*, FTransform> Shapes;
 };
 
 /**
