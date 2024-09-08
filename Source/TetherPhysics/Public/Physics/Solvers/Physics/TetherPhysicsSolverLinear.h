@@ -7,6 +7,8 @@
 #include "TetherPhysicsSolver.h"
 #include "TetherPhysicsSolverLinear.generated.h"
 
+struct FTetherDebugText;
+
 /**
  * Physics solver for linear motion in the Tether physics system.
  *

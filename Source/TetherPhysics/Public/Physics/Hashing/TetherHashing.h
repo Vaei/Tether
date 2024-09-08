@@ -7,6 +7,8 @@
 #include "UObject/Object.h"
 #include "TetherHashing.generated.h"
 
+struct FTetherDebugText;
+
 /**
  * Abstract base class for generic hashing systems used in physics simulations.
  *

@@ -6,6 +6,7 @@
 #include "GameplayTagContainer.h"
 #include "TetherIO.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "System/TetherDebugMessaging.h"
 #include "Tether/Public/TetherPhysicsUpdate.h"
 #include "TetherEditorSubsystem.generated.h"
 
@@ -132,15 +133,19 @@ public:
 	bool bHasWorldBegunPlay = false;
 
 protected:
-	UPROPERTY()
-	TArray<FTetherDebugText> PendingDebugText;
-
 	/** FMessageLog and UE_LOG handler - Primarily exists to avoid printing unique messages repeatedly on tick */
 	UPROPERTY(Transient)
 	FTetherMessageLog MessageLog;
 
+	FDelegateHandle GDebugDrawHandleGame;
+	FDelegateHandle GDebugDrawHandleEditor;
+
+	UPROPERTY()
+	FTetherDebugTextService DebugTextService;
+
 public:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+	virtual void Deinitialize() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 };

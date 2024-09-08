@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "TetherStatics.h"
-#include "TetherPhysicsTypes.generated.h"
+#include "TetherDebugMessaging.generated.h"
 
 /*
  * Single entry of a debug text item to render. 
@@ -50,6 +50,39 @@ struct TETHERPHYSICS_API FTetherDebugText
 	/** Scale to apply to font when rendering */
 	UPROPERTY()
 	float FontScale;
+};
+
+USTRUCT()
+struct TETHERPHYSICS_API FTetherDebugTextService
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	TArray<FTetherDebugText> PendingDebugText;
+
+protected:
+	TWeakObjectPtr<UObject> WorldContext;
+
+	FDelegateHandle GDebugDrawHandleGame;
+	FDelegateHandle GDebugDrawHandleEditor;
+
+public:
+	FTetherDebugTextService()
+	{}
+
+	UWorld* GetWorld() const
+	{
+		if (WorldContext.IsValid())
+		{
+			return WorldContext->GetWorld();
+		}
+		return nullptr;
+	}
+
+	void Initialize(UObject* InWorldContext, bool bDrawGame = true, bool bDrawEditor = true);
+
+	void Deinitialize();
 };
 
 UENUM()

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "TetherPhysicsTypes.h"
 #include "UObject/Object.h"
 #include "TetherShape.generated.h"
 
@@ -113,10 +112,6 @@ public:
 	/** Draws the shape for debugging purposes in the specified world */
 	void DrawDebug(UWorld* World, const FColor& Color = FColor::Red, bool bPersistentLines = false,
 		float LifeTime = -1.f, float Thickness = 0.f) const;
-
-public:
-	/** List of debug strings attached to this shape, sorted by order of addition */
-	TArray<FTetherDebugText> DebugTextList;
 };
 
 /**

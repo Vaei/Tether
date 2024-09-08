@@ -8,6 +8,7 @@
 #include "UObject/Object.h"
 #include "TetherCollisionDetectionBroadPhase.generated.h"
 
+struct FTetherDebugText;
 class UTetherCollisionDetectionHandler;
 struct FTetherBroadPhaseCollisionOutput;
 

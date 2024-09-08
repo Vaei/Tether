@@ -43,10 +43,15 @@ public:
 public:
 	static UCanvas* GetDebugCanvas();
 
+#if WITH_EDITOR
+	static FEditorViewportClient* GetActiveEditorViewportClient();
+#endif
+
 	/** @return True if debug text was added */
-	static bool AddDebugText(const FString& DebugText, TArray<FTetherDebugText>* DebugTextArray,
+	static bool DrawText(const FString& DebugText, TArray<FTetherDebugText>* DebugTextArray,
 		const FTetherShape* Shape = nullptr, const FVector& WorldLocation = FVector::ZeroVector,
 		FColor TextColor = FColor::Transparent, UFont* Font = nullptr, float FontScale = 1.f, bool bDrawShadow = false);
 
-	static void DrawDebugText(TArray<FTetherDebugText>* DebugTextArray, const UWorld* World = nullptr);
+	/** Called when drawing to Canvas to actually display text processed in DrawText() */
+	static void ProcessText(TArray<FTetherDebugText>* DebugTextArray, UWorld* World, UCanvas* Canvas);
 };

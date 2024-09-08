@@ -3,6 +3,7 @@
 
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
 
+#include "TetherStatics.h"
 #include "Animation/AnimInstanceProxy.h"
 #include "Shapes/TetherShapeCaster.h"
 

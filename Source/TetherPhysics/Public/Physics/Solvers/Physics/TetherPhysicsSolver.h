@@ -7,6 +7,8 @@
 #include "UObject/Object.h"
 #include "TetherPhysicsSolver.generated.h"
 
+struct FTetherDebugText;
+
 /**
  * Abstract base class for physics solvers in the Tether physics system.
  *

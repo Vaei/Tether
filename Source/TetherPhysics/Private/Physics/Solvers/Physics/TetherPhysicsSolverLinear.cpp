@@ -90,15 +90,18 @@ void UTetherPhysicsSolverLinear::DrawDebug(const FTetherIO* InputData, FTetherIO
 		FVector StartLocation = ShapeTransforms[Shape]->GetLocation();
 		FVector EndLocation = StartLocation + Data.LinearVelocity * VisualScale;  // Scale velocity for visualization
 		UTetherStatics::DrawArrow(World, Proxy, StartLocation, EndLocation, VelocityColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+		UTetherStatics::DrawText("Linear Velocity", PendingDebugText, Shape, EndLocation, VelocityColor);
 
 		// 2. Draw Net Force
 		FVector Force = Settings.Force - Settings.FrictionForce;
 		FVector ForceEndLocation = StartLocation + Force * VisualScale;  // Scale force for visualization
 		UTetherStatics::DrawArrow(World, Proxy, StartLocation, ForceEndLocation, ForceColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+		UTetherStatics::DrawText("Force", PendingDebugText, Shape, ForceEndLocation, ForceColor);
 
 		// 3. Draw Acceleration
 		FVector AccelerationEndLocation = StartLocation + Settings.Acceleration * VisualScale;  // Scale acceleration for visualization
 		UTetherStatics::DrawArrow(World, Proxy, StartLocation, AccelerationEndLocation, AccelerationColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+		UTetherStatics::DrawText("Acceleration", PendingDebugText, Shape, AccelerationEndLocation, AccelerationColor);
 	}
 #endif
 }

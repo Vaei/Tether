@@ -3,7 +3,7 @@
 
 #include "TetherStatics.h"
 
-#include "TetherPhysicsTypes.h"
+#include "System/TetherDebugMessaging.h"
 #include "Engine/Canvas.h"
 #include "Shapes/TetherShape.h"
 
@@ -104,7 +104,24 @@ UCanvas* UTetherStatics::GetDebugCanvas()
 	return nullptr;
 }
 
-bool UTetherStatics::AddDebugText(const FString& DebugText, TArray<FTetherDebugText>* DebugTextArray,
+#if WITH_EDITOR
+FEditorViewportClient* UTetherStatics::GetActiveEditorViewportClient()
+{
+	if (GIsEditor && GEditor->GetActiveViewport())
+	{
+		for (FEditorViewportClient* ViewportClient : GEditor->GetAllViewportClients())
+		{
+			if (ViewportClient->Viewport == GEditor->GetActiveViewport())
+			{
+				return ViewportClient;
+			}
+		}
+	}
+	return nullptr;
+}
+#endif
+
+bool UTetherStatics::DrawText(const FString& DebugText, TArray<FTetherDebugText>* DebugTextArray,
 	const FTetherShape* Shape, const FVector& WorldLocation, FColor TextColor, UFont* Font, float FontScale,
 	bool bDrawShadow)
 {
@@ -114,12 +131,6 @@ bool UTetherStatics::AddDebugText(const FString& DebugText, TArray<FTetherDebugT
 	}
 
 	if (!Shape)
-	{
-		return false;
-	}
-	
-	UCanvas* Canvas = GetDebugCanvas();
-	if (!Canvas)
 	{
 		return false;
 	}
@@ -144,7 +155,7 @@ bool UTetherStatics::AddDebugText(const FString& DebugText, TArray<FTetherDebugT
 	return true;
 }
 
-void UTetherStatics::DrawDebugText(TArray<FTetherDebugText>* DebugTextArray, const UWorld* World)
+void UTetherStatics::ProcessText(TArray<FTetherDebugText>* DebugTextArray, UWorld* World, UCanvas* Canvas)
 {
 	if (!IsInGameThread())
 	{
@@ -156,28 +167,32 @@ void UTetherStatics::DrawDebugText(TArray<FTetherDebugText>* DebugTextArray, con
 		return;
 	}
 	
-	if (!World)
-	{
-		return;
-	}
-
-	UCanvas* Canvas = GetDebugCanvas();
 	if (!Canvas)
 	{
 		return;
 	}
 
+	// Determine the camera transform
 	FVector CameraLoc;
 	FRotator CameraRot;
-	if (APlayerController* PC = GEngine->GetFirstLocalPlayerController(World))
+	if (APlayerController* PlayerController = World ? GEngine->GetFirstLocalPlayerController(World) : nullptr)
 	{
-		PC->GetPlayerViewPoint(CameraLoc, CameraRot);
+		PlayerController->GetPlayerViewPoint(CameraLoc, CameraRot);
 	}
 	else
 	{
+#if WITH_EDITOR
+		if (FEditorViewportClient* ViewportClient = GetActiveEditorViewportClient())
+		{
+			CameraLoc = ViewportClient->GetViewLocation();
+			CameraRot = ViewportClient->GetViewRotation();
+		}
+#else
 		return;
+#endif
 	}
-	
+
+	// Process text
 	for (const FTetherDebugText& DebugText : *DebugTextArray)
 	{
 		// don't draw text behind the camera
@@ -204,5 +219,6 @@ void UTetherStatics::DrawDebugText(TArray<FTetherDebugText>* DebugTextArray, con
 		}
 	}
 
+	// Reset the array
 	DebugTextArray->Reset();
 }

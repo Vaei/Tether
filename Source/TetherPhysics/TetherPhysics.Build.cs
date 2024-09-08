@@ -23,5 +23,15 @@ public class TetherPhysics : ModuleRules
                 "Engine",
             }
         );
+
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.AddRange(
+                new string[]
+                {
+                    "UnrealEd",
+                }
+            );
+        }
     }
 }

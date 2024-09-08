@@ -6,6 +6,7 @@
 #include "TetherDataAsset.h"
 #include "TetherSettings.h"
 #include "TetherEditorShapeActor.h"
+#include "Debug/DebugDrawService.h"
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
 #include "Physics/Hashing/TetherHashingSpatial.h"
 #include "Physics/Replay/TetherReplay.h"
@@ -55,6 +56,16 @@ void UTetherEditorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	
 	// Reset potentially unique logging
 	MessageLog.ResetMessageLogs();
+
+	// Register debug drawing
+	DebugTextService.Initialize(this);
+}
+
+void UTetherEditorSubsystem::Deinitialize()
+{
+	DebugTextService.Deinitialize();
+	
+	Super::Deinitialize();
 }
 
 void UTetherEditorSubsystem::Tick(float DeltaTime)
@@ -89,9 +100,6 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	{
 		FTetherShape* Shape = Actor->GetTetherShape();
 
-		// Clear transient data
-		Shape->DebugTextList.Reset();
-		
 		// Convert to world space
 		Shape->ToWorldSpace(Actor->GetActorTransform());
 
@@ -183,7 +191,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		if (CurrentHashingSystem)
 		{
 			CurrentHashingSystem->Solve(&SpatialHashingInput, &SpatialHashingOutput, Origin, TimeTick);
-			CurrentHashingSystem->DrawDebug(&SpatialHashingInput, &SpatialHashingOutput, Origin, &PendingDebugText, TimeTick, nullptr, GetWorld());
+			CurrentHashingSystem->DrawDebug(&SpatialHashingInput, &SpatialHashingOutput, Origin, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 		
 		// 1. Solve Broad-Phase Collision
@@ -193,7 +201,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 			// collide. It reduces the number of detailed collision checks needed in the narrow phase.
 			BroadPhaseInput.PotentialCollisionPairings = &SpatialHashingOutput.ShapePairs;
 			CurrentBroadPhaseCollisionDetection->DetectCollision(&BroadPhaseInput, &BroadPhaseOutput, CurrentCollisionDetectionHandler);
-			CurrentBroadPhaseCollisionDetection->DrawDebug(&BroadPhaseInput, &BroadPhaseOutput, &PendingDebugText, TimeTick, nullptr, GetWorld());
+			CurrentBroadPhaseCollisionDetection->DrawDebug(&BroadPhaseInput, &BroadPhaseOutput, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 
 		// 2. Solve Linear & Angular Physics
@@ -204,7 +212,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		if (CurrentLinearSolver)
 		{
 			CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, Origin, TimeTick);
-			CurrentLinearSolver->DrawDebug(&LinearInput, &LinearOutput, ShapeTransforms, &PendingDebugText, TimeTick, nullptr, GetWorld());
+			CurrentLinearSolver->DrawDebug(&LinearInput, &LinearOutput, ShapeTransforms, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 		
 		if (CurrentAngularSolver)
@@ -278,17 +286,6 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 
 	// Print any pending messages
 	MessageLog.PrintMessages();
-
-	// Any non-consumed debug text should be drawn on the editor component (we had no valid PlayerController)
-	if (PendingDebugText.Num() > 0)
-	{
-		for (const FTetherDebugText& Text : PendingDebugText)
-		{
-		}
-	}
-
-	// Clear any pending debug text
-	PendingDebugText.Reset();
 }
 
 TStatId UTetherEditorSubsystem::GetStatId() const
