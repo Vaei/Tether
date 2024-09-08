@@ -6,8 +6,19 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherDebugMessaging)
 
+UWorld* FTetherDebugTextService::GetWorld() const
+{
+	if (WorldContext.IsValid())
+	{
+		return WorldContext->GetWorld();
+	}
+	return nullptr;
+}
+
 void FTetherDebugTextService::Initialize(UObject* InWorldContext, bool bDrawGame, bool bDrawEditor)
 {
+	// Note: These callbacks never provide a valid PlayerController
+	
 	WorldContext = InWorldContext;
 	if (GetWorld())
 	{
@@ -17,7 +28,14 @@ void FTetherDebugTextService::Initialize(UObject* InWorldContext, bool bDrawGame
 			GDebugDrawHandleGame = UDebugDrawService::Register(TEXT("Game"), FDebugDrawDelegate::CreateLambda(
 				[&](class UCanvas* Canvas, class APlayerController*)
 			{
-				UTetherStatics::ProcessText(&PendingDebugText, GetWorld(), Canvas);
+				if (GetWorld())
+				{
+					UTetherStatics::ProcessText(&PendingDebugText, GetWorld(), Canvas);
+				}
+				else
+				{
+					Deinitialize();
+				}
 			}));
 		}
 		
@@ -28,13 +46,21 @@ void FTetherDebugTextService::Initialize(UObject* InWorldContext, bool bDrawGame
 			GDebugDrawHandleEditor = UDebugDrawService::Register(TEXT("Editor"), FDebugDrawDelegate::CreateLambda(
 				[&](class UCanvas* Canvas, class APlayerController*)
 			{
-				UTetherStatics::ProcessText(&PendingDebugText, GetWorld(), Canvas);
+				if (GetWorld())
+				{
+					UTetherStatics::ProcessText(&PendingDebugText, GetWorld(), Canvas);
+				}
+				else
+				{
+					Deinitialize();
+				}
 			}));
 		}
 #endif
 	}
 	else
 	{
+		// If the world is not valid, ensure that we clean up any existing debug services
 		Deinitialize();
 	}
 }

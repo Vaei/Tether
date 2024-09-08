@@ -52,12 +52,23 @@ struct TETHERPHYSICS_API FTetherDebugText
 	float FontScale;
 };
 
+/**
+ * Manages debug text drawing in both game and editor contexts.
+ *
+ * This is necessary because DrawDebugString() from DrawDebugHelpers cannot function without a PlayerController and HUD,
+ * which means it cannot work when we're simulating in editor.
+ */
 USTRUCT()
 struct TETHERPHYSICS_API FTetherDebugTextService
 {
 	GENERATED_BODY()
 
 public:
+	/**
+	 * Pending debug text that will be drawn
+	 * Added via UTetherStatics::DrawText()
+	 * Processed via UTetherStatics::ProcessText()
+	 */
 	UPROPERTY()
 	TArray<FTetherDebugText> PendingDebugText;
 
@@ -71,17 +82,26 @@ public:
 	FTetherDebugTextService()
 	{}
 
-	UWorld* GetWorld() const
-	{
-		if (WorldContext.IsValid())
-		{
-			return WorldContext->GetWorld();
-		}
-		return nullptr;
-	}
+	UWorld* GetWorld() const;
 
+	/** 
+	 * Initializes the debug draw service for both game and editor worlds (if specified).
+	 * Registers the appropriate debug draw delegate based on the context.
+	 *
+	 * Consider calling this from BeginPlay()
+	 * 
+	 * @param InWorldContext The context object that provides access to the world
+	 * @param bDrawGame Whether to register the debug draw service for the game world
+	 * @param bDrawEditor Whether to register the debug draw service for the editor world
+	 */
 	void Initialize(UObject* InWorldContext, bool bDrawGame = true, bool bDrawEditor = true);
 
+	/** 
+	 * Deinitializes the debug draw service, unregistering any registered delegates.
+	 * This ensures that the debug draw services are cleaned up and no longer used.
+	 *
+	 * Consider calling this from EndPlay()
+	 */
 	void Deinitialize();
 };
 
