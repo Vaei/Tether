@@ -68,64 +68,8 @@ void UTetherEditorSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
-void UTetherEditorSubsystem::Tick(float DeltaTime)
+bool UTetherEditorSubsystem::UpdateGameplayTagReferences()
 {
-	Super::Tick(DeltaTime);
-
-	if (!bHasWorldBegunPlay || ShapeActors.Num() == 0)
-	{
-		return;
-	}
-
-	// Compute an origin at the center of all shape actors
-	FVector OriginPoint = FVector::ZeroVector;
-	TArray<FVector> Origins;
-	Algo::Transform(ShapeActors, Origins, [](const ATetherEditorShapeActor* Actor)
-	{
-		return Actor->GetActorLocation();
-	});
-	
-	for (const FVector& Origin : Origins)
-	{
-		OriginPoint += Origin;
-	}
-	OriginPoint /= Origins.Num();
-	FTransform Origin = { FQuat::Identity, OriginPoint };
-	
-	// Build Arrays, Maps, Input data for each shape
-	TArray<FTetherShape*> Shapes;
-	TMap<const FTetherShape*, ATetherEditorShapeActor*> ShapeActorMap;
-	TMap<const FTetherShape*, const FTransform*> ShapeTransforms;
-	for (ATetherEditorShapeActor* Actor : ShapeActors)
-	{
-		FTetherShape* Shape = Actor->GetTetherShape();
-
-		// Convert to world space
-		Shape->ToWorldSpace(Actor->GetActorTransform());
-
-		// Add to Shapes Array
-		Shapes.Add(Shape);
-
-		// Add to ShapeActorMap TMap
-		ShapeActorMap.Add(Shape, Actor);
-
-		// Add to ShapeTransforms TMap
-		ShapeTransforms.Add(Shape, &Actor->GetActorTransform());
-
-		// Cache LinearInputs
-		FLinearInputSettings& LinearSettings = LinearInput.ShapeSettings.FindOrAdd(Shape);
-		LinearSettings = Actor->LinearInputSettings;
-
-		// Cache AngularInputs
-		FAngularInputSettings& AngularSettings = AngularInput.ShapeSettings.FindOrAdd(Shape);
-		AngularSettings = Actor->AngularInputSettings;
-	}
-
-	// Pass shapes to Inputs
-	SpatialHashingInput.Shapes = &Shapes;
-	BroadPhaseInput.Shapes = &Shapes;
-
-	// Detect gameplay tag changes and grab the newly referenced object
 	if (LastHashingSystem != Data->HashingSystem)
 	{
 		LastHashingSystem = Data->HashingSystem;
@@ -140,7 +84,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 
 	if (!ensure(CurrentCollisionDetectionHandler))
 	{
-		return;
+		return false;
 	}
 	
 	if (LastBroadPhaseCollisionDetection != Data->BroadPhaseCollisionDetection)
@@ -178,6 +122,72 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		LastNarrowPhaseCollisionDetection = Data->NarrowPhaseCollisionDetection;
 		CurrentNarrowPhaseCollisionDetection = UTetherSettings::GetNarrowPhaseSystem(Data->NarrowPhaseCollisionDetection);
 	}
+	
+	return true;
+}
+
+void UTetherEditorSubsystem::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!bHasWorldBegunPlay || ShapeActors.Num() == 0)
+	{
+		return;
+	}
+
+	// Detect gameplay tag changes and grab the newly referenced object
+	if (!UpdateGameplayTagReferences())
+	{
+		return;
+	}
+	
+	// Build Arrays, Maps, Input data for each shape
+	TArray<FTetherShape*> Shapes;
+	TArray<FVector> Origins;
+	TMap<const FTetherShape*, ATetherEditorShapeActor*> ShapeActorMap;
+	TMap<const FTetherShape*, const FTransform*> ShapeTransforms;
+	for (ATetherEditorShapeActor* Actor : ShapeActors)
+	{
+		// Cache transform for computing origin
+		Origins.Add(Actor->GetActorLocation());
+		
+		// Grab Shape
+		FTetherShape* Shape = Actor->GetTetherShape();
+
+		// Convert to world space
+		Shape->ToWorldSpace(Actor->GetActorTransform());
+
+		// Add to Shapes Array
+		Shapes.Add(Shape);
+
+		// Add to ShapeActorMap TMap
+		ShapeActorMap.Add(Shape, Actor);
+
+		// Add to ShapeTransforms TMap
+		ShapeTransforms.Add(Shape, &Actor->GetActorTransform());
+
+		// Cache LinearInputs
+		FLinearInputSettings& LinearSettings = LinearInput.ShapeSettings.FindOrAdd(Shape);
+		LinearSettings = Actor->LinearInputSettings;
+
+		// Cache AngularInputs
+		FAngularInputSettings& AngularSettings = AngularInput.ShapeSettings.FindOrAdd(Shape);
+		AngularSettings = Actor->AngularInputSettings;
+	}
+
+	// Pass shapes to Inputs
+	SpatialHashingInput.Shapes = &Shapes;
+	BroadPhaseInput.Shapes = &Shapes;
+	
+	// Compute an origin at the center of all shape actors
+	FVector OriginPoint = FVector::ZeroVector;
+
+	for (const FVector& Origin : Origins)
+	{
+		OriginPoint += Origin;
+	}
+	OriginPoint /= Origins.Num();
+	FTransform Origin = { FQuat::Identity, OriginPoint };
 
 	// Start the frame with the current DeltaTime
 	PhysicsUpdate.StartFrame(DeltaTime);

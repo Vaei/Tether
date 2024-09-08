@@ -146,6 +146,7 @@ protected:
 public:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
+	virtual bool UpdateGameplayTagReferences();
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 };
