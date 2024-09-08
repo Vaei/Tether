@@ -106,12 +106,8 @@ protected:
 
 public:
 	/** Draws the shape for debugging purposes using the animation instance proxy */
-	void DrawDebug(FAnimInstanceProxy* Proxy, const FColor& Color = FColor::Red,
+	void DrawDebug(UWorld* World, FAnimInstanceProxy* Proxy, const FColor& Color = FColor::Red,
 		bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f) const;
-
-	/** Draws the shape for debugging purposes in the specified world */
-	void DrawDebug(UWorld* World, const FColor& Color = FColor::Red, bool bPersistentLines = false,
-		float LifeTime = -1.f, float Thickness = 0.f) const;
 };
 
 /**

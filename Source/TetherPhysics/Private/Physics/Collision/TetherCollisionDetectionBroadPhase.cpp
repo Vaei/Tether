@@ -119,15 +119,9 @@ void UTetherCollisionDetectionBroadPhase::DrawDebug(const FTetherIO* InputData, 
 			// Shape wasn't found in either array, wasn't tested
 			DebugColor = NoTestColor;
 		}
+		
 		FTetherShape_AxisAlignedBoundingBox AABB = Shape->GetTetherShapeObject()->GetBoundingBox(*Shape);
-		if (Proxy)
-		{
-			AABB.DrawDebug(Proxy, DebugColor, false, LifeTime, 0.f);
-		}
-		else
-		{
-			AABB.DrawDebug(World, DebugColor, false, LifeTime, 0.f);
-		}
+		AABB.DrawDebug(World, Proxy, DebugColor, false, LifeTime, 1.f);
 	}
 #endif
 }

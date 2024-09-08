@@ -57,19 +57,11 @@ void FTetherShape::ToLocalSpace()
 	bWorldSpace = false;
 }
 
-void FTetherShape::DrawDebug(FAnimInstanceProxy* Proxy, const FColor& Color, bool bPersistentLines,
-	float LifeTime, float Thickness) const
+void FTetherShape::DrawDebug(UWorld* World, FAnimInstanceProxy* Proxy, const FColor& Color,
+	bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
-	GetTetherShapeObject()->DrawDebug(*this, Proxy, nullptr, Color, bPersistentLines, LifeTime, Thickness);
-#endif
-}
-
-void FTetherShape::DrawDebug(UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime,
-	float Thickness) const
-{
-#if ENABLE_DRAW_DEBUG
-	GetTetherShapeObject()->DrawDebug(*this, nullptr, World, Color, bPersistentLines, LifeTime, Thickness);
+	GetTetherShapeObject()->DrawDebug(*this, Proxy, World, Color, bPersistentLines, LifeTime, Thickness);
 #endif
 }
 

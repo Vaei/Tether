@@ -42,8 +42,10 @@ public:
 	static void DrawCircle(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float Radius, int32 Segments, const FColor& Color, const FVector& YAxis = FVector::RightVector, const FVector& ZAxis = FVector::UpVector, bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
 	
 	static void DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
-		const FQuat& Rotation, const FVector& AngularVelocity, const float Radius, const FColor& XAxisColor,
-		const FColor& YAxisColor, const FColor& ZAxisColor, bool bPersistentLines, float LifeTime, float Thickness);
+		const FQuat& Rotation, const FVector& AngularVelocity, const float Radius = 16.f, float ArrowSize = 24.f,
+		int32 Segments = 32, const FColor& VelocityColor = FColor::Orange, const FColor& XAxisColor = FColor::Red,
+		const FColor& YAxisColor = FColor::Green, const FColor& ZAxisColor = FColor::Blue,
+		bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
 	
 public:
 	static UCanvas* GetDebugCanvas();

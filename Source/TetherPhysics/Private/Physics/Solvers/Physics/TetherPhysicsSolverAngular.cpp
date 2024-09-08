@@ -135,8 +135,14 @@ void UTetherPhysicsSolverAngular::DrawDebug(const FTetherIO* InputData, FTetherI
 		FVector Center = ShapeTransforms[Shape]->GetLocation();
 		FQuat Rotation = ShapeTransforms[Shape]->GetRotation();
 
-		UTetherStatics::DrawRotationGizmo(World, Proxy, Center, Rotation, Data.AngularVelocity, 64.f,
-			FColor::Red, FColor::Green, FColor::Blue, bPersistentLines, LifeTime, Thickness);
+		static constexpr float GizmoRadius = 24.f;
+		
+		UTetherStatics::DrawRotationGizmo(World, Proxy, Center, Rotation, Data.AngularVelocity, GizmoRadius, 24.f, 32,
+			FColor::Yellow, FColor::Red, FColor::Green, FColor::Blue,
+			bPersistentLines, LifeTime, Thickness);
+
+		const FVector ArrowEndLocation = Center + Data.AngularVelocity.GetSafeNormal() * GizmoRadius;
+		UTetherStatics::DrawText("Angular Velocity", PendingDebugText, Shape, ArrowEndLocation, FColor::Yellow);
 	}
 #endif
 }

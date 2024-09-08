@@ -124,28 +124,37 @@ void UTetherStatics::DrawCircle(const UWorld* World, FAnimInstanceProxy* Proxy, 
 }
 
 void UTetherStatics::DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
-	const FQuat& Rotation, const FVector& AngularVelocity, const float Radius, const FColor& XAxisColor,
-	const FColor& YAxisColor, const FColor& ZAxisColor, bool bPersistentLines, float LifeTime, float Thickness)
+	const FQuat& Rotation, const FVector& AngularVelocity, const float Radius, float ArrowSize,
+	int32 Segments, const FColor& VelocityColor, const FColor& XAxisColor, const FColor& YAxisColor,
+	const FColor& ZAxisColor, bool bPersistentLines, float LifeTime, float Thickness)
 {
 	// Calculate the vectors for the X, Y, and Z axes of the object in world space
 	FVector XAxis = Rotation.GetAxisX();
 	FVector YAxis = Rotation.GetAxisY();
 	FVector ZAxis = Rotation.GetAxisZ();
 
+	// Ensure the axes have valid perpendicular vectors for circle drawing
+	FVector PerpendicularX, PerpendicularY, PerpendicularZ;
+
+	// Use FindBestAxisVectors for more accurate perpendicular vectors
+	XAxis.FindBestAxisVectors(PerpendicularX, PerpendicularY);
+	YAxis.FindBestAxisVectors(PerpendicularY, PerpendicularZ);
+	ZAxis.FindBestAxisVectors(PerpendicularZ, PerpendicularX);
+
 	// Draw the X-axis rotation gizmo (red)
-	DrawCircle(World, Proxy, Center, Radius, 32, XAxisColor, XAxis, FVector::CrossProduct(XAxis, FVector::UpVector), bPersistentLines, LifeTime, Thickness);
+	DrawCircle(World, Proxy, Center, Radius, Segments, XAxisColor, XAxis, PerpendicularX, bPersistentLines, LifeTime, Thickness);
 	
 	// Draw the Y-axis rotation gizmo (green)
-	DrawCircle(World, Proxy, Center, Radius, 32, YAxisColor, YAxis, FVector::CrossProduct(YAxis, FVector::UpVector), bPersistentLines, LifeTime, Thickness);
+	DrawCircle(World, Proxy, Center, Radius, Segments, YAxisColor, YAxis, PerpendicularY, bPersistentLines, LifeTime, Thickness);
 	
 	// Draw the Z-axis rotation gizmo (blue)
-	DrawCircle(World, Proxy, Center, Radius, 32, ZAxisColor, ZAxis, FVector::CrossProduct(ZAxis, FVector::UpVector), bPersistentLines, LifeTime, Thickness);
+	DrawCircle(World, Proxy, Center, Radius, Segments, ZAxisColor, ZAxis, PerpendicularZ, bPersistentLines, LifeTime, Thickness);
 
 	// Optionally, draw an arrow showing the angular velocity direction
-	if (!AngularVelocity.IsNearlyZero())
+	if (!AngularVelocity.IsNearlyZero() && ArrowSize > 0.f)
 	{
 		FVector EndLocation = Center + AngularVelocity.GetSafeNormal() * Radius;
-		DrawArrow(World, Proxy, Center, EndLocation, FColor::Cyan, 10.0f, bPersistentLines, LifeTime, Thickness);
+		DrawArrow(World, Proxy, Center, EndLocation, VelocityColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
 	}
 }
 
