@@ -285,7 +285,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	}
 
 	// Print any pending messages
-	MessageLog.PrintMessages();
+	MessageLog.ProcessMessages();
 }
 
 TStatId UTetherEditorSubsystem::GetStatId() const

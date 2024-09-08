@@ -105,6 +105,7 @@ public:
 	void Deinitialize();
 };
 
+/** Severity level for logging */
 UENUM()
 enum class ETetherMessageLogSeverity : uint8
 {
@@ -113,6 +114,7 @@ enum class ETetherMessageLogSeverity : uint8
 	Error,
 };
 
+/** Whether to use FMessageLog or UE_LOG */
 UENUM()
 enum class ETetherMessageLogType : uint8
 {
@@ -120,27 +122,41 @@ enum class ETetherMessageLogType : uint8
 	UE_LOG,
 };
 
+/**
+ * A structure that holds information about a message log entry.
+ * It contains the message, its severity, log type, and whether it's a unique message.
+ */
 USTRUCT()
 struct TETHERPHYSICS_API FTetherMessageLogEntry
 {
 	GENERATED_BODY()
 
+	/** 
+	 * @param InMessage The message string.
+	 * @param InSeverity The severity level of the message.
+	 * @param InLogType The log type (FMessageLog or UE_LOG).
+	 * @param bInUniqueMessage If true, avoids logging the same message repeatedly.
+	 */
 	FTetherMessageLogEntry(const FString& InMessage = "", ETetherMessageLogSeverity InSeverity = ETetherMessageLogSeverity::Log, ETetherMessageLogType InLogType = ETetherMessageLogType::FMessageLog, bool bInUniqueMessage = true)
 		: Message(InMessage)
 		, Severity(InSeverity)
 		, LogType(InLogType)
 		, bUniqueMessage(bInUniqueMessage)
 	{}
-	
+
+	/** The message to be logged */
 	UPROPERTY()
 	FString Message;
 
+	/** The severity of the message (Log, Warning, Error) */
 	UPROPERTY()
 	ETetherMessageLogSeverity Severity;
 
+	/** The type of logging to use (FMessageLog, UE_LOG) */
 	UPROPERTY()
 	ETetherMessageLogType LogType;
-	
+
+	/** If true, ensures the message is logged only once */
 	UPROPERTY()
 	bool bUniqueMessage;
 
@@ -150,6 +166,11 @@ struct TETHERPHYSICS_API FTetherMessageLogEntry
 	}
 };
 
+/**
+ * Generates a hash value for the FTetherMessageLogEntry to allow it to be used as a key in TMap.
+ * @param Entry The FTetherMessageLogEntry to hash.
+ * @return The hash value of the message log entry.
+ */
 FORCEINLINE uint32 GetTypeHash(const FTetherMessageLogEntry& Entry)
 {
 	// Generate hash to allow FTetherMessageLogEntry as TMap Key
@@ -157,8 +178,9 @@ FORCEINLINE uint32 GetTypeHash(const FTetherMessageLogEntry& Entry)
 }
 
 /**
- * FMessageLog and UE_LOG handler
- * Primarily exists to avoid printing unique messages repeatedly on tick
+ * FMessageLog and UE_LOG handler.
+ * This struct manages logging messages either via FMessageLog or UE_LOG.
+ * Primarily exists to avoid printing unique messages repeatedly, e.g., on every tick.
  */
 USTRUCT()
 struct TETHERPHYSICS_API FTetherMessageLog
@@ -169,7 +191,13 @@ struct TETHERPHYSICS_API FTetherMessageLog
 		: PendingMessageLogs({})
 		, UniqueMessageLogs({})
 	{}
-	
+
+	/**
+	 * Adds a pending message to the message log.
+	 * Avoids logging messages repeatedly if bUniqueMessage is true.
+	 * @param LogEntry The message log entry to add.
+	 * @param LogCategory The log category to associate with the entry (default: "PIE").
+	 */
 	void AddPendingMessage(const FTetherMessageLogEntry& LogEntry, const FString& LogCategory = "PIE")
 	{
 		if (!UniqueMessageLogs.Contains(LogEntry.Message))
@@ -183,18 +211,26 @@ struct TETHERPHYSICS_API FTetherMessageLog
 		}
 	}
 
-	void PrintMessages()
+	/**
+	 * Prints all pending messages to the log, using either FMessageLog or UE_LOG.
+	 * Once printed, the pending message logs are cleared.
+	 */
+	void ProcessMessages()
 	{
+		// Iterate through the pending message logs
 		for (auto& PendingLogs : GetPendingMessageLogs())
 		{
 			const FTetherMessageLogEntry& LogEntry = PendingLogs.Key;
 
+			// Print the message based on its log type
 			switch (LogEntry.LogType)
 			{
 			case ETetherMessageLogType::FMessageLog:
 				{
 					FMessageLog MessageLog { *PendingLogs.Value };
 					FText MessageText = FText::FromString(PendingLogs.Key.Message);
+					
+					// Print the message based on its severity
 					switch (LogEntry.Severity)
 					{
 					case ETetherMessageLogSeverity::Log:
@@ -211,6 +247,7 @@ struct TETHERPHYSICS_API FTetherMessageLog
 				break;
 			case ETetherMessageLogType::UE_LOG:
 				{
+					// Log the message using UE_LOG based on its severity
 					switch (LogEntry.Severity)
 					{
 					case ETetherMessageLogSeverity::Log:
@@ -228,29 +265,37 @@ struct TETHERPHYSICS_API FTetherMessageLog
 			}
 		}
 
+		// Reset the pending message logs after printing
 		ResetPendingMessageLogs();
 	}
 
+	/** 
+	 * Retrieves the map of pending message logs.
+	 * @return A reference to the map of pending message logs.
+	 */
 	const TMap<FTetherMessageLogEntry, FString>& GetPendingMessageLogs() const { return PendingMessageLogs; }
+
+	// Clear unique message logs, allowing them to be re-printed
 	
 	void ResetUniqueMessageLogs() { UniqueMessageLogs.Reset(); }
 	void EmptyUniqueMessageLogs() { UniqueMessageLogs.Empty(); }
+
+	// Clear pending message logs, preventing them from being processed (again, potentially)
 	
 	void ResetPendingMessageLogs() { PendingMessageLogs.Reset(); }
 	void EmptyPendingMessageLogs() { PendingMessageLogs.Empty(); }
 
+	// Clear all message logs for a blank slate
+	
 	void ResetMessageLogs() { ResetUniqueMessageLogs(); ResetPendingMessageLogs(); }
 	void EmptyMessageLogs() { EmptyUniqueMessageLogs(); EmptyPendingMessageLogs(); }
 
 private:
-	/**
-	 * Key: MessageLogEntry
-	 * Value: Log Category
-	 */
+	/** Map that stores pending message logs, associating each entry with a log category */
 	UPROPERTY()
 	TMap<FTetherMessageLogEntry, FString> PendingMessageLogs;
-
-	/** Avoid repeating already printed messages */
+	
+	/** Array that holds unique messages to avoid logging the same message repeatedly */
 	UPROPERTY()
 	TArray<FString> UniqueMessageLogs;
 };
