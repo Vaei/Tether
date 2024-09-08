@@ -30,11 +30,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Detection.NarrowPhase"))
 	FGameplayTag NarrowPhaseCollisionDetection = FTetherGameplayTags::Tether_Detection_NarrowPhase;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Physics.Linear"))
-	FGameplayTag LinearSolver = FTetherGameplayTags::Tether_Solver_Physics_Linear;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Linear"))
+	FGameplayTag LinearSolver = FTetherGameplayTags::Tether_Solver_Linear;
 		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Physics.Angular"))
-	FGameplayTag AngularSolver = FTetherGameplayTags::Tether_Solver_Physics_Angular;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Angular"))
+	FGameplayTag AngularSolver = FTetherGameplayTags::Tether_Solver_Angular;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Integration"))
 	FGameplayTag IntegrationSolver = FTetherGameplayTags::Tether_Solver_Integration;

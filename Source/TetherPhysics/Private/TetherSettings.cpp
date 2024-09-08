@@ -31,8 +31,8 @@ UTetherSettings::UTetherSettings(const FObjectInitializer& ObjectInitializer)
 	CollisionDetectionHandlers.Add({ FTetherGameplayTags::Tether_Detection_CollisionHandler.GetTag(), UTetherCollisionDetectionHandler::StaticClass() });
 	
 	// Default Physics Solvers
-	PhysicsSolvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Linear.GetTag(), UTetherPhysicsSolverLinear::StaticClass() });
-	PhysicsSolvers.Add({ FTetherGameplayTags::Tether_Solver_Physics_Angular.GetTag(), UTetherPhysicsSolverAngular::StaticClass() });
+	LinearPhysicsSolvers.Add({ FTetherGameplayTags::Tether_Solver_Linear.GetTag(), UTetherPhysicsSolverLinear::StaticClass() });
+	AngularPhysicsSolvers.Add({ FTetherGameplayTags::Tether_Solver_Angular.GetTag(), UTetherPhysicsSolverAngular::StaticClass() });
 	
 	// Default Integration Solvers
 	IntegrationSolvers.Add({ FTetherGameplayTags::Tether_Solver_Integration_Euler.GetTag(), UTetherIntegrationSolverEuler::StaticClass() });

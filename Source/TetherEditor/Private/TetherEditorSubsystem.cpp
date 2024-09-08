@@ -6,7 +6,6 @@
 #include "TetherDataAsset.h"
 #include "TetherSettings.h"
 #include "TetherEditorShapeActor.h"
-#include "Debug/DebugDrawService.h"
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
 #include "Physics/Hashing/TetherHashingSpatial.h"
 #include "Physics/Replay/TetherReplay.h"
@@ -96,13 +95,13 @@ bool UTetherEditorSubsystem::UpdateGameplayTagReferences()
 	if (LastLinearSolver != Data->LinearSolver)
 	{
 		LastLinearSolver = Data->LinearSolver;
-		CurrentLinearSolver = UTetherSettings::GetPhysicsSolver<UTetherPhysicsSolverLinear>(Data->LinearSolver);
+		CurrentLinearSolver = UTetherSettings::GetLinearPhysicsSolver<UTetherPhysicsSolverLinear>(Data->LinearSolver);
 	}
 
 	if (LastAngularSolver != Data->AngularSolver)
 	{
 		LastAngularSolver = Data->AngularSolver;
-		CurrentAngularSolver = UTetherSettings::GetPhysicsSolver<UTetherPhysicsSolverAngular>(Data->AngularSolver);
+		CurrentAngularSolver = UTetherSettings::GetAngularPhysicsSolver<UTetherPhysicsSolverAngular>(Data->AngularSolver);
 	}
 
 	if (LastIntegrationSolver != Data->IntegrationSolver)

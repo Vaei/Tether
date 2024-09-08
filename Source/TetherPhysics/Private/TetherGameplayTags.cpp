@@ -14,13 +14,9 @@ namespace FTetherGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Detection_NarrowPhase, "Tether.Detection.NarrowPhase");
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Detection_CollisionHandler, "Tether.Detection.CollisionHandler");
 
-	/** Gameplay tags for tether solvers */
-	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver, "Tether.Solver");
-
 	/** Gameplay tags for tether physics solvers */
-	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics, "Tether.Solver.Physics");
-	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics_Linear, "Tether.Solver.Physics.Linear");
-	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Physics_Angular, "Tether.Solver.Physics.Angular");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Linear, "Tether.Solver.Linear");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Angular, "Tether.Solver.Angular");
 
 	/** Gameplay tags for tether integration solvers */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Solver_Integration, "Tether.Solver.Integration");

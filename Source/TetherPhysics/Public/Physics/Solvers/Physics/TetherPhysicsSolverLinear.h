@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "TetherIO.h"
-#include "TetherPhysicsSolver.h"
+#include "UObject/Object.h"
 #include "TetherPhysicsSolverLinear.generated.h"
 
 struct FTetherDebugText;
@@ -26,7 +26,7 @@ struct FTetherDebugText;
  * linear physics calculations.
  */
 UCLASS(NotBlueprintable)
-class TETHERPHYSICS_API UTetherPhysicsSolverLinear : public UTetherPhysicsSolver
+class TETHERPHYSICS_API UTetherPhysicsSolverLinear : public UObject
 {
 	GENERATED_BODY()
 
@@ -39,7 +39,7 @@ public:
 	 * @param Transform  The transformation to be applied during the physics calculations.
 	 * @param DeltaTime  The time step for the simulation, used to calculate time-dependent linear effects.
 	 */
-	virtual void Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const override;
+	virtual void Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const;
 
 	/**
 	 * Visualizes the physics solver's key properties for debugging purposes.
@@ -62,5 +62,5 @@ public:
 		TArray<FTetherDebugText>* PendingDebugText = nullptr, float LifeTime = -1.f,
 		FAnimInstanceProxy* Proxy = nullptr, const UWorld* World = nullptr,
 		const FColor& VelocityColor = FColor::Green, const FColor& ForceColor = FColor::Blue,
-		const FColor& AccelerationColor = FColor::Yellow, bool bPersistentLines = false, float Thickness = 1.0f) const override;
+		const FColor& AccelerationColor = FColor::Yellow, bool bPersistentLines = false, float Thickness = 1.0f) const;
 };

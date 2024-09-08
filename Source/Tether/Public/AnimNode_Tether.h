@@ -29,11 +29,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Hashing"))
 	FGameplayTag HashingSystem = FTetherGameplayTags::Tether_Hashing_Spatial;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Physics.Linear"))
-	FGameplayTag LinearSolver = FTetherGameplayTags::Tether_Solver_Physics_Linear;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Linear"))
+	FGameplayTag LinearSolver = FTetherGameplayTags::Tether_Solver_Linear;
 		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Physics.Angular"))
-	FGameplayTag AngularSolver = FTetherGameplayTags::Tether_Solver_Physics_Angular;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Solver.Angular"))
+	FGameplayTag AngularSolver = FTetherGameplayTags::Tether_Solver_Angular;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(PinHiddenByDefault, Categories="Tether.Replay"))
 	FGameplayTag ReplaySystem = FTetherGameplayTags::Tether_Replay;
