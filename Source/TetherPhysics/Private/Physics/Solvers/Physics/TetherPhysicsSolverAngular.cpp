@@ -128,12 +128,8 @@ void UTetherPhysicsSolverAngular::DrawDebug(const FTetherIO* InputData, FTetherI
 	for (auto& ShapeItr : Input->ShapeSettings)
 	{
 		const FTetherShape* const& Shape = ShapeItr.Key;
-		const FAngularInputSettings& Settings = ShapeItr.Value;
+		// const FAngularInputSettings& Settings = ShapeItr.Value;
 		const FAngularOutputData& Data = Output->ShapeData[Shape];
-
-		// Define scale for visualizing angular components
-		static constexpr float VisualScale = 0.05f;
-		static constexpr float ArrowSize = 4.f;
 
 		// Get the transform for the shape
 		FVector Center = ShapeTransforms[Shape]->GetLocation();
@@ -141,23 +137,6 @@ void UTetherPhysicsSolverAngular::DrawDebug(const FTetherIO* InputData, FTetherI
 
 		UTetherStatics::DrawRotationGizmo(World, Proxy, Center, Rotation, Data.AngularVelocity, 64.f,
 			FColor::Red, FColor::Green, FColor::Blue, bPersistentLines, LifeTime, Thickness);
-
-		// // 1. Draw Angular Velocity as an arrow
-		// FVector AngularVelocityEndLocation = StartLocation + Data.AngularVelocity * VisualScale; // Scale angular velocity for visualization
-		// UTetherStatics::DrawArrow(World, Proxy, StartLocation, AngularVelocityEndLocation, VelocityColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
-		// UTetherStatics::DrawText("Angular Velocity", PendingDebugText, Shape, AngularVelocityEndLocation, VelocityColor);
-		//
-		// // 2. Draw Net Torque
-		// FVector Torque = Settings.Torque - Settings.FrictionTorque;
-		// FVector TorqueEndLocation = StartLocation + Torque * VisualScale;  // Scale torque for visualization
-		// UTetherStatics::DrawArrow(World, Proxy, StartLocation, TorqueEndLocation, ForceColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
-		// UTetherStatics::DrawText("Torque", PendingDebugText, Shape, TorqueEndLocation, ForceColor);
-		//
-		// // 3. Draw Angular Acceleration
-		// FVector AngularAcceleration = (Torque - Settings.FrictionTorque) * (FVector::OneVector / Data.Inertia);
-		// FVector AngularAccelerationEndLocation = StartLocation + AngularAcceleration * VisualScale;  // Scale acceleration for visualization
-		// UTetherStatics::DrawArrow(World, Proxy, StartLocation, AngularAccelerationEndLocation, AccelerationColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
-		// UTetherStatics::DrawText("Angular Acceleration", PendingDebugText, Shape, AngularAccelerationEndLocation, AccelerationColor);
 	}
 #endif
 }
