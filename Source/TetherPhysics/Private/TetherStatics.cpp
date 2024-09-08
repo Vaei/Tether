@@ -155,7 +155,7 @@ bool UTetherStatics::DrawText(const FString& DebugText, TArray<FTetherDebugText>
 	return true;
 }
 
-void UTetherStatics::ProcessText(TArray<FTetherDebugText>* DebugTextArray, UWorld* World, UCanvas* Canvas)
+void UTetherStatics::ProcessText(TArray<FTetherDebugText>* DebugTextArray, const UWorld* World, UCanvas* Canvas)
 {
 	if (!IsInGameThread())
 	{

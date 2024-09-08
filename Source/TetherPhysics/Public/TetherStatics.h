@@ -53,5 +53,5 @@ public:
 		FColor TextColor = FColor::Transparent, UFont* Font = nullptr, float FontScale = 1.f, bool bDrawShadow = false);
 
 	/** Called when drawing to Canvas to actually display text processed in DrawText() */
-	static void ProcessText(TArray<FTetherDebugText>* DebugTextArray, UWorld* World, UCanvas* Canvas);
+	static void ProcessText(TArray<FTetherDebugText>* DebugTextArray, const UWorld* World, UCanvas* Canvas);
 };
