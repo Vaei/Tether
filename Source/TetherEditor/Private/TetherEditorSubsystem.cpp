@@ -52,6 +52,9 @@ void UTetherEditorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 			GEngine->Exec(nullptr, *Command);
 		}
 	}
+	
+	// Reset potentially unique logging
+	MessageLog.ResetMessageLogs();
 }
 
 void UTetherEditorSubsystem::Tick(float DeltaTime)
@@ -80,10 +83,16 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	
 	// Build Arrays, Maps, Input data for each shape
 	TArray<FTetherShape*> Shapes;
-	TMap<FTetherShape*, ATetherEditorShapeActor*> ShapeActorMap;
+	TMap<const FTetherShape*, ATetherEditorShapeActor*> ShapeActorMap;
+	TMap<const FTetherShape*, const FTransform*> ShapeTransforms;
 	for (ATetherEditorShapeActor* Actor : ShapeActors)
 	{
 		FTetherShape* Shape = Actor->GetTetherShape();
+
+		// Clear transient data
+		Shape->DebugTextList.Reset();
+		
+		// Convert to world space
 		Shape->ToWorldSpace(Actor->GetActorTransform());
 
 		// Add to Shapes Array
@@ -91,6 +100,9 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 
 		// Add to ShapeActorMap TMap
 		ShapeActorMap.Add(Shape, Actor);
+
+		// Add to ShapeTransforms TMap
+		ShapeTransforms.Add(Shape, &Actor->GetActorTransform());
 
 		// Cache LinearInputs
 		FLinearInputSettings& LinearSettings = LinearInput.ShapeSettings.FindOrAdd(Shape);
@@ -166,12 +178,12 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	while (PhysicsUpdate.ShouldTick())
 	{
 		const float& TimeTick = PhysicsUpdate.TimeTick;
-		
+
 		// 0. Spatial Hashing - Generate shape pairs based on proximity and efficiency ratings for priority
 		if (CurrentHashingSystem)
 		{
 			CurrentHashingSystem->Solve(&SpatialHashingInput, &SpatialHashingOutput, Origin, TimeTick);
-			CurrentHashingSystem->DrawDebug(&SpatialHashingInput, &SpatialHashingOutput, Origin, nullptr, GetWorld());
+			CurrentHashingSystem->DrawDebug(&SpatialHashingInput, &SpatialHashingOutput, Origin, &PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 		
 		// 1. Solve Broad-Phase Collision
@@ -181,7 +193,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 			// collide. It reduces the number of detailed collision checks needed in the narrow phase.
 			BroadPhaseInput.PotentialCollisionPairings = &SpatialHashingOutput.ShapePairs;
 			CurrentBroadPhaseCollisionDetection->DetectCollision(&BroadPhaseInput, &BroadPhaseOutput, CurrentCollisionDetectionHandler);
-			CurrentBroadPhaseCollisionDetection->DrawDebug(&BroadPhaseInput, &BroadPhaseOutput, nullptr, GetWorld(), TimeTick);
+			CurrentBroadPhaseCollisionDetection->DrawDebug(&BroadPhaseInput, &BroadPhaseOutput, &PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 
 		// 2. Solve Linear & Angular Physics
@@ -192,6 +204,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		if (CurrentLinearSolver)
 		{
 			CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, Origin, TimeTick);
+			CurrentLinearSolver->DrawDebug(&LinearInput, &LinearOutput, ShapeTransforms, &PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 		
 		if (CurrentAngularSolver)
@@ -263,10 +276,19 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		PhysicsUpdate.FinalizeTick();
 	}
 
-	// for (ATetherEditorShapeActor* ShapeActor : ShapeActors)
-	// {
-	// 	ShapeActor->TestCollisions(ShapeActors);
-	// }
+	// Print any pending messages
+	MessageLog.PrintMessages();
+
+	// Any non-consumed debug text should be drawn on the editor component (we had no valid PlayerController)
+	if (PendingDebugText.Num() > 0)
+	{
+		for (const FTetherDebugText& Text : PendingDebugText)
+		{
+		}
+	}
+
+	// Clear any pending debug text
+	PendingDebugText.Reset();
 }
 
 TStatId UTetherEditorSubsystem::GetStatId() const

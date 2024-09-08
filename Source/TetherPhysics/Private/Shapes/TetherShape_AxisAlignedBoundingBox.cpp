@@ -118,52 +118,17 @@ FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_AxisAlignedBoundingBox::G
 	return *AABB;
 }
 
-void UTetherShapeObject_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy,
+void UTetherShapeObject_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy,
 	UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
 	const auto* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
 
-	FVector Vertices[8];
-	Vertices[0] = AABB->Min;
-	Vertices[1] = FVector(AABB->Min.X, AABB->Min.Y, AABB->Max.Z);
-	Vertices[2] = FVector(AABB->Min.X, AABB->Max.Y, AABB->Min.Z);
-	Vertices[3] = FVector(AABB->Min.X, AABB->Max.Y, AABB->Max.Z);
-	Vertices[4] = FVector(AABB->Max.X, AABB->Min.Y, AABB->Min.Z);
-	Vertices[5] = FVector(AABB->Max.X, AABB->Min.Y, AABB->Max.Z);
-	Vertices[6] = FVector(AABB->Max.X, AABB->Max.Y, AABB->Min.Z);
-	Vertices[7] = AABB->Max;
+	// Calculate the center and extent of the AABB
+	FVector Center = (AABB->Min + AABB->Max) * 0.5f;
+	FVector Extent = (AABB->Max - AABB->Min) * 0.5f;
 
-	// Draw edges
-	if (AnimInstanceProxy)
-	{
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[0], Vertices[1], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[0], Vertices[2], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[0], Vertices[4], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[1], Vertices[3], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[1], Vertices[5], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[2], Vertices[3], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[2], Vertices[6], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[3], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[4], Vertices[5], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[4], Vertices[6], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[5], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
-		AnimInstanceProxy->AnimDrawDebugLine(Vertices[6], Vertices[7], Color, bPersistentLines, LifeTime, Thickness);
-	}
-	else if (World)  // We don't use DrawDebugBox because we want to test this too
-	{
-		DrawDebugLine(World, Vertices[0], Vertices[1], Color, bPersistentLines, LifeTime, 0, Thickness);
-		DrawDebugLine(World, Vertices[0], Vertices[2], Color, bPersistentLines, LifeTime, 0, Thickness);
-		DrawDebugLine(World, Vertices[0], Vertices[4], Color, bPersistentLines, LifeTime, 0, Thickness);
-		DrawDebugLine(World, Vertices[1], Vertices[3], Color, bPersistentLines, LifeTime, 0, Thickness);
-		DrawDebugLine(World, Vertices[1], Vertices[5], Color, bPersistentLines, LifeTime, 0, Thickness);
-		DrawDebugLine(World, Vertices[2], Vertices[3], Color, bPersistentLines, LifeTime, 0, Thickness);
-		DrawDebugLine(World, Vertices[2], Vertices[6], Color, bPersistentLines, LifeTime, 0, Thickness);
-		DrawDebugLine(World, Vertices[3], Vertices[7], Color, bPersistentLines, LifeTime, 0, Thickness);
-		DrawDebugLine(World, Vertices[4], Vertices[5], Color, bPersistentLines, LifeTime, 0, Thickness);
-		DrawDebugLine(World, Vertices[4], Vertices[6], Color, bPersistentLines, LifeTime, 0, Thickness);
-		DrawDebugLine(World, Vertices[5], Vertices[7], Color, bPersistentLines, LifeTime, 0, Thickness);
-		DrawDebugLine(World, Vertices[6], Vertices[7], Color, bPersistentLines, LifeTime, 0, Thickness);
-	}
+	// Draw the AABB using UTetherStatics::DrawBox
+	UTetherStatics::DrawBox(World, Proxy, Center, Extent, FQuat::Identity, Color, bPersistentLines, LifeTime, Thickness);
 #endif
 }

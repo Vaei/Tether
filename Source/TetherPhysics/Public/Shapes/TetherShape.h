@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "TetherPhysicsTypes.h"
 #include "UObject/Object.h"
 #include "TetherShape.generated.h"
 
@@ -106,12 +107,16 @@ protected:
 
 public:
 	/** Draws the shape for debugging purposes using the animation instance proxy */
-	void DrawDebug(FAnimInstanceProxy* AnimInstanceProxy, const FColor& Color = FColor::Red,
+	void DrawDebug(FAnimInstanceProxy* Proxy, const FColor& Color = FColor::Red,
 		bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f) const;
 
 	/** Draws the shape for debugging purposes in the specified world */
 	void DrawDebug(UWorld* World, const FColor& Color = FColor::Red, bool bPersistentLines = false,
 		float LifeTime = -1.f, float Thickness = 0.f) const;
+
+public:
+	/** List of debug strings attached to this shape, sorted by order of addition */
+	TArray<FTetherDebugText> DebugTextList;
 };
 
 /**
@@ -203,7 +208,7 @@ public:
 	virtual FString GetShapeDebugString() const { return GetShapeType().ToString(); }
 
 	/** Draws the shape for debugging purposes */
-	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy = nullptr,
+	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy = nullptr,
 		UWorld* World = nullptr, const FColor& Color = FColor::Red, bool bPersistentLines = false,
 		float LifeTime = -1.f, float Thickness = 0.f) const {}
 };

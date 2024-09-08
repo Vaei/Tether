@@ -3,6 +3,9 @@
 
 #include "Physics/Solvers/Physics/TetherPhysicsSolverLinear.h"
 
+#include "TetherStatics.h"
+#include "Animation/AnimInstanceProxy.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherPhysicsSolverLinear)
 
 void UTetherPhysicsSolverLinear::Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const
@@ -58,4 +61,44 @@ void UTetherPhysicsSolverLinear::Solve(const FTetherIO* InputData, FTetherIO* Ou
 
 		// UE_LOG(LogTemp, Log, TEXT("LinearVelocity %s"), *LinearVelocity.ToString());
 	}
+}
+
+void UTetherPhysicsSolverLinear::DrawDebug(const FTetherIO* InputData, FTetherIO* OutputData,
+	TMap<const FTetherShape*, const FTransform*> ShapeTransforms, TArray<FTetherDebugText>* PendingDebugText,
+	float LifeTime,	FAnimInstanceProxy* Proxy, const UWorld* World, const FColor& VelocityColor,
+	const FColor& ForceColor, const FColor& AccelerationColor, bool bPersistentLines, float Thickness) const
+{
+#if ENABLE_DRAW_DEBUG
+	if (!Proxy && !World)
+	{
+		return;
+	}
+	
+	const auto* Input = InputData->GetDataIO<FLinearInput>();
+	const auto* Output = OutputData->GetDataIO<FLinearOutput>();
+
+	for (auto& ShapeItr : Input->ShapeSettings)
+	{
+		const FTetherShape* const& Shape = ShapeItr.Key;
+		const FLinearInputSettings& Settings = ShapeItr.Value;
+		const FLinearOutputData& Data = Output->ShapeData[Shape];
+
+		static constexpr float VisualScale = 0.05f;
+		static constexpr float ArrowSize = 4.f;
+		
+		// 1. Draw Linear Velocity as an arrow
+		FVector StartLocation = ShapeTransforms[Shape]->GetLocation();
+		FVector EndLocation = StartLocation + Data.LinearVelocity * VisualScale;  // Scale velocity for visualization
+		UTetherStatics::DrawArrow(World, Proxy, StartLocation, EndLocation, VelocityColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+
+		// 2. Draw Net Force
+		FVector Force = Settings.Force - Settings.FrictionForce;
+		FVector ForceEndLocation = StartLocation + Force * VisualScale;  // Scale force for visualization
+		UTetherStatics::DrawArrow(World, Proxy, StartLocation, ForceEndLocation, ForceColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+
+		// 3. Draw Acceleration
+		FVector AccelerationEndLocation = StartLocation + Settings.Acceleration * VisualScale;  // Scale acceleration for visualization
+		UTetherStatics::DrawArrow(World, Proxy, StartLocation, AccelerationEndLocation, AccelerationColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+	}
+#endif
 }

@@ -118,7 +118,7 @@ FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_OrientedBoundingBox::GetB
 	return OBB->GetBoundingBox();
 }
 
-void UTetherShapeObject_OrientedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,
+void UTetherShapeObject_OrientedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy, UWorld* World,
 	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
@@ -132,14 +132,14 @@ void UTetherShapeObject_OrientedBoundingBox::DrawDebug(const FTetherShape& Shape
 	{
 		int32 NextIndex = (i + 1) % 4;
 
-		if (AnimInstanceProxy)
+		if (Proxy)
 		{
 			// Draw the front face
-			AnimInstanceProxy->AnimDrawDebugLine(Vertices[i], Vertices[NextIndex], Color, bPersistentLines, LifeTime, Thickness);
-			AnimInstanceProxy->AnimDrawDebugLine(Vertices[i + 4], Vertices[NextIndex + 4], Color, bPersistentLines, LifeTime, Thickness);
+			Proxy->AnimDrawDebugLine(Vertices[i], Vertices[NextIndex], Color, bPersistentLines, LifeTime, Thickness);
+			Proxy->AnimDrawDebugLine(Vertices[i + 4], Vertices[NextIndex + 4], Color, bPersistentLines, LifeTime, Thickness);
 
 			// Draw the connecting edges between the front and back face
-			AnimInstanceProxy->AnimDrawDebugLine(Vertices[i], Vertices[i + 4], Color, bPersistentLines, LifeTime, Thickness);
+			Proxy->AnimDrawDebugLine(Vertices[i], Vertices[i + 4], Color, bPersistentLines, LifeTime, Thickness);
 		}
 		else if (World)
 		{

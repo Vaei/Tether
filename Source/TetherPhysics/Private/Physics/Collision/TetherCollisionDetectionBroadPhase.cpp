@@ -53,8 +53,8 @@ void UTetherCollisionDetectionBroadPhase::DetectCollision(const FTetherIO* Input
 }
 
 void UTetherCollisionDetectionBroadPhase::DrawDebug(const FTetherIO* InputData, const FTetherIO* OutputData,
-	FAnimInstanceProxy* AnimInstanceProxy, UWorld* World, float LifeTime, bool bForceDraw,
-	const FColor& NoTestColor, const FColor& OverlapColor, const FColor& NoOverlapColor) const
+	TArray<FTetherDebugText>* PendingDebugText, float LifeTime, FAnimInstanceProxy* Proxy, UWorld* World,
+	bool bForceDraw, const FColor& NoTestColor, const FColor& OverlapColor, const FColor& NoOverlapColor) const
 {
 #if ENABLE_DRAW_DEBUG
 	if (!bForceDraw && !FTether::CVarTetherDrawBroadPhaseCollision.GetValueOnAnyThread())
@@ -62,7 +62,7 @@ void UTetherCollisionDetectionBroadPhase::DrawDebug(const FTetherIO* InputData, 
 		return;
 	}
 	
-	if (!AnimInstanceProxy && !World)
+	if (!Proxy && !World)
 	{
 		return;
 	}
@@ -120,9 +120,9 @@ void UTetherCollisionDetectionBroadPhase::DrawDebug(const FTetherIO* InputData, 
 			DebugColor = NoTestColor;
 		}
 		FTetherShape_AxisAlignedBoundingBox AABB = Shape->GetTetherShapeObject()->GetBoundingBox(*Shape);
-		if (AnimInstanceProxy)
+		if (Proxy)
 		{
-			AABB.DrawDebug(AnimInstanceProxy, DebugColor, false, LifeTime, 0.f);
+			AABB.DrawDebug(Proxy, DebugColor, false, LifeTime, 0.f);
 		}
 		else
 		{

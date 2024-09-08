@@ -48,16 +48,17 @@ public:
 	 * @param Input                Pointer to the input data used in the hashing process.
 	 * @param Output               Pointer to the output data containing the results of the hashing.
 	 * @param Transform			   The transformation to be applied, if applicable.
-	 * @param AnimInstanceProxy    Pointer to the animation instance proxy for drawing debug information.
+	 * @param PendingDebugText	   Array of Debug Texts that to be drawn by the viewport
+	 * @param LifeTime             The duration for which the debug lines should be visible.
+	 * @param Proxy				   Pointer to the animation instance proxy for drawing debug information.
 	 * @param World                Pointer to the world context in which the debugging visualization occurs.
 	 * @param bDrawAll             Whether to draw all relevant elements or just those involved in processing.
 	 * @param Color                The color used for drawing the debug visualization.
 	 * @param bPersistentLines     Whether the debug lines should persist beyond a single frame.
-	 * @param LifeTime             The duration for which the debug lines should be visible.
 	 * @param Thickness            The thickness of the debug lines.
 	 */
 	virtual void DrawDebug(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
-		const FTransform& Transform, FAnimInstanceProxy* AnimInstanceProxy, const UWorld* World, bool bDrawAll = true,
-		const FColor& Color = FColor::Green, bool bPersistentLines = false, float LifeTime = -1.0f,
-		float Thickness = 1.0f) const {}
+		const FTransform& Transform, TArray<FTetherDebugText>* PendingDebugText = nullptr, float LifeTime = -1.f,
+		FAnimInstanceProxy* Proxy = nullptr, const UWorld* World = nullptr, bool bDrawAll = true,
+		const FColor& Color = FColor::Green, bool bPersistentLines = false, float Thickness = 1.f) const {}
 };

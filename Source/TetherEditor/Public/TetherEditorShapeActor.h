@@ -46,7 +46,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FAngularInputSettings AngularInputSettings;
-	
+
 public:
 	ATetherEditorShapeActor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
@@ -54,11 +54,6 @@ public:
 	virtual void Destroyed() override;
 	
 	virtual FTetherShape* GetTetherShape();
-	
-	void TestCollisions(const TArray<ATetherEditorShapeActor*>& OtherShapeActors) const;
-
-protected:
-	void TestCollision(const ATetherEditorShapeActor* OtherShapeActor) const;
 
 public:
 	virtual bool CanEditChange(const FProperty* InProperty) const override;

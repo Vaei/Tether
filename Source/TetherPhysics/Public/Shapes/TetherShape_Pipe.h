@@ -84,6 +84,6 @@ public:
 	virtual FTetherShape_AxisAlignedBoundingBox GetBoundingBox(const FTetherShape& Shape) const override;
 
 	/** Draws the shape for debugging purposes */
-	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,
+	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy, UWorld* World,
 		const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const override;
 };

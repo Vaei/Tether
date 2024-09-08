@@ -106,16 +106,16 @@ FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_BoundingSphere::GetBoundi
 	return BoundingSphere->GetBoundingBox();
 }
 
-void UTetherShapeObject_BoundingSphere::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy,
+void UTetherShapeObject_BoundingSphere::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy,
 	UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
 	const auto* Sphere = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&Shape);
 	
 	// Draw edges
-	if (AnimInstanceProxy)
+	if (Proxy)
 	{
-		AnimInstanceProxy->AnimDrawDebugSphere(Sphere->Center, Sphere->Radius, 12, Color, bPersistentLines, LifeTime, Thickness);
+		Proxy->AnimDrawDebugSphere(Sphere->Center, Sphere->Radius, 12, Color, bPersistentLines, LifeTime, Thickness);
 	}
 	else if (World)
 	{

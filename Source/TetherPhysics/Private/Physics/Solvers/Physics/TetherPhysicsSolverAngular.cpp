@@ -97,3 +97,13 @@ void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* O
 		UE_LOG(LogTemp, Log, TEXT("AngularVelocity %s"), *AngularVelocity.ToString());
 	}
 }
+
+void UTetherPhysicsSolverAngular::DrawDebug(const FTetherIO* InputData, FTetherIO* OutputData,
+	TMap<const FTetherShape*, const FTransform*> ShapeTransforms, TArray<FTetherDebugText>* PendingDebugText,
+	float LifeTime,	FAnimInstanceProxy* Proxy, const UWorld* World, const FColor& VelocityColor,
+	const FColor& ForceColor, const FColor& AccelerationColor, bool bPersistentLines, float Thickness) const
+{
+#if ENABLE_DRAW_DEBUG
+	
+#endif
+}

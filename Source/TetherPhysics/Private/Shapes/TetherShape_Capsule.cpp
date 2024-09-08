@@ -126,17 +126,17 @@ FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_Capsule::GetBoundingBox(c
 	return Capsule->GetBoundingBox();
 }
 
-void UTetherShapeObject_Capsule::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,
+void UTetherShapeObject_Capsule::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy, UWorld* World,
 	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
 	const auto* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
 
 	// Draw the capsule using its center, half-height, radius, and rotation
-	if (AnimInstanceProxy)
+	if (Proxy)
 	{
 		// @todo Does this need the lines filled in also?
-		AnimInstanceProxy->AnimDrawDebugCapsule(Capsule->Center, Capsule->HalfHeight, Capsule->Radius, Capsule->Rotation, Color, bPersistentLines, LifeTime, Thickness);
+		Proxy->AnimDrawDebugCapsule(Capsule->Center, Capsule->HalfHeight, Capsule->Radius, Capsule->Rotation, Color, bPersistentLines, LifeTime, Thickness);
 	}
 	else if (World)
 	{

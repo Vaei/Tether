@@ -46,7 +46,7 @@ public:
 	 * Visualize the results of the narrow-phase collision detection.
 	 *
 	 * @param CollisionOutput The results of the narrow-phase collision detection, including contact points and penetration depths.
-	 * @param AnimInstanceProxy Pointer to the animation instance proxy for drawing debug information.
+	 * @param Proxy Pointer to the animation instance proxy for drawing debug information.
 	 */
-	virtual void DrawDebug(const TArray<FTetherNarrowPhaseCollisionOutput>& CollisionOutput, FAnimInstanceProxy* AnimInstanceProxy) const;
+	virtual void DrawDebug(const TArray<FTetherNarrowPhaseCollisionOutput>& CollisionOutput, FAnimInstanceProxy* Proxy) const;
 };

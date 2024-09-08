@@ -112,7 +112,7 @@ FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_Pipe::GetBoundingBox(cons
 	return Pipe->GetBoundingBox();
 }
 
-void UTetherShapeObject_Pipe::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* AnimInstanceProxy, UWorld* World,
+void UTetherShapeObject_Pipe::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy, UWorld* World,
 	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG

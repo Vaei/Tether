@@ -131,6 +131,14 @@ public:
 	UPROPERTY()
 	bool bHasWorldBegunPlay = false;
 
+protected:
+	UPROPERTY()
+	TArray<FTetherDebugText> PendingDebugText;
+
+	/** FMessageLog and UE_LOG handler - Primarily exists to avoid printing unique messages repeatedly on tick */
+	UPROPERTY(Transient)
+	FTetherMessageLog MessageLog;
+
 public:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Tick(float DeltaTime) override;

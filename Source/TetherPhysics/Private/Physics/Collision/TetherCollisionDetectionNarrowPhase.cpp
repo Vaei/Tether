@@ -58,7 +58,7 @@ void UTetherCollisionDetectionNarrowPhase::DetectCollision(const TArray<FTetherS
 }
 
 void UTetherCollisionDetectionNarrowPhase::DrawDebug(const TArray<FTetherNarrowPhaseCollisionOutput>& CollisionOutputs,
-	FAnimInstanceProxy* AnimInstanceProxy) const
+	FAnimInstanceProxy* Proxy) const
 {
 	// for (const FTetherNarrowPhaseCollisionOutput& CollisionOutput : CollisionOutputs)
 	// {
