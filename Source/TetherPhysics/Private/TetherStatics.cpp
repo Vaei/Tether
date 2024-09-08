@@ -76,6 +76,79 @@ void UTetherStatics::DrawBox(const UWorld* World, FAnimInstanceProxy* Proxy, con
     DrawLine(World, Proxy, Center + TopBackRight, Center + BottomBackRight, Color, bPersistentLines, LifeTime, Thickness);
 }
 
+void UTetherStatics::DrawCircle(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float Radius,
+	int32 Segments, const FColor& Color, const FVector& YAxis, const FVector& ZAxis, bool bPersistentLines,
+	float LifeTime, float Thickness)
+{
+	// Ensure there is either a Proxy or a World
+	if (!Proxy && !World)
+	{
+		return;
+	}
+
+	// Ensure that we have at least 4 segments for a valid circle
+	Segments = FMath::Max(Segments, 4);
+	const float AngleStep = 2.f * UE_PI / (float)Segments;
+
+	FMatrix TransformMatrix;
+	TransformMatrix.SetOrigin(Center);
+	TransformMatrix.SetAxis(0, FVector::ForwardVector);
+	TransformMatrix.SetAxis(1, YAxis);
+	TransformMatrix.SetAxis(2, ZAxis);
+
+	// Get the circle center and axes from the transformation matrix
+	const FVector Origin = TransformMatrix.GetOrigin();
+	const FVector AxisY = TransformMatrix.GetScaledAxis(EAxis::Y);
+	const FVector AxisZ = TransformMatrix.GetScaledAxis(EAxis::Z);
+
+	float Angle = 0.f;
+
+	// We will manually draw the circle using line segments
+	for (int32 i = 0; i < Segments; ++i)
+	{
+		// Calculate the start and end points of the line segment
+		const FVector Vertex1 = Origin + Radius * (AxisY * FMath::Cos(Angle) + AxisZ * FMath::Sin(Angle));
+		Angle += AngleStep;
+		const FVector Vertex2 = Origin + Radius * (AxisY * FMath::Cos(Angle) + AxisZ * FMath::Sin(Angle));
+
+		// Draw the line using the Proxy if it exists, otherwise use the World
+		if (Proxy)
+		{
+			Proxy->AnimDrawDebugLine(Vertex1, Vertex2, Color, bPersistentLines, LifeTime, Thickness);
+		}
+		else if (World)
+		{
+			DrawDebugLine(World, Vertex1, Vertex2, Color, bPersistentLines, LifeTime, 0, Thickness);
+		}
+	}
+}
+
+void UTetherStatics::DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
+	const FQuat& Rotation, const FVector& AngularVelocity, const float Radius, const FColor& XAxisColor,
+	const FColor& YAxisColor, const FColor& ZAxisColor, bool bPersistentLines, float LifeTime, float Thickness)
+{
+	// Calculate the vectors for the X, Y, and Z axes of the object in world space
+	FVector XAxis = Rotation.GetAxisX();
+	FVector YAxis = Rotation.GetAxisY();
+	FVector ZAxis = Rotation.GetAxisZ();
+
+	// Draw the X-axis rotation gizmo (red)
+	DrawCircle(World, Proxy, Center, Radius, 32, XAxisColor, XAxis, FVector::CrossProduct(XAxis, FVector::UpVector), bPersistentLines, LifeTime, Thickness);
+	
+	// Draw the Y-axis rotation gizmo (green)
+	DrawCircle(World, Proxy, Center, Radius, 32, YAxisColor, YAxis, FVector::CrossProduct(YAxis, FVector::UpVector), bPersistentLines, LifeTime, Thickness);
+	
+	// Draw the Z-axis rotation gizmo (blue)
+	DrawCircle(World, Proxy, Center, Radius, 32, ZAxisColor, ZAxis, FVector::CrossProduct(ZAxis, FVector::UpVector), bPersistentLines, LifeTime, Thickness);
+
+	// Optionally, draw an arrow showing the angular velocity direction
+	if (!AngularVelocity.IsNearlyZero())
+	{
+		FVector EndLocation = Center + AngularVelocity.GetSafeNormal() * Radius;
+		DrawArrow(World, Proxy, Center, EndLocation, FColor::Cyan, 10.0f, bPersistentLines, LifeTime, Thickness);
+	}
+}
+
 UCanvas* UTetherStatics::GetDebugCanvas()
 {
 	if (GEngine && GEngine->GameViewport)

@@ -218,6 +218,8 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		if (CurrentAngularSolver)
 		{
 			CurrentAngularSolver->Solve(&AngularInput, &AngularOutput, Origin, TimeTick);
+			CurrentAngularSolver->DrawDebug(&AngularInput, &AngularOutput, ShapeTransforms, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld(),
+				FColor::Emerald, FColor::Cyan, FColor::Orange);
 		}
 		
 		// 3. Solve Integration

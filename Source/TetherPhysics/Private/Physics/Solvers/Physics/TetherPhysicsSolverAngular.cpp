@@ -8,6 +8,13 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherPhysicsSolverAngular)
 
+namespace FTether
+{
+#if ENABLE_DRAW_DEBUG
+	TAutoConsoleVariable<bool> CVarTetherSolverAngularDraw(TEXT("p.Tether.Solver.Angular.Draw"), false, TEXT("Draw Tether Angular Solver Helpers"));
+#endif
+}
+
 void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform,
 	float DeltaTime) const
 {
@@ -94,7 +101,7 @@ void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* O
 			}
 		}
 
-		UE_LOG(LogTemp, Log, TEXT("AngularVelocity %s"), *AngularVelocity.ToString());
+		// UE_LOG(LogTemp, Log, TEXT("AngularVelocity %s"), *AngularVelocity.ToString());
 	}
 }
 
@@ -104,6 +111,53 @@ void UTetherPhysicsSolverAngular::DrawDebug(const FTetherIO* InputData, FTetherI
 	const FColor& ForceColor, const FColor& AccelerationColor, bool bPersistentLines, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
+	if (!FTether::CVarTetherSolverAngularDraw.GetValueOnAnyThread())
+	{
+		return;
+	}
 	
+	// Ensure there is a valid Proxy or World context
+	if (!Proxy && !World)
+	{
+		return;
+	}
+
+	const auto* Input = InputData->GetDataIO<FAngularInput>();
+	const auto* Output = OutputData->GetDataIO<FAngularOutput>();
+
+	for (auto& ShapeItr : Input->ShapeSettings)
+	{
+		const FTetherShape* const& Shape = ShapeItr.Key;
+		const FAngularInputSettings& Settings = ShapeItr.Value;
+		const FAngularOutputData& Data = Output->ShapeData[Shape];
+
+		// Define scale for visualizing angular components
+		static constexpr float VisualScale = 0.05f;
+		static constexpr float ArrowSize = 4.f;
+
+		// Get the transform for the shape
+		FVector Center = ShapeTransforms[Shape]->GetLocation();
+		FQuat Rotation = ShapeTransforms[Shape]->GetRotation();
+
+		UTetherStatics::DrawRotationGizmo(World, Proxy, Center, Rotation, Data.AngularVelocity, 64.f,
+			FColor::Red, FColor::Green, FColor::Blue, bPersistentLines, LifeTime, Thickness);
+
+		// // 1. Draw Angular Velocity as an arrow
+		// FVector AngularVelocityEndLocation = StartLocation + Data.AngularVelocity * VisualScale; // Scale angular velocity for visualization
+		// UTetherStatics::DrawArrow(World, Proxy, StartLocation, AngularVelocityEndLocation, VelocityColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+		// UTetherStatics::DrawText("Angular Velocity", PendingDebugText, Shape, AngularVelocityEndLocation, VelocityColor);
+		//
+		// // 2. Draw Net Torque
+		// FVector Torque = Settings.Torque - Settings.FrictionTorque;
+		// FVector TorqueEndLocation = StartLocation + Torque * VisualScale;  // Scale torque for visualization
+		// UTetherStatics::DrawArrow(World, Proxy, StartLocation, TorqueEndLocation, ForceColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+		// UTetherStatics::DrawText("Torque", PendingDebugText, Shape, TorqueEndLocation, ForceColor);
+		//
+		// // 3. Draw Angular Acceleration
+		// FVector AngularAcceleration = (Torque - Settings.FrictionTorque) * (FVector::OneVector / Data.Inertia);
+		// FVector AngularAccelerationEndLocation = StartLocation + AngularAcceleration * VisualScale;  // Scale acceleration for visualization
+		// UTetherStatics::DrawArrow(World, Proxy, StartLocation, AngularAccelerationEndLocation, AccelerationColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+		// UTetherStatics::DrawText("Angular Acceleration", PendingDebugText, Shape, AngularAccelerationEndLocation, AccelerationColor);
+	}
 #endif
 }

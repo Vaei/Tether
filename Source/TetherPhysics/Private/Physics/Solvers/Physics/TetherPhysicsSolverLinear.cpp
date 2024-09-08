@@ -8,6 +8,13 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherPhysicsSolverLinear)
 
+namespace FTether
+{
+#if ENABLE_DRAW_DEBUG
+	TAutoConsoleVariable<bool> CVarTetherSolverLinearDraw(TEXT("p.Tether.Solver.Linear.Draw"), false, TEXT("Draw Tether Linear Solver Helpers"));
+#endif
+}
+
 void UTetherPhysicsSolverLinear::Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const
 {
 	const auto* Input = InputData->GetDataIO<FLinearInput>();
@@ -69,6 +76,11 @@ void UTetherPhysicsSolverLinear::DrawDebug(const FTetherIO* InputData, FTetherIO
 	const FColor& ForceColor, const FColor& AccelerationColor, bool bPersistentLines, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
+	if (!FTether::CVarTetherSolverLinearDraw.GetValueOnAnyThread())
+	{
+		return;
+	}
+	
 	if (!Proxy && !World)
 	{
 		return;
