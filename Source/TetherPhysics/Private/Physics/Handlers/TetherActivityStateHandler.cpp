@@ -45,6 +45,7 @@ void UTetherActivityStateHandler::PreSolveWake(const FTetherIO* InputData, const
 					UE_LOG(LogTether, Warning, TEXT("{ %s } WOKE due to recent collision"), *Shape->GetName());
 				}
 				Shape->ActivityState = ETetherActivityState::Awake;
+				Shape->TimeUntilSleep = Settings->SleepDelay;
 			}
 			else
 			{
@@ -68,6 +69,7 @@ void UTetherActivityStateHandler::PreSolveWake(const FTetherIO* InputData, const
 						UE_LOG(LogTether, Warning, TEXT("{ %s } WOKE due to force/acceleration/torque"), *Shape->GetName());
 					}
 					Shape->ActivityState = ETetherActivityState::Awake;
+					Shape->TimeUntilSleep = Settings->SleepDelay;
 				}
 			}
 		}
@@ -127,13 +129,23 @@ void UTetherActivityStateHandler::PostSolveSleep(const FTetherIO* InputData, con
 			// Energy-based sleep check
 			if (KineticEnergy < Settings->EnergyThreshold)
 			{
-				Shape->ActivityState = ETetherActivityState::Asleep;
-				
-				if (FTether::CVarTetherActivityStateLog.GetValueOnAnyThread())
+				// Decrement the sleep timer and only sleep if the timer has elapsed
+				Shape->TimeUntilSleep -= DeltaTime;
+				if (Shape->TimeUntilSleep <= 0.f)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("{ %s } SLEEP due to low kinetic energy"), *Shape->GetName());
+					// Enter sleep state
+					Shape->ActivityState = ETetherActivityState::Asleep;
+					if (FTether::CVarTetherActivityStateLog.GetValueOnAnyThread())
+					{
+						UE_LOG(LogTemp, Warning, TEXT("{ %s } SLEEP due to low kinetic energy"), *Shape->GetName());
+					}
 				}
 			}
+		}
+		else
+		{
+			// Reset the sleep timer if the object is still moving significantly
+			Shape->TimeUntilSleep = Settings->SleepDelay;
 		}
 	}
 }

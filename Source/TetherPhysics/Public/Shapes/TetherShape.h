@@ -63,6 +63,10 @@ public:
 		return !IsAwake();
 	}
 
+	/** How long until we sleep if nothing wakes us before then */
+	UPROPERTY(BlueprintReadOnly, Category=Tether)
+	float TimeUntilSleep = 0.f;
+
 	/** World Time when last broad phase collision resulted in an overlap */
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	double LastBroadCollisionTime = INFINITY;
@@ -73,9 +77,10 @@ public:
 
 	static double TimeSince(double WorldTime, double Time)
 	{
+		if (FMath::IsNearlyEqual(Time, INFINITY)) { return INFINITY; }
 		return WorldTime - Time;
 	}
-	
+
 	double TimeSinceBroadCollision(double WorldTime) const
 	{
 		return TimeSince(WorldTime, LastBroadCollisionTime);

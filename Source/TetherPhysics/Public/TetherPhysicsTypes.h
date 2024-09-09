@@ -48,6 +48,7 @@ struct TETHERPHYSICS_API FTetherActivitySettings
 		, AngularVelocityThreshold(0.1f)
 		, AngularTorqueThreshold(1.f)
 		, EnergyThreshold(0.05f)
+		, SleepDelay(1.f)
 	{}
 	
 	/**
@@ -105,4 +106,8 @@ struct TETHERPHYSICS_API FTetherActivitySettings
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float EnergyThreshold;
+
+	/** When entering sleep state, delay for this amount of time, and reset the delay if we should wake */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	float SleepDelay;
 };
