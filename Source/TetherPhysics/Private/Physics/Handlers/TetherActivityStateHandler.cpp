@@ -116,7 +116,7 @@ void UTetherActivityStateHandler::PostSolveSleep(const FTetherIO* InputData, con
 
 		if (FTether::CVarTetherActivityStateLog.GetValueOnAnyThread())
 		{
-			UE_LOG(LogTemp, Log, TEXT("{ %s } kinetic energy calculated: LinearKE: %f, AngularKE: %f, TotalKE: %f"), 
+			UE_LOG(LogTemp, Verbose, TEXT("{ %s } kinetic energy calculated: LinearKE: %f, AngularKE: %f, TotalKE: %f"), 
 				   *Shape->GetName(), LinearKineticEnergy, AngularKineticEnergy, KineticEnergy);
 		}
 		
