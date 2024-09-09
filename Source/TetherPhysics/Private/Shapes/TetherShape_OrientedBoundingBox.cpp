@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Jared Taylor. All Rights Reserved.
 
 #include "Shapes/TetherShape_OrientedBoundingBox.h"
-#include "Animation/AnimInstanceProxy.h"
+
 #include "Shapes/TetherShapeCaster.h"
+#include "System/TetherDrawing.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape_OrientedBoundingBox)
 
@@ -123,33 +124,6 @@ void UTetherShapeObject_OrientedBoundingBox::DrawDebug(const FTetherShape& Shape
 {
 #if ENABLE_DRAW_DEBUG
 	const auto* OBB = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&Shape);
-	
-	// Get vertices of the OBB
-	TArray<FVector> Vertices = OBB->GetVertices();
-
-	// Draw edges using individual lines
-	for (int32 i = 0; i < 4; ++i)
-	{
-		int32 NextIndex = (i + 1) % 4;
-
-		if (Proxy)
-		{
-			// Draw the front face
-			Proxy->AnimDrawDebugLine(Vertices[i], Vertices[NextIndex], Color, bPersistentLines, LifeTime, Thickness);
-			Proxy->AnimDrawDebugLine(Vertices[i + 4], Vertices[NextIndex + 4], Color, bPersistentLines, LifeTime, Thickness);
-
-			// Draw the connecting edges between the front and back face
-			Proxy->AnimDrawDebugLine(Vertices[i], Vertices[i + 4], Color, bPersistentLines, LifeTime, Thickness);
-		}
-		else if (World)
-		{
-			// Draw the front face
-			DrawDebugLine(World, Vertices[i], Vertices[NextIndex], Color, bPersistentLines, LifeTime, 0, Thickness);
-			DrawDebugLine(World, Vertices[i + 4], Vertices[NextIndex + 4], Color, bPersistentLines, LifeTime, 0, Thickness);
-
-			// Draw the connecting edges between the front and back face
-			DrawDebugLine(World, Vertices[i], Vertices[i + 4], Color, bPersistentLines, LifeTime, 0, Thickness);
-		}
-	}
+	UTetherDrawing::DrawBox(World, Proxy, OBB->Center, OBB->Extent, OBB->Rotation.Quaternion(), Color, bPersistentLines, LifeTime, Thickness);
 #endif
 }

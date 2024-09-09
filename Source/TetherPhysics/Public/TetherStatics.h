@@ -15,6 +15,9 @@ DECLARE_STATS_GROUP(TEXT("Tether_Stat"), STATGROUP_Tether, STATCAT_Advanced);
 /** Logging of messages related to Tether. */
 DEFINE_LOG_CATEGORY_STATIC(LogTether, Log, All);
 
+/** Visual logging related to Tether Replay. */
+DEFINE_LOG_CATEGORY_STATIC(LogTetherReplay, Log, All);
+
 namespace FTether
 {
 	/**

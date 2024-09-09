@@ -9,36 +9,43 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherDrawing)
 
+static constexpr uint8 DepthPriority = 0;
+
 void UTetherDrawing::DrawLine(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Start, const FVector& End,
 	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness)
 {
+#if ENABLE_DRAW_DEBUG
 	if (Proxy)
 	{
 		Proxy->AnimDrawDebugLine(Start, End, Color, bPersistentLines, LifeTime, Thickness);
 	}
 	else if (World)
 	{
-		DrawDebugLine(World, Start, End, Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugLine(World, Start, End, Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
 	}
+#endif
 }
 
 void UTetherDrawing::DrawArrow(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Start, const FVector& End,
 	const FColor& Color, float ArrowSize, bool bPersistentLines, float LifeTime, float Thickness)
 {
+#if ENABLE_DRAW_DEBUG
 	if (Proxy)
 	{
 		Proxy->AnimDrawDebugDirectionalArrow(Start, End, ArrowSize, Color, bPersistentLines, LifeTime, Thickness);
 	}
 	else if (World)
 	{
-		DrawDebugDirectionalArrow(World, Start, End, ArrowSize, Color, bPersistentLines, LifeTime, 0, Thickness);
+		DrawDebugDirectionalArrow(World, Start, End, ArrowSize, Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
 	}
+#endif
 }
 
 void UTetherDrawing::DrawBox(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
 	const FVector& Extent, const FQuat& Rotation, const FColor& Color, bool bPersistentLines, float LifeTime,
 	float Thickness)
 {
+#if ENABLE_DRAW_DEBUG
     // Create a transform from the rotation
     FTransform Transform(Rotation);
 
@@ -71,12 +78,131 @@ void UTetherDrawing::DrawBox(const UWorld* World, FAnimInstanceProxy* Proxy, con
     DrawLine(World, Proxy, Center + TopFrontLeft, Center + BottomFrontLeft, Color, bPersistentLines, LifeTime, Thickness);
     DrawLine(World, Proxy, Center + TopBackLeft, Center + BottomBackLeft, Color, bPersistentLines, LifeTime, Thickness);
     DrawLine(World, Proxy, Center + TopBackRight, Center + BottomBackRight, Color, bPersistentLines, LifeTime, Thickness);
+#endif
+}
+
+void UTetherDrawing::DrawSphere(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float Radius,
+	int32 Segments, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness)
+{
+#if ENABLE_DRAW_DEBUG
+	if (Proxy)
+	{
+		Proxy->AnimDrawDebugSphere(Center, Radius, Segments, Color, bPersistentLines, LifeTime, Thickness);
+	}
+	else if (World)
+	{
+		DrawDebugSphere(World, Center, Radius, Segments, Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
+	}
+#endif
+}
+
+void UTetherDrawing::DrawCapsule(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
+	float HalfHeight, float Radius, const FRotator& Rotation, const FColor& Color, bool bPersistentLines, float LifeTime,
+	float Thickness)
+{
+#if ENABLE_DRAW_DEBUG
+	if (Proxy)
+	{
+		// @todo - Do we need to do the fill shape below here too?
+		Proxy->AnimDrawDebugCapsule(Center, HalfHeight, Radius, Rotation, Color, bPersistentLines, LifeTime, Thickness);
+	}
+	else if (World)
+	{
+		DrawDebugCapsule(World, Center, HalfHeight, Radius, Rotation.Quaternion(), Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
+		
+		// Draw lines to fill the shape, for some reason DrawDebugCapsule is missing two of the vertical lines
+		constexpr int32 NumSegments = 4; // Number of segments to approximate the capsule shape
+		constexpr float AngleStep = 360.0f / NumSegments;
+
+		const FVector UpVector = Rotation.RotateVector(FVector::UpVector);
+		FVector TopCenter = Center + UpVector * HalfHeight + UpVector * -Radius;
+		FVector BottomCenter = Center - UpVector * HalfHeight + UpVector * Radius;
+
+		for (int32 i = 0; i < NumSegments; i++)
+		{
+			float CurrentAngle = FMath::DegreesToRadians(i * AngleStep);
+			FVector CurrentOffset = FVector(FMath::Cos(CurrentAngle) * Radius, FMath::Sin(CurrentAngle) * Radius, 0.0f);
+
+			FVector CurrentTopPoint = TopCenter + Rotation.RotateVector(CurrentOffset);
+			FVector CurrentBottomPoint = BottomCenter + Rotation.RotateVector(CurrentOffset);
+
+			// Draw the lines connecting the top and bottom points (red lines)
+			DrawLine(World, Proxy, CurrentTopPoint, CurrentBottomPoint, Color, bPersistentLines, LifeTime, Thickness);
+		}
+	}
+#endif
+}
+
+void UTetherDrawing::DrawPipe(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
+	const FVector& OuterDimensions, float ArcAngle, const FRotator& Rotation, const FColor& Color,
+	bool bPersistentLines, float LifeTime, float Thickness)
+{
+#if ENABLE_DRAW_DEBUG
+    float OuterRadius = FMath::Max(OuterDimensions.X, OuterDimensions.Y) * 0.5f;
+    float InnerRadius = FMath::Min(OuterDimensions.X, OuterDimensions.Y) * 0.5f;
+    float PipeThickness = OuterDimensions.Z;
+
+    FVector UpVector = Rotation.RotateVector(FVector::UpVector);
+    FVector RightVector = Rotation.RotateVector(FVector::RightVector);
+    FVector ForwardVector = Rotation.RotateVector(FVector::ForwardVector);
+
+    int32 NumSegments = FMath::Max(1, FMath::RoundToInt(ArcAngle / 14.f));
+    float AngleStep = ArcAngle / NumSegments;
+
+    TArray<FVector> OuterBottomPoints, InnerBottomPoints, OuterTopPoints, InnerTopPoints;
+    OuterBottomPoints.SetNum(NumSegments + 1);
+    InnerBottomPoints.SetNum(NumSegments + 1);
+    OuterTopPoints.SetNum(NumSegments + 1);
+    InnerTopPoints.SetNum(NumSegments + 1);
+
+    // Generate points along the arc for both inner and outer circles
+    for (int32 i = 0; i <= NumSegments; ++i)
+    {
+        float AngleRad = FMath::DegreesToRadians(i * AngleStep);
+
+        FVector OuterOffset = ForwardVector * (OuterRadius * FMath::Cos(AngleRad)) + RightVector * (OuterRadius * FMath::Sin(AngleRad));
+        FVector InnerOffset = ForwardVector * (InnerRadius * FMath::Cos(AngleRad)) + RightVector * (InnerRadius * FMath::Sin(AngleRad));
+
+        // Calculate points for the bottom and top layers
+        OuterBottomPoints[i] = Center + OuterOffset - UpVector * (PipeThickness * 0.5f);
+        InnerBottomPoints[i] = Center + InnerOffset - UpVector * (PipeThickness * 0.5f);
+        OuterTopPoints[i] = Center + OuterOffset + UpVector * (PipeThickness * 0.5f);
+        InnerTopPoints[i] = Center + InnerOffset + UpVector * (PipeThickness * 0.5f);
+
+        // Draw the vertical lines connecting the top and bottom layers
+        DrawLine(World, Proxy, OuterBottomPoints[i], OuterTopPoints[i], Color, bPersistentLines, LifeTime, Thickness);
+        DrawLine(World, Proxy, InnerBottomPoints[i], InnerTopPoints[i], Color, bPersistentLines, LifeTime, Thickness);
+
+        // Draw the horizontal lines connecting the outer and inner layers at the bottom and top
+        if (i > 0)
+        {
+            DrawLine(World, Proxy, OuterBottomPoints[i], OuterBottomPoints[i - 1], Color, bPersistentLines, LifeTime, Thickness);
+            DrawLine(World, Proxy, InnerBottomPoints[i], InnerBottomPoints[i - 1], Color, bPersistentLines, LifeTime, Thickness);
+            DrawLine(World, Proxy, OuterTopPoints[i], OuterTopPoints[i - 1], Color, bPersistentLines, LifeTime, Thickness);
+            DrawLine(World, Proxy, InnerTopPoints[i], InnerTopPoints[i - 1], Color, bPersistentLines, LifeTime, Thickness);
+
+            // Draw the diagonal connecting lines between the outer and inner layers (caps)
+            DrawLine(World, Proxy, OuterBottomPoints[i], InnerBottomPoints[i], Color, bPersistentLines, LifeTime, Thickness);
+            DrawLine(World, Proxy, OuterTopPoints[i], InnerTopPoints[i], Color, bPersistentLines, LifeTime, Thickness);
+        }
+    }
+
+    // Close the arc if the angle is less than 360 degrees
+    if (ArcAngle < 360.f)
+    {
+        DrawLine(World, Proxy, OuterBottomPoints[0], InnerBottomPoints[0], Color, bPersistentLines, LifeTime, Thickness);
+        DrawLine(World, Proxy, OuterTopPoints[0], InnerTopPoints[0], Color, bPersistentLines, LifeTime, Thickness);
+        DrawLine(World, Proxy, OuterBottomPoints[NumSegments], InnerBottomPoints[NumSegments], Color, bPersistentLines, LifeTime, Thickness);
+        DrawLine(World, Proxy, OuterTopPoints[NumSegments], InnerTopPoints[NumSegments], Color, bPersistentLines, LifeTime, Thickness);
+    }
+#endif
 }
 
 void UTetherDrawing::DrawCircle(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float Radius,
 	int32 Segments, const FColor& Color, const FVector& YAxis, const FVector& ZAxis, bool bPersistentLines,
 	float LifeTime, float Thickness)
 {
+#if ENABLE_DRAW_DEBUG
 	// Ensure there is either a Proxy or a World
 	if (!Proxy && !World)
 	{
@@ -115,9 +241,10 @@ void UTetherDrawing::DrawCircle(const UWorld* World, FAnimInstanceProxy* Proxy, 
 		}
 		else if (World)
 		{
-			DrawDebugLine(World, Vertex1, Vertex2, Color, bPersistentLines, LifeTime, 0, Thickness);
+			DrawDebugLine(World, Vertex1, Vertex2, Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
 		}
 	}
+#endif
 }
 
 void UTetherDrawing::DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
@@ -125,6 +252,7 @@ void UTetherDrawing::DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* 
 	int32 Segments, const FColor& VelocityColor, const FColor& XAxisColor, const FColor& YAxisColor,
 	const FColor& ZAxisColor, bool bPersistentLines, float LifeTime, float Thickness)
 {
+#if ENABLE_DRAW_DEBUG
 	// Generate a transform from the rotation to create stable axes
 	FTransform RotationTransform(Rotation);
 
@@ -144,9 +272,10 @@ void UTetherDrawing::DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* 
 		FVector EndLocation = Center + AngularVelocity.GetSafeNormal() * Radius;
 		DrawArrow(World, Proxy, Center, EndLocation, VelocityColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
 	}
+#endif
 }
 
-UCanvas* UTetherDrawing::GetDebugCanvas()
+UCanvas* UTetherDrawing::GetDefaultCanvas()
 {
 	if (GEngine && GEngine->GameViewport)
 	{
@@ -158,7 +287,7 @@ UCanvas* UTetherDrawing::GetDebugCanvas()
 		if (!FoundCanvas)
 		{
 			UCanvas* CanvasObject = FindObject<UCanvas>(GetTransientPackage(),*CanvasName.ToString());
-			if( !CanvasObject )
+			if (!CanvasObject)
 			{
 				CanvasObject = NewObject<UCanvas>(GetTransientPackage(), CanvasName);
 				CanvasObject->AddToRoot();
@@ -195,6 +324,7 @@ bool UTetherDrawing::DrawText(const FString& DebugText, TArray<FTetherDebugText>
 	const FTetherShape* Shape, const FVector& WorldLocation, FColor TextColor, UFont* Font, float FontScale,
 	bool bDrawShadow)
 {
+#if ENABLE_DRAW_DEBUG
 	if (!DebugTextArray)
 	{
 		return false;
@@ -223,10 +353,12 @@ bool UTetherDrawing::DrawText(const FString& DebugText, TArray<FTetherDebugText>
 	DebugTextArray->Add(DebugTextInfo);
 
 	return true;
+#endif
 }
 
 void UTetherDrawing::ProcessText(TArray<FTetherDebugText>* DebugTextArray, const UWorld* World, UCanvas* Canvas)
 {
+#if ENABLE_DRAW_DEBUG
 	if (!IsInGameThread())
 	{
 		return;
@@ -291,4 +423,5 @@ void UTetherDrawing::ProcessText(TArray<FTetherDebugText>* DebugTextArray, const
 
 	// Reset the array
 	DebugTextArray->Reset();
+#endif
 }

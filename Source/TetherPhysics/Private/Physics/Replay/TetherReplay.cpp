@@ -3,6 +3,8 @@
 
 #include "Physics/Replay/TetherReplay.h"
 
+#include "TetherStatics.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherReplay)
 
 void UTetherReplay::RecordPhysicsState(FTetherIO* RecordedData, double TimeStamp,
@@ -12,30 +14,30 @@ void UTetherReplay::RecordPhysicsState(FTetherIO* RecordedData, double TimeStamp
 	const auto* LinearInput = LinearInputData->GetDataIO<FLinearInput>();
 	const auto* AngularInput = AngularInputData->GetDataIO<FAngularInput>();
 
-	for (const FTetherShape* TetherShape : *Record->Shapes)
+	for (const FTetherShape* Shape : *Record->Shapes)
 	{
-		FRecordedPhysicsObject* ObjectRecording = Record->FindOrCreateObjectRecording(TetherShape);
+		FRecordedPhysicsObject* ObjectRecording = Record->FindOrCreateObjectRecording(Shape);
 		if (ObjectRecording)
 		{
 			ObjectRecording->AddFrame(TimeStamp, LinearInput, AngularInput);
 
 			// Log the physics state to Visual Logger
-			// UE_VLOG(this, LogTetherReplay, Log, TEXT("Recorded Physics State for Shape: %s at Time: %f"), *TetherShape.GetName(), TimeStamp);
+			UE_VLOG(this, LogTetherReplay, Log, TEXT("Recorded Physics State for Shape: %s at Time: %f"), *Shape->GetShapeType().ToString(), TimeStamp);
 		}
 	}
 }
 
-bool UTetherReplay::ReplayPhysicsState(const FTetherIO* RecordedData, double TimeStamp, const TArray<FTetherShape>& TetherShapes, FTetherIO* OutLinearInput, FTetherIO* OutAngularInput, ETetherReplayMode ReplayMode) const
+bool UTetherReplay::ReplayPhysicsState(const FTetherIO* RecordedData, double TimeStamp, FTetherIO* OutLinearInput, FTetherIO* OutAngularInput, ETetherReplayMode ReplayMode) const
 {
 	auto* Record = RecordedData->GetDataIO<FRecordedPhysicsData>();
 	bool bSuccess = false;
 
 	// Iterate over each TetherShape in the provided array
-	for (const FTetherShape& TetherShape : TetherShapes)
+	for (const FTetherShape* Shape : *Record->Shapes)
 	{
 		const FRecordedPhysicsObject* ObjectRecording = Record->RecordedObjects.FindByPredicate([&](const FRecordedPhysicsObject& Obj)
 		{
-			return Obj.TetherShape == &TetherShape;
+			return Obj.TetherShape == Shape;
 		});
 
 		if (ObjectRecording)
@@ -50,6 +52,9 @@ bool UTetherReplay::ReplayPhysicsState(const FTetherIO* RecordedData, double Tim
 					OutAngularInput->SetDataIO<FAngularInput>(Frame.AngularInput);
 					
 					bSuccess = true;
+					
+					// Log the replayed physics state
+					UE_VLOG(this, LogTetherReplay, Log, TEXT("Replayed Physics State for Shape: %s at Time: %f"), *Shape->GetShapeType().ToString(), TimeStamp);
 
 					// In ShortCircuit mode, return immediately after the first successful match
 					if (ReplayMode == ETetherReplayMode::ShortCircuit)

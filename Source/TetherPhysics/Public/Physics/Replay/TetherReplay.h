@@ -49,5 +49,5 @@ public:
 	 * @param ReplayMode Determines the behavior of the replay system when handling multiple shapes.
 	 * @return True if the state was successfully replayed, otherwise false.
 	 */
-	virtual bool ReplayPhysicsState(const FTetherIO* RecordedData, double TimeStamp, const TArray<FTetherShape>& TetherShapes, FTetherIO* OutLinearInput, FTetherIO* OutAngularInput, ETetherReplayMode ReplayMode = ETetherReplayMode::Completion) const;
+	virtual bool ReplayPhysicsState(const FTetherIO* RecordedData, double TimeStamp, FTetherIO* OutLinearInput, FTetherIO* OutAngularInput, ETetherReplayMode ReplayMode = ETetherReplayMode::Completion) const;
 };

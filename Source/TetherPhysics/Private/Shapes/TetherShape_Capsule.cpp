@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Jared Taylor. All Rights Reserved.
 
 #include "Shapes/TetherShape_Capsule.h"
-#include "Animation/AnimInstanceProxy.h"
+
 #include "Shapes/TetherShapeCaster.h"
+#include "System/TetherDrawing.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape_Capsule)
 
@@ -131,36 +132,6 @@ void UTetherShapeObject_Capsule::DrawDebug(const FTetherShape& Shape, FAnimInsta
 {
 #if ENABLE_DRAW_DEBUG
 	const auto* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
-
-	// Draw the capsule using its center, half-height, radius, and rotation
-	if (Proxy)
-	{
-		// @todo Does this need the lines filled in also?
-		Proxy->AnimDrawDebugCapsule(Capsule->Center, Capsule->HalfHeight, Capsule->Radius, Capsule->Rotation, Color, bPersistentLines, LifeTime, Thickness);
-	}
-	else if (World)
-	{
-		DrawDebugCapsule(World, Capsule->Center, Capsule->HalfHeight, Capsule->Radius, Capsule->Rotation.Quaternion(), Color, bPersistentLines, LifeTime, 0, Thickness);
-		
-		// Draw lines to fill the shape, for some reason DrawDebugCapsule is missing two of the vertical lines
-		constexpr int32 NumSegments = 4; // Number of segments to approximate the capsule shape
-		constexpr float AngleStep = 360.0f / NumSegments;
-
-		const FVector UpVector = Capsule->Rotation.RotateVector(FVector::UpVector);
-		FVector TopCenter = Capsule->Center + UpVector * Capsule->HalfHeight + UpVector * -Capsule->Radius;
-		FVector BottomCenter = Capsule->Center - UpVector * Capsule->HalfHeight + UpVector * Capsule->Radius;
-
-		for (int32 i = 0; i < NumSegments; i++)
-		{
-			float CurrentAngle = FMath::DegreesToRadians(i * AngleStep);
-			FVector CurrentOffset = FVector(FMath::Cos(CurrentAngle) * Capsule->Radius, FMath::Sin(CurrentAngle) * Capsule->Radius, 0.0f);
-
-			FVector CurrentTopPoint = TopCenter + Capsule->Rotation.RotateVector(CurrentOffset);
-			FVector CurrentBottomPoint = BottomCenter + Capsule->Rotation.RotateVector(CurrentOffset);
-
-			// Draw the lines connecting the top and bottom points (red lines)
-			DrawDebugLine(World, CurrentTopPoint, CurrentBottomPoint, Color, bPersistentLines, LifeTime, 0, Thickness);
-		}
-	}
+	UTetherDrawing::DrawCapsule(World, Proxy, Capsule->Center, Capsule->HalfHeight, Capsule->Radius, Capsule->Rotation, Color, bPersistentLines, LifeTime, Thickness);
 #endif
 }

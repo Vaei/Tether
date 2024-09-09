@@ -3,9 +3,9 @@
 
 #include "Shapes/TetherShape_BoundingSphere.h"
 
-#include "Animation/AnimInstanceProxy.h"
 #include "Shapes/TetherShapeCaster.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
+#include "System/TetherDrawing.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape_BoundingSphere)
 
@@ -111,15 +111,6 @@ void UTetherShapeObject_BoundingSphere::DrawDebug(const FTetherShape& Shape, FAn
 {
 #if ENABLE_DRAW_DEBUG
 	const auto* Sphere = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&Shape);
-	
-	// Draw edges
-	if (Proxy)
-	{
-		Proxy->AnimDrawDebugSphere(Sphere->Center, Sphere->Radius, 12, Color, bPersistentLines, LifeTime, Thickness);
-	}
-	else if (World)
-	{
-		DrawDebugSphere(World, Sphere->Center, Sphere->Radius, 12, Color, bPersistentLines, LifeTime, 0, Thickness);
-	}
+	UTetherDrawing::DrawSphere(World, Proxy, Sphere->Center, Sphere->Radius, 16, Color, bPersistentLines, LifeTime, Thickness);
 #endif
 }

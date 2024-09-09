@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Jared Taylor. All Rights Reserved.
 
 #include "Shapes/TetherShape_Pipe.h"
-#include "Animation/AnimInstanceProxy.h"
+
 #include "Shapes/TetherShapeCaster.h"
+#include "System/TetherDrawing.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape_Pipe)
 
@@ -117,68 +118,6 @@ void UTetherShapeObject_Pipe::DrawDebug(const FTetherShape& Shape, FAnimInstance
 {
 #if ENABLE_DRAW_DEBUG
     const auto* Pipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&Shape);
-
-    const FVector& Center = Pipe->Center;
-    const FVector& OuterDimensions = Pipe->OuterDimensions;
-    const float ArcAngle = Pipe->ArcAngle;
-    const FRotator& Rotation = Pipe->Rotation;
-
-    float OuterRadius = FMath::Max(OuterDimensions.X, OuterDimensions.Y) * 0.5f;
-    float InnerRadius = FMath::Min(OuterDimensions.X, OuterDimensions.Y) * 0.5f;
-    float PipeThickness = OuterDimensions.Z;
-
-    FVector UpVector = Rotation.RotateVector(FVector::UpVector);
-    FVector RightVector = Rotation.RotateVector(FVector::RightVector);
-    FVector ForwardVector = Rotation.RotateVector(FVector::ForwardVector);
-
-    int32 NumSegments = FMath::Max(1, FMath::RoundToInt(ArcAngle / 14.f));
-    float AngleStep = ArcAngle / NumSegments;
-
-    TArray<FVector> OuterBottomPoints, InnerBottomPoints, OuterTopPoints, InnerTopPoints;
-    OuterBottomPoints.SetNum(NumSegments + 1);
-    InnerBottomPoints.SetNum(NumSegments + 1);
-    OuterTopPoints.SetNum(NumSegments + 1);
-    InnerTopPoints.SetNum(NumSegments + 1);
-
-    // Generate points along the arc for both inner and outer circles
-    for (int32 i = 0; i <= NumSegments; ++i)
-    {
-        float AngleRad = FMath::DegreesToRadians(i * AngleStep);
-
-        FVector OuterOffset = ForwardVector * (OuterRadius * FMath::Cos(AngleRad)) + RightVector * (OuterRadius * FMath::Sin(AngleRad));
-        FVector InnerOffset = ForwardVector * (InnerRadius * FMath::Cos(AngleRad)) + RightVector * (InnerRadius * FMath::Sin(AngleRad));
-
-        // Calculate points for the bottom and top layers
-        OuterBottomPoints[i] = Center + OuterOffset - UpVector * (PipeThickness * 0.5f);
-        InnerBottomPoints[i] = Center + InnerOffset - UpVector * (PipeThickness * 0.5f);
-        OuterTopPoints[i] = Center + OuterOffset + UpVector * (PipeThickness * 0.5f);
-        InnerTopPoints[i] = Center + InnerOffset + UpVector * (PipeThickness * 0.5f);
-
-        // Draw the vertical lines connecting the top and bottom layers
-        DrawDebugLine(World, OuterBottomPoints[i], OuterTopPoints[i], Color, bPersistentLines, LifeTime, Thickness);
-        DrawDebugLine(World, InnerBottomPoints[i], InnerTopPoints[i], Color, bPersistentLines, LifeTime, Thickness);
-
-        // Draw the horizontal lines connecting the outer and inner layers at the bottom and top
-        if (i > 0)
-        {
-            DrawDebugLine(World, OuterBottomPoints[i], OuterBottomPoints[i - 1], Color, bPersistentLines, LifeTime, Thickness);
-            DrawDebugLine(World, InnerBottomPoints[i], InnerBottomPoints[i - 1], Color, bPersistentLines, LifeTime, Thickness);
-            DrawDebugLine(World, OuterTopPoints[i], OuterTopPoints[i - 1], Color, bPersistentLines, LifeTime, Thickness);
-            DrawDebugLine(World, InnerTopPoints[i], InnerTopPoints[i - 1], Color, bPersistentLines, LifeTime, Thickness);
-
-            // Draw the diagonal connecting lines between the outer and inner layers (caps)
-            DrawDebugLine(World, OuterBottomPoints[i], InnerBottomPoints[i], Color, bPersistentLines, LifeTime, Thickness);
-            DrawDebugLine(World, OuterTopPoints[i], InnerTopPoints[i], Color, bPersistentLines, LifeTime, Thickness);
-        }
-    }
-
-    // Close the arc if the angle is less than 360 degrees
-    if (ArcAngle < 360.f)
-    {
-        DrawDebugLine(World, OuterBottomPoints[0], InnerBottomPoints[0], Color, bPersistentLines, LifeTime, Thickness);
-        DrawDebugLine(World, OuterTopPoints[0], InnerTopPoints[0], Color, bPersistentLines, LifeTime, Thickness);
-        DrawDebugLine(World, OuterBottomPoints[NumSegments], InnerBottomPoints[NumSegments], Color, bPersistentLines, LifeTime, Thickness);
-        DrawDebugLine(World, OuterTopPoints[NumSegments], InnerTopPoints[NumSegments], Color, bPersistentLines, LifeTime, Thickness);
-    }
+	UTetherDrawing::DrawPipe(World, Proxy, Pipe->Center, Pipe->OuterDimensions, Pipe->ArcAngle, Pipe->Rotation, Color, bPersistentLines, LifeTime, Thickness);
 #endif
 }
