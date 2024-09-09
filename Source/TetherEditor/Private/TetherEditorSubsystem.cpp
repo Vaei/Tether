@@ -194,6 +194,8 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	OriginPoint /= Origins.Num();
 	FTransform Origin = { FQuat::Identity, OriginPoint };
 
+	float WorldTime = GetWorld()->GetTimeSeconds();
+	
 	// Start the frame with the current DeltaTime
 	PhysicsUpdate.StartFrame(DeltaTime);
 
@@ -269,7 +271,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 
 		if (CurrentReplaySystem)
 		{
-			CurrentReplaySystem->RecordPhysicsState(&RecordedData, GetWorld()->GetTimeSeconds(), &LinearInput, &AngularInput);
+			CurrentReplaySystem->RecordPhysicsState(&RecordedData, WorldTime, &LinearInput, &AngularInput);
 		}
 		//
 		// // 5. Spatial Hashing - Re-Generate shape pairs, because the shapes have moved and narrow-phase is expensive
@@ -304,6 +306,8 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		// if accessory_01 is constrained to follow spine_01, the constraint solver will ensure this attachment is
 		// respected, regardless of the results of other physics calculations. You might have multiple constraints to
 		// solve, depending on the complexity of your simulation.
+
+		WorldTime += TimeTick;
 		PhysicsUpdate.FinalizeTick();
 	}
 
