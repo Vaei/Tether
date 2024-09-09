@@ -6,7 +6,7 @@
 #include "GameplayTagContainer.h"
 #include "TetherIO.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "System/TetherDebugMessaging.h"
+#include "System/TetherMessaging.h"
 #include "Tether/Public/TetherPhysicsUpdate.h"
 #include "TetherEditorSubsystem.generated.h"
 

@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Jared Taylor. All Rights Reserved.
 
-#include "System/TetherDebugMessaging.h"
+#include "System/TetherMessaging.h"
 
 #include "Debug/DebugDrawService.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(TetherDebugMessaging)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(TetherMessaging)
 
 UWorld* FTetherDebugTextService::GetWorld() const
 {

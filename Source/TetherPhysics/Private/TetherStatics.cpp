@@ -3,7 +3,7 @@
 
 #include "TetherStatics.h"
 
-#include "System/TetherDebugMessaging.h"
+#include "System/TetherMessaging.h"
 #include "Engine/Canvas.h"
 #include "Shapes/TetherShape.h"
 

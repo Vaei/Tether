@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "TetherStatics.h"
-#include "TetherDebugMessaging.generated.h"
+#include "TetherMessaging.generated.h"
 
 /*
  * Single entry of a debug text item to render. 
  *
- * @see UTetherStatics::AddDebugText(), UTetherStatics::RemoveDebugText() and UTetherStatics::DrawDebugTextList()
+ * @see UTetherStatics::DrawText(), UTetherStatics::ProcessText()
  */
 USTRUCT()
 struct TETHERPHYSICS_API FTetherDebugText
