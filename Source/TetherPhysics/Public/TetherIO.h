@@ -654,6 +654,9 @@ struct TETHERPHYSICS_API FRecordedPhysicsData : public FTetherIO
 {
 	GENERATED_BODY()
 
+	/** Shapes to iterate when recording data */
+	const TArray<FTetherShape*>* Shapes;
+
 	/** The collection of all recorded objects in the session */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Tether)
 	TArray<FRecordedPhysicsObject> RecordedObjects;

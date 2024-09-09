@@ -163,11 +163,11 @@ void FAnimNode_Tether::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCont
 		// 	ReplayPhysicsState();  // Implement this function to apply the recorded states
 		// }
 
-		if (CurrentReplaySystem)
-		{
-			CurrentReplaySystem->RecordPhysicsState(&RecordedData, World->GetTimeSeconds(), Shapes, &LinearInput, &AngularInput);
-			CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, RootTM, PhysicsUpdate.TimeTick);
-		}
+		// if (CurrentReplaySystem)
+		// {
+		// 	CurrentReplaySystem->RecordPhysicsState(&RecordedData, World->GetTimeSeconds(), Shapes, &LinearInput, &AngularInput);
+		// 	CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, RootTM, PhysicsUpdate.TimeTick);
+		// }
 		
 		// 5. Spatial Hashing - Re-Generate shape pairs, because the shapes have moved and narrow-phase is expensive
 		if (CurrentHashingSystem)

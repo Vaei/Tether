@@ -6,18 +6,21 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherReplay)
 
 void UTetherReplay::RecordPhysicsState(FTetherIO* RecordedData, double TimeStamp,
-	const TArray<FTetherShape>* TetherShapes, const FTetherIO* LinearInputData, const FTetherIO* AngularInputData) const
+	const FTetherIO* LinearInputData, const FTetherIO* AngularInputData) const
 {
 	auto* Record = RecordedData->GetDataIO<FRecordedPhysicsData>();
 	const auto* LinearInput = LinearInputData->GetDataIO<FLinearInput>();
 	const auto* AngularInput = AngularInputData->GetDataIO<FAngularInput>();
 
-	for (const FTetherShape* TetherShape : TetherShapes)
+	for (const FTetherShape* TetherShape : *Record->Shapes)
 	{
 		FRecordedPhysicsObject* ObjectRecording = Record->FindOrCreateObjectRecording(TetherShape);
 		if (ObjectRecording)
 		{
 			ObjectRecording->AddFrame(TimeStamp, LinearInput, AngularInput);
+
+			// Log the physics state to Visual Logger
+			// UE_VLOG(this, LogTetherReplay, Log, TEXT("Recorded Physics State for Shape: %s at Time: %f"), *TetherShape.GetName(), TimeStamp);
 		}
 	}
 }

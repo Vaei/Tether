@@ -182,6 +182,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	IntegrationInput.LinearOutput = &LinearOutput;
 	IntegrationInput.AngularInput = &AngularInput;
 	IntegrationInput.AngularOutput = &AngularOutput;
+	RecordedData.Shapes = &Shapes;
 	
 	// Compute an origin at the center of all shape actors
 	FVector OriginPoint = FVector::ZeroVector;
@@ -268,10 +269,9 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 
 		if (CurrentReplaySystem)
 		{
-			CurrentReplaySystem->RecordPhysicsState(&RecordedData, GetWorld()->GetTimeSeconds(), Shapes, &LinearInput, &AngularInput);
-			CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, Origin, TimeTick);
+			CurrentReplaySystem->RecordPhysicsState(&RecordedData, GetWorld()->GetTimeSeconds(), &LinearInput, &AngularInput);
 		}
-		
+		//
 		// // 5. Spatial Hashing - Re-Generate shape pairs, because the shapes have moved and narrow-phase is expensive
 		// if (CurrentHashingSystem)
 		// {
