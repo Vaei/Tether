@@ -262,24 +262,16 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 			}
 		}
 		
-		// // 4. @todo Record state of all objects post-integration for replay purposes
-		// // if (bIsRecording)
-		// // {
-		// // 	RecordPhysicsState();  // Implement this function to record the positions, velocities, etc.
-		// // }
-		//
-		// // 4.5 @todo Override the physics engine's output with recorded data
-		// // if (bIsReplaying)
-		// // {
-		// // 	ReplayPhysicsState();  // Implement this function to apply the recorded states
-		// // }
-		//
-		// if (CurrentReplaySystem)
-		// {
-		// 	CurrentReplaySystem->RecordPhysicsState(&RecordedData, GetWorld()->GetTimeSeconds(), Shapes, &LinearInput, &AngularInput);
-		// 	CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, Origin, TimeTick);
-		// }
-		//
+		// 4. @todo Record state of all objects post-integration for replay purposes
+
+		// 4.5 @todo Override the physics engine's output with recorded data
+
+		if (CurrentReplaySystem)
+		{
+			CurrentReplaySystem->RecordPhysicsState(&RecordedData, GetWorld()->GetTimeSeconds(), Shapes, &LinearInput, &AngularInput);
+			CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, Origin, TimeTick);
+		}
+		
 		// // 5. Spatial Hashing - Re-Generate shape pairs, because the shapes have moved and narrow-phase is expensive
 		// if (CurrentHashingSystem)
 		// {
