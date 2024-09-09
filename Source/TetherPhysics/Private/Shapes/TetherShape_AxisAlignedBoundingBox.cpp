@@ -3,9 +3,8 @@
 
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
 
-#include "TetherStatics.h"
-#include "Animation/AnimInstanceProxy.h"
 #include "Shapes/TetherShapeCaster.h"
+#include "System/TetherDrawing.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape_AxisAlignedBoundingBox)
 
@@ -130,6 +129,6 @@ void UTetherShapeObject_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Sh
 	FVector Extent = (AABB->Max - AABB->Min) * 0.5f;
 
 	// Draw the AABB using UTetherStatics::DrawBox
-	UTetherStatics::DrawBox(World, Proxy, Center, Extent, FQuat::Identity, Color, bPersistentLines, LifeTime, Thickness);
+	UTetherDrawing::DrawBox(World, Proxy, Center, Extent, FQuat::Identity, Color, bPersistentLines, LifeTime, Thickness);
 #endif
 }

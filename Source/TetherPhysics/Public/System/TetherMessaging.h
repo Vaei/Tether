@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TetherDrawing.h"
 #include "TetherStatics.h"
 #include "TetherMessaging.generated.h"
 

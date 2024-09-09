@@ -6,6 +6,7 @@
 #include "TetherStatics.h"
 #include "Animation/AnimInstanceProxy.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
+#include "System/TetherDrawing.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherHashingSpatial)
 
@@ -166,7 +167,7 @@ void UTetherHashingSpatial::DrawDebugBucket(FAnimInstanceProxy* Proxy, const UWo
 	FVector BucketExtent = (BucketMax - BucketMin) * 0.5f;
 
 	// Draw the box
-	UTetherStatics::DrawBox(World, Proxy, BucketCenter, BucketExtent, FQuat::Identity, Color, bPersistentLines, LifeTime, Thickness);
+	UTetherDrawing::DrawBox(World, Proxy, BucketCenter, BucketExtent, FQuat::Identity, Color, bPersistentLines, LifeTime, Thickness);
 #endif
 }
 
@@ -205,7 +206,7 @@ void UTetherHashingSpatial::DrawDebug(const FSpatialHashingInput* Input, const F
 	FVector BoxExtent = (BucketMax - BucketMin) * 0.5f;
 
 	// Use the UTetherStatics::DrawBox function to draw the box using the animation proxy
-	UTetherStatics::DrawBox(World, Proxy, BoxCenter, BoxExtent, FQuat::Identity, OriginColor, bPersistentLines, LifeTime, OriginThickness);
+	UTetherDrawing::DrawBox(World, Proxy, BoxCenter, BoxExtent, FQuat::Identity, OriginColor, bPersistentLines, LifeTime, OriginThickness);
 
 	// Abort if we hashed nothing
 	if (Output->SpatialHashMap.Num() == 0)

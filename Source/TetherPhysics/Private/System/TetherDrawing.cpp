@@ -1,18 +1,15 @@
 ﻿// Copyright (c) Jared Taylor. All Rights Reserved.
 
 
-#include "TetherStatics.h"
+#include "System/TetherDrawing.h"
 
-#include "System/TetherMessaging.h"
-#include "Engine/Canvas.h"
-#include "Shapes/TetherShape.h"
-
-#include "DrawDebugHelpers.h"
 #include "Animation/AnimInstanceProxy.h"
+#include "Engine/Canvas.h"
+#include "System/TetherMessaging.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(TetherStatics)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(TetherDrawing)
 
-void UTetherStatics::DrawLine(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Start, const FVector& End,
+void UTetherDrawing::DrawLine(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Start, const FVector& End,
 	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness)
 {
 	if (Proxy)
@@ -25,7 +22,7 @@ void UTetherStatics::DrawLine(const UWorld* World, FAnimInstanceProxy* Proxy, co
 	}
 }
 
-void UTetherStatics::DrawArrow(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Start, const FVector& End,
+void UTetherDrawing::DrawArrow(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Start, const FVector& End,
 	const FColor& Color, float ArrowSize, bool bPersistentLines, float LifeTime, float Thickness)
 {
 	if (Proxy)
@@ -38,7 +35,7 @@ void UTetherStatics::DrawArrow(const UWorld* World, FAnimInstanceProxy* Proxy, c
 	}
 }
 
-void UTetherStatics::DrawBox(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
+void UTetherDrawing::DrawBox(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
 	const FVector& Extent, const FQuat& Rotation, const FColor& Color, bool bPersistentLines, float LifeTime,
 	float Thickness)
 {
@@ -76,7 +73,7 @@ void UTetherStatics::DrawBox(const UWorld* World, FAnimInstanceProxy* Proxy, con
     DrawLine(World, Proxy, Center + TopBackRight, Center + BottomBackRight, Color, bPersistentLines, LifeTime, Thickness);
 }
 
-void UTetherStatics::DrawCircle(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float Radius,
+void UTetherDrawing::DrawCircle(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float Radius,
 	int32 Segments, const FColor& Color, const FVector& YAxis, const FVector& ZAxis, bool bPersistentLines,
 	float LifeTime, float Thickness)
 {
@@ -123,7 +120,7 @@ void UTetherStatics::DrawCircle(const UWorld* World, FAnimInstanceProxy* Proxy, 
 	}
 }
 
-void UTetherStatics::DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
+void UTetherDrawing::DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
 	const FQuat& Rotation, const FVector& AngularVelocity, const float Radius, float ArrowSize,
 	int32 Segments, const FColor& VelocityColor, const FColor& XAxisColor, const FColor& YAxisColor,
 	const FColor& ZAxisColor, bool bPersistentLines, float LifeTime, float Thickness)
@@ -149,7 +146,7 @@ void UTetherStatics::DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* 
 	}
 }
 
-UCanvas* UTetherStatics::GetDebugCanvas()
+UCanvas* UTetherDrawing::GetDebugCanvas()
 {
 	if (GEngine && GEngine->GameViewport)
 	{
@@ -178,7 +175,7 @@ UCanvas* UTetherStatics::GetDebugCanvas()
 }
 
 #if WITH_EDITOR
-FEditorViewportClient* UTetherStatics::GetActiveEditorViewportClient()
+FEditorViewportClient* UTetherDrawing::GetActiveEditorViewportClient()
 {
 	if (GIsEditor && GEditor->GetActiveViewport())
 	{
@@ -194,7 +191,7 @@ FEditorViewportClient* UTetherStatics::GetActiveEditorViewportClient()
 }
 #endif
 
-bool UTetherStatics::DrawText(const FString& DebugText, TArray<FTetherDebugText>* DebugTextArray,
+bool UTetherDrawing::DrawText(const FString& DebugText, TArray<FTetherDebugText>* DebugTextArray,
 	const FTetherShape* Shape, const FVector& WorldLocation, FColor TextColor, UFont* Font, float FontScale,
 	bool bDrawShadow)
 {
@@ -228,7 +225,7 @@ bool UTetherStatics::DrawText(const FString& DebugText, TArray<FTetherDebugText>
 	return true;
 }
 
-void UTetherStatics::ProcessText(TArray<FTetherDebugText>* DebugTextArray, const UWorld* World, UCanvas* Canvas)
+void UTetherDrawing::ProcessText(TArray<FTetherDebugText>* DebugTextArray, const UWorld* World, UCanvas* Canvas)
 {
 	if (!IsInGameThread())
 	{

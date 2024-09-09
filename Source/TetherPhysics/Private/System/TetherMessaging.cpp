@@ -30,7 +30,7 @@ void FTetherDebugTextService::Initialize(UObject* InWorldContext, bool bDrawGame
 			{
 				if (GetWorld())
 				{
-					UTetherStatics::ProcessText(&PendingDebugText, GetWorld(), Canvas);
+					UTetherDrawing::ProcessText(&PendingDebugText, GetWorld(), Canvas);
 				}
 				else
 				{
@@ -48,7 +48,7 @@ void FTetherDebugTextService::Initialize(UObject* InWorldContext, bool bDrawGame
 			{
 				if (GetWorld())
 				{
-					UTetherStatics::ProcessText(&PendingDebugText, GetWorld(), Canvas);
+					UTetherDrawing::ProcessText(&PendingDebugText, GetWorld(), Canvas);
 				}
 				else
 				{

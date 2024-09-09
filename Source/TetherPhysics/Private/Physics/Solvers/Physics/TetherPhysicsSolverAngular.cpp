@@ -5,6 +5,7 @@
 
 #include "TetherStatics.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
+#include "System/TetherDrawing.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherPhysicsSolverAngular)
 
@@ -137,12 +138,12 @@ void UTetherPhysicsSolverAngular::DrawDebug(const FTetherIO* InputData, FTetherI
 
 		static constexpr float GizmoRadius = 24.f;
 		
-		UTetherStatics::DrawRotationGizmo(World, Proxy, Center, Rotation, Data.AngularVelocity, GizmoRadius, 24.f, 32,
+		UTetherDrawing::DrawRotationGizmo(World, Proxy, Center, Rotation, Data.AngularVelocity, GizmoRadius, 24.f, 32,
 			FColor::Yellow, FColor::Red, FColor::Green, FColor::Blue,
 			bPersistentLines, LifeTime, Thickness);
 
 		const FVector ArrowEndLocation = Center + Data.AngularVelocity.GetSafeNormal() * GizmoRadius;
-		UTetherStatics::DrawText("Angular Velocity", PendingDebugText, Shape, ArrowEndLocation, FColor::Yellow);
+		UTetherDrawing::DrawText("Angular Velocity", PendingDebugText, Shape, ArrowEndLocation, FColor::Yellow);
 	}
 #endif
 }
