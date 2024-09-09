@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "TetherPhysicsTypes.h"
 #include "UObject/Object.h"
 #include "TetherShape.generated.h"
 
@@ -44,6 +45,14 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	TSubclassOf<UTetherShapeObject> TetherShapeClass = nullptr;
 
+	/** Defines how a physics object is controlled within the Tether physics engine. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	ETetherSimulationMode SimulationMode = ETetherSimulationMode::Simulated;
+
+	/** Defines the wake/sleep state of a physics object, determining whether it's actively simulated or idle. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	ETetherActivityState ActivityState = ETetherActivityState::Awake;
+	
 	/**
 	 * Typically represents the spatial grid bucket where the shape is located, used in broad-phase collision detection
 	 * This may be any kind of index in a non-spatial hashing system
