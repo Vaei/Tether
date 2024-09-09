@@ -13,6 +13,7 @@ enum class ETetherSimulationMode : uint8
 {
 	Simulated			UMETA(ToolTip="Simulated by the physics engine"),
 	Kinematic			UMETA(ToolTip="Does not respond to physics forces"),
+	Inertial			UMETA(ToolTip="Retains internal physics like damping but won't apply external forces"),
 };
 
 /**
