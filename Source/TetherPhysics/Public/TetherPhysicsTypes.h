@@ -19,7 +19,7 @@ enum class ETetherSimulationMode : uint8
  * Defines the wake/sleep state of a physics object, determining whether it's actively simulated or idle.
  */
 UENUM(BlueprintType)
-enum class ETetherWakeState : uint8
+enum class ETetherActivityState : uint8
 {
 	Awake				UMETA(ToolTip="Awake and actively simulated"),
 	ForceAwake			UMETA(ToolTip="Awake and actively simulated - will not sleep"),
