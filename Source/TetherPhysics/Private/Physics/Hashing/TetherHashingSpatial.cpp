@@ -98,14 +98,7 @@ void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputD
 				if (IsInSameOrAdjacentBucket(ShapeA, ShapeB))
 				{
 					// Determine which shape should perform the evaluation based on EfficiencyRating
-					if (ShapeA->EfficiencyRating >= ShapeB->EfficiencyRating)
-					{
-						Output->ShapePairs.Add(FTetherShapePair(IndexA, IndexB));
-					}
-					else
-					{
-						Output->ShapePairs.Add(FTetherShapePair(IndexB, IndexA));
-					}
+					Output->ShapePairs.Add(FTetherShapePair(IndexA, IndexB));
 				}
 			}
 		}

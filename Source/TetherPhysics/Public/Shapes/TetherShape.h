@@ -45,14 +45,6 @@ public:
 	TSubclassOf<UTetherShapeObject> TetherShapeClass = nullptr;
 
 	/**
-	 * The efficiency rating determines the order in which shapes are evaluated during collision checks.
-	 * Shapes with higher efficiency ratings are evaluated first, which can optimize certain types of
-	 * collision detection algorithms, particularly in asymmetric or computationally expensive pairings.
-	 */
-	UPROPERTY()
-	uint8 EfficiencyRating = 0;  // @TODO Implement efficiency rating generation for all shapes
-
-	/**
 	 * Typically represents the spatial grid bucket where the shape is located, used in broad-phase collision detection
 	 * This may be any kind of index in a non-spatial hashing system
 	 */
