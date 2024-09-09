@@ -10,6 +10,7 @@
 #include "Tether/Public/TetherPhysicsUpdate.h"
 #include "TetherEditorSubsystem.generated.h"
 
+class UTetherActivityStateHandler;
 class UTetherIntegrationSolver;
 class ATetherEditorShapeActor;
 class UTetherReplay;
@@ -47,6 +48,9 @@ protected:
 	UPROPERTY()
 	FSpatialHashingOutput SpatialHashingOutput;
 
+	UPROPERTY()
+	FTetherActivityStateInput ActivityStateHandlerInput;
+	
 	UPROPERTY()
 	FLinearInput LinearInput;
 
@@ -88,6 +92,9 @@ protected:
 	
 	UPROPERTY(Transient)
 	FGameplayTag LastNarrowPhaseCollisionDetection = FGameplayTag::EmptyTag;
+
+	UPROPERTY(Transient)
+	FGameplayTag LastActivityStateHandler = FGameplayTag::EmptyTag;
 	
 	UPROPERTY(Transient)
 	FGameplayTag LastLinearSolver = FGameplayTag::EmptyTag;
@@ -112,6 +119,9 @@ protected:
 
 	UPROPERTY(Transient)
 	const UTetherCollisionDetectionNarrowPhase* CurrentNarrowPhaseCollisionDetection = nullptr;
+
+	UPROPERTY(Transient)
+	const UTetherActivityStateHandler* CurrentActivityStateHandler = nullptr;
 	
 	UPROPERTY(Transient)
 	const UTetherPhysicsSolverLinear* CurrentLinearSolver = nullptr;

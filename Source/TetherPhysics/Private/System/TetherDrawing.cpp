@@ -3,6 +3,7 @@
 
 #include "System/TetherDrawing.h"
 
+#include "TetherPhysicsTypes.h"
 #include "Animation/AnimInstanceProxy.h"
 #include "Engine/Canvas.h"
 #include "System/TetherMessaging.h"
@@ -273,6 +274,29 @@ void UTetherDrawing::DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* 
 		DrawArrow(World, Proxy, Center, EndLocation, VelocityColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
 	}
 #endif
+}
+
+FString UTetherDrawing::SimulationModeString(ETetherSimulationMode Mode)
+{
+	switch (Mode)
+	{
+	case ETetherSimulationMode::Simulated: return "Simulated";
+	case ETetherSimulationMode::Kinematic: return "Kinematic";
+	case ETetherSimulationMode::Inertial: return "Inertial";
+	default: return "None";
+	}
+}
+
+FString UTetherDrawing::GetActivityStateString(ETetherActivityState State)
+{
+	switch (State)
+	{
+	case ETetherActivityState::Awake: return "Awake";
+	case ETetherActivityState::ForceAwake: return "ForceAwake";
+	case ETetherActivityState::Asleep: return "Asleep";
+	case ETetherActivityState::ForceAsleep: return "ForceAsleep";
+	default: return "None";
+	}
 }
 
 UCanvas* UTetherDrawing::GetDefaultCanvas()

@@ -30,6 +30,9 @@ class TETHERPHYSICS_API UTetherPhysicsSolverLinear : public UObject
 {
 	GENERATED_BODY()
 
+protected:
+	static void ApplyLinearDamping(FVector& Velocity, const FLinearInputSettings& Settings, float DeltaTime);
+	
 public:
 	/**
 	 * Perform linear physics calculations based on the input data and produce output results.

@@ -8,6 +8,7 @@
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
 #include "Physics/Collision/TetherCollisionDetectionNarrowPhase.h"
 #include "Physics/Collision/TetherCollisionDetectionHandler.h"
+#include "Physics/Handlers/TetherActivityStateHandler.h"
 #include "Physics/Hashing/TetherHashing.h"
 #include "Physics/Replay/TetherReplay.h"
 #include "Physics/Solvers/Integration/TetherIntegrationSolver.h"
@@ -33,7 +34,7 @@ class UTetherDataAsset;
  * - Solvers: A map of gameplay tags to available physics solver classes.
  * - Collision Detection Handler: The class used to manage collisions between different shapes in the Tether physics system.
  */
-UCLASS(Config=Game)
+UCLASS(Config=Tether)
 class TETHERPHYSICS_API UTetherSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
@@ -54,6 +55,10 @@ public:
 	/** A map of gameplay tags to available collision detection handlers for Tether */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Detection.CollisionHandler"))
 	TMap<FGameplayTag, TSubclassOf<UTetherCollisionDetectionHandler>> CollisionDetectionHandlers;
+
+	/** A map of gameplay tags to available activity state handlers for Tether */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.ActivityState"))
+	TMap<FGameplayTag, TSubclassOf<UTetherActivityStateHandler>> ActivityStateHandlers;
 
 	/** A map of gameplay tags to available linear physics solvers for Tether */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Solver.Linear"))
@@ -128,6 +133,17 @@ public:
 	static const T* GetHashingSystem(const FGameplayTag& Tag)
 	{
 		return GetInternal<UTetherHashing, T>(Tag, Get()->HashingSystems);
+	}
+
+	/** Retrieves an activity state handler based on the provided gameplay tag and casts it to the specified type */
+	template<typename T>
+	static const T* GetActivityStateHandler(const FGameplayTag& Tag)
+	{
+		return GetInternal<UTetherActivityStateHandler, T>(Tag, Get()->ActivityStateHandlers);
+	}
+	static const UTetherActivityStateHandler* GetActivityStateHandler(const FGameplayTag& Tag)
+	{
+		return GetInternal<UTetherActivityStateHandler>(Tag, Get()->ActivityStateHandlers);
 	}
 
 	/** Retrieves a linear physics solver based on the provided gameplay tag and casts it to the specified type */

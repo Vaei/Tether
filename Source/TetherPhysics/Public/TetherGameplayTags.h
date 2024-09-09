@@ -22,6 +22,9 @@ namespace FTetherGameplayTags
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Detection_NarrowPhase);
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Detection_CollisionHandler);
 
+	/** Gameplay tags for tether activity state handlers */
+	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_ActivityState);
+	
 	/** Gameplay tags for tether physics solvers */
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Linear);
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Angular);

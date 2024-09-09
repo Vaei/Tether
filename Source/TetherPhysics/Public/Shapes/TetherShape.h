@@ -52,6 +52,49 @@ public:
 	/** Defines the wake/sleep state of a physics object, determining whether it's actively simulated or idle. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	ETetherActivityState ActivityState = ETetherActivityState::Awake;
+
+	bool IsAwake() const
+	{
+		return ActivityState == ETetherActivityState::Awake || ActivityState == ETetherActivityState::ForceAwake;
+	}
+
+	bool IsAsleep() const
+	{
+		return !IsAwake();
+	}
+
+	/** World Time when last broad phase collision resulted in an overlap */
+	UPROPERTY(BlueprintReadOnly, Category=Tether)
+	double LastBroadCollisionTime = INFINITY;
+
+	/** World Time when last narrow phase collision resulted in an overlap */
+	UPROPERTY(BlueprintReadOnly, Category=Tether)
+	double LastNarrowCollisionTime = INFINITY;
+
+	static double TimeSince(double WorldTime, double Time)
+	{
+		return WorldTime - Time;
+	}
+	
+	double TimeSinceBroadCollision(double WorldTime) const
+	{
+		return TimeSince(WorldTime, LastBroadCollisionTime);
+	}
+
+	bool HasRecentBroadCollision(double WorldTime, double Time) const
+	{
+		return TimeSinceBroadCollision(WorldTime) <= Time;
+	}
+
+	double TimeSinceNarrowCollision(double WorldTime) const
+	{
+		return TimeSince(WorldTime, LastNarrowCollisionTime);
+	}
+
+	bool HasRecentNarrowCollision(double WorldTime, double Time) const
+	{
+		return TimeSinceNarrowCollision(WorldTime) <= Time;
+	}
 	
 	/**
 	 * Typically represents the spatial grid bucket where the shape is located, used in broad-phase collision detection
@@ -74,6 +117,9 @@ public:
 	UTetherShapeObject* GetTetherShapeObject() const;
 	FGameplayTag GetShapeType() const;
 	static FGameplayTag StaticShapeType() { return FGameplayTag::EmptyTag; }
+
+	FString GetName() const;
+	FName GetFName() const { return FName(GetName()); }
 
 	FVector GetCenter() const;
 	

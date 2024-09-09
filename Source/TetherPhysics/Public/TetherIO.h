@@ -162,6 +162,29 @@ struct TETHERPHYSICS_API FSpatialHashingOutput : public FTetherIO
 };
 
 /**
+ *
+ */
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FTetherActivityStateInput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FTetherActivityStateInput()
+		: Settings(nullptr)
+		, Shapes(nullptr)
+		 , WorldTime(-1.0)
+	{}
+
+	const FTetherActivitySettings* Settings;
+
+	/** Shapes to manage activity state for */
+	const TArray<FTetherShape*>* Shapes;
+
+	UPROPERTY()
+	double WorldTime;
+};
+
+/**
  * Input data for linear physics simulations.
  *
  * This struct includes properties for forces, mass, damping, and other factors
@@ -231,9 +254,12 @@ struct TETHERPHYSICS_API FLinearInput : public FTetherIO
 	GENERATED_BODY()
 
 	FLinearInput()
+		: WorldTime(-1.0)
 	{}
 
-	TMap<const FTetherShape*, FLinearInputSettings> ShapeSettings;
+	TMap<FTetherShape*, FLinearInputSettings> ShapeSettings;
+
+	double WorldTime;
 };
 
 /**
@@ -548,11 +574,13 @@ struct TETHERPHYSICS_API FTetherBroadPhaseCollisionInput : public FTetherIO
 	FTetherBroadPhaseCollisionInput()
 		: Shapes(nullptr)
 		, PotentialCollisionPairings(nullptr)
+		, WorldTime(-1.0)
 	{}
 
-	FTetherBroadPhaseCollisionInput(const TArray<FTetherShape*>* InShapes, const TArray<FTetherShapePair>* InPotentialPairs)
+	FTetherBroadPhaseCollisionInput(const TArray<FTetherShape*>* InShapes, const TArray<FTetherShapePair>* InPotentialPairs, double InWorldTime = -1.0)
 		: Shapes(InShapes)
 		, PotentialCollisionPairings(InPotentialPairs)
+		, WorldTime(InWorldTime)
 	{}
 
 	/** Array of shapes to be processed in the broad-phase collision detection */
@@ -560,6 +588,9 @@ struct TETHERPHYSICS_API FTetherBroadPhaseCollisionInput : public FTetherIO
 
 	/** Pairs of shapes that have been identified as potential collisions during spatial hashing */
 	const TArray<FTetherShapePair>* PotentialCollisionPairings;
+
+	UPROPERTY()
+	double WorldTime;
 };
 
 /**

@@ -29,6 +29,9 @@ UTetherSettings::UTetherSettings(const FObjectInitializer& ObjectInitializer)
 	BroadPhaseDetectionSystems.Add({ FTetherGameplayTags::Tether_Detection_BroadPhase.GetTag(), UTetherCollisionDetectionBroadPhase::StaticClass() });
 	NarrowPhaseDetectionSystems.Add({ FTetherGameplayTags::Tether_Detection_NarrowPhase.GetTag(), UTetherCollisionDetectionNarrowPhase::StaticClass() });
 	CollisionDetectionHandlers.Add({ FTetherGameplayTags::Tether_Detection_CollisionHandler.GetTag(), UTetherCollisionDetectionHandler::StaticClass() });
+
+	// Default Activity State Handler
+	ActivityStateHandlers.Add({ FTetherGameplayTags::Tether_ActivityState.GetTag(), UTetherActivityStateHandler::StaticClass() });
 	
 	// Default Physics Solvers
 	LinearPhysicsSolvers.Add({ FTetherGameplayTags::Tether_Solver_Linear.GetTag(), UTetherPhysicsSolverLinear::StaticClass() });

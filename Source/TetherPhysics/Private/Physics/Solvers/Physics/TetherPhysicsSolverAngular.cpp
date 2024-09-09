@@ -16,6 +16,21 @@ namespace FTether
 #endif
 }
 
+void UTetherPhysicsSolverAngular::ApplyAngularDamping(FVector& AngularVelocity, const FAngularInputSettings& Settings,
+	float DeltaTime)
+{
+	// Apply damping to slow down angular velocity
+	switch (Settings.DampingModel)
+	{
+	case ETetherDampingModel::SimpleLinear:
+		AngularVelocity *= (1.f - Settings.AngularDamping * DeltaTime);
+		break;
+	case ETetherDampingModel::ExponentialDecay:
+		AngularVelocity *= FMath::Exp(-Settings.AngularDamping * DeltaTime);
+		break;
+	}
+}
+
 void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform,
 	float DeltaTime) const
 {
@@ -31,9 +46,21 @@ void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* O
 		FVector& AngularVelocity = AngularData.AngularVelocity;
 		FVector& Inertia = AngularData.Inertia;
 
+		// Skip asleep shapes
+		if (Shape->IsAsleep())
+		{
+			continue;
+		}
+
+		// Skip Kinematic objects - they don't respond to physics forces
+		if (Shape->SimulationMode == ETetherSimulationMode::Kinematic)
+		{
+			continue;
+		}
+
 		const FTetherShape_AxisAlignedBoundingBox AABB = Shape->GetTetherShapeObject()->GetBoundingBox(*Shape);
 		const FVector BoxExtent = AABB.GetBoxExtents();
-	
+
 		// Use dynamic inertia calculation based on BoxExtent if bUseDynamicInertia is true
 		if (Settings.bUseDynamicInertia)
 		{
@@ -61,29 +88,18 @@ void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* O
 			Torque = FVector::CrossProduct(Settings.PointOfApplication - Settings.CenterOfMass, Settings.Torque);
 		}
 
-		// Clamp small inertia values to avoid division by zero
-		Inertia.X = FMath::Max(Inertia.X, KINDA_SMALL_NUMBER);
-		Inertia.Y = FMath::Max(Inertia.Y, KINDA_SMALL_NUMBER);
-		Inertia.Z = FMath::Max(Inertia.Z, KINDA_SMALL_NUMBER);
-
-		// Calculate angular acceleration based on the net torque and inertia
-		const FVector AngularAcceleration = (Torque - Settings.FrictionTorque) * (FVector::OneVector / Inertia);
-
-		// Update angular velocity using the angular acceleration
-		AngularVelocity += AngularAcceleration * DeltaTime;
-
-		// Apply damping to slow down angular velocity
-		switch (Settings.DampingModel)
+		// Inertial mode only applies damping
+		if (Shape->SimulationMode == ETetherSimulationMode::Inertial)
 		{
-		case ETetherDampingModel::SimpleLinear:
-			AngularVelocity *= (1.f - Settings.AngularDamping * DeltaTime);
-			break;
-		case ETetherDampingModel::ExponentialDecay:
-			AngularVelocity *= FMath::Exp(-Settings.AngularDamping * DeltaTime);
-			break;
+			ApplyAngularDamping(AngularVelocity, Settings, DeltaTime);
+			continue;
 		}
 
-		// Apply angular drag due to air resistance, which is proportional to the square of the velocity
+		// Simulated mode: Apply forces, acceleration, and damping
+		AngularVelocity += (Torque - Settings.FrictionTorque) * (FVector::OneVector / Inertia) * DeltaTime;
+		ApplyAngularDamping(AngularVelocity, Settings, DeltaTime);
+
+		// Apply angular drag due to air resistance
 		float DragForce = Settings.AngularDragCoefficient * AngularVelocity.SizeSquared();
 		FVector DragTorque = -AngularVelocity.GetSafeNormal() * DragForce * DeltaTime;
 		AngularVelocity += DragTorque;
@@ -92,17 +108,8 @@ void UTetherPhysicsSolverAngular::Solve(const FTetherIO* InputData, FTetherIO* O
 		float AngularVelocityMagnitude = AngularVelocity.Size();
 		if (AngularVelocityMagnitude > Settings.MaxAngularVelocity)
 		{
-			if (!FMath::IsNearlyZero(AngularVelocityMagnitude))
-			{
-				AngularVelocity *= Settings.MaxAngularVelocity / AngularVelocityMagnitude;
-			}
-			else
-			{
-				AngularVelocity = FVector::ZeroVector;
-			}
+			AngularVelocity *= Settings.MaxAngularVelocity / AngularVelocityMagnitude;
 		}
-
-		// UE_LOG(LogTemp, Log, TEXT("AngularVelocity %s"), *AngularVelocity.ToString());
 	}
 }
 

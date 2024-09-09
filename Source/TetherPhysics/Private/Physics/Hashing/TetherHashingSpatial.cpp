@@ -68,8 +68,10 @@ void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputD
 	// Now add all shapes to the spatial hash map using the fixed bucket size
 	for (int32 i = 0; i < Input->Shapes->Num(); i++)
 	{
+		// Init debug info string
+		FString DebugString = FString::Printf(TEXT("{ %s }"), *Shapes[i]->GetName());
+
 		// Add shape to spatial hash
-		FString DebugString = FString::Printf(TEXT("{ %s }"), *Shapes[i]->GetTetherShapeObject()->GetShapeDebugString());
 		AddShapeToSpatialHash(Input, Output, i, Shapes[i], DebugString);
 
 		// Output debug info

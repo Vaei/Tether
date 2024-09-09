@@ -3,7 +3,6 @@
 
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
 
-#include "TetherSettings.h"
 #include "TetherIO.h"
 #include "TetherStatics.h"
 #include "Physics/Collision/TetherCollisionDetectionHandler.h"
@@ -31,8 +30,8 @@ void UTetherCollisionDetectionBroadPhase::DetectCollision(const FTetherIO* Input
 	// Iterate through each potential collision pair
 	for (const FTetherShapePair& Pair : *Input->PotentialCollisionPairings)
 	{
-		const FTetherShape* ShapeA = (*Input->Shapes)[Pair.ShapeIndexA];
-		const FTetherShape* ShapeB = (*Input->Shapes)[Pair.ShapeIndexB];
+		FTetherShape* ShapeA = (*Input->Shapes)[Pair.ShapeIndexA];
+		FTetherShape* ShapeB = (*Input->Shapes)[Pair.ShapeIndexB];
 
 		// Perform broad-phase collision checks between ShapeA and ShapeB
 		if (CollisionDetectionHandler->CheckBroadCollision(ShapeA, ShapeB))
@@ -40,13 +39,15 @@ void UTetherCollisionDetectionBroadPhase::DetectCollision(const FTetherIO* Input
 			// If a collision is detected, add it to the output
 			Output->CollisionPairings.Add(Pair);
 
+			// Assign WorldTime so we know when they might need to be woken in later stages
+			ShapeA->LastBroadCollisionTime = Input->WorldTime;
+			ShapeB->LastBroadCollisionTime = Input->WorldTime;
+
 			// Debug logging
 			if (FTether::CVarTetherLogBroadPhaseCollision.GetValueOnAnyThread())
 			{
 				UE_LOG(LogTether, Warning, TEXT("[ %s ] Shape { %s } broad-phase overlap with { %s }"),
-					*FString(__FUNCTION__),
-					*ShapeA->GetTetherShapeObject()->GetShapeDebugString(),
-					*ShapeB->GetTetherShapeObject()->GetShapeDebugString());
+					*FString(__FUNCTION__), *ShapeA->GetName(), *ShapeB->GetName());
 			}
 		}
 	}

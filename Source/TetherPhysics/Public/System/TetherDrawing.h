@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "TetherDrawing.generated.h"
 
+enum class ETetherActivityState : uint8;
+enum class ETetherSimulationMode : uint8;
 struct FTetherShape;
 struct FTetherDebugText;
 
@@ -27,6 +29,10 @@ public:
 		int32 Segments = 32, const FColor& VelocityColor = FColor::Orange, const FColor& XAxisColor = FColor::Red,
 		const FColor& YAxisColor = FColor::Green, const FColor& ZAxisColor = FColor::Blue,
 		bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
+
+public:
+	static FString SimulationModeString(ETetherSimulationMode Mode);
+	static FString GetActivityStateString(ETetherActivityState State);
 	
 public:
 	static UCanvas* GetDefaultCanvas();

@@ -18,6 +18,11 @@ FGameplayTag FTetherShape::GetShapeType() const
 	return GetTetherShapeObject() ? GetTetherShapeObject()->GetShapeType() : FGameplayTag::EmptyTag;
 }
 
+FString FTetherShape::GetName() const
+{
+	return GetTetherShapeObject() ? GetTetherShapeObject()->GetShapeDebugString() : GetShapeType().ToString();
+}
+
 FVector FTetherShape::GetCenter() const
 {
 	return GetTetherShapeObject() ? GetTetherShapeObject()->GetLocalSpaceShapeCenter(*this) : FVector::ZeroVector;

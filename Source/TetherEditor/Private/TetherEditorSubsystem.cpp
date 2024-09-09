@@ -91,6 +91,12 @@ bool UTetherEditorSubsystem::UpdateGameplayTagReferences()
 		LastBroadPhaseCollisionDetection = Data->BroadPhaseCollisionDetection;
 		CurrentBroadPhaseCollisionDetection = UTetherSettings::GetBroadPhaseSystem(Data->BroadPhaseCollisionDetection);
 	}
+	
+	if (LastActivityStateHandler != Data->ActivityStateHandler)
+	{
+		LastActivityStateHandler = Data->ActivityStateHandler;
+		CurrentActivityStateHandler = UTetherSettings::GetActivityStateHandler<UTetherActivityStateHandler>(Data->ActivityStateHandler);
+	}
 
 	if (LastLinearSolver != Data->LinearSolver)
 	{
@@ -177,6 +183,8 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	// Pass shapes to Inputs
 	SpatialHashingInput.Shapes = &Shapes;
 	BroadPhaseInput.Shapes = &Shapes;
+	ActivityStateHandlerInput.Shapes = &Shapes;
+	ActivityStateHandlerInput.Settings = &Data->ActivitySettings;
 	IntegrationInput.Shapes = &ShapeTransforms;
 	IntegrationInput.LinearInput = &LinearInput;
 	IntegrationInput.LinearOutput = &LinearOutput;
@@ -194,7 +202,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	OriginPoint /= Origins.Num();
 	FTransform Origin = { FQuat::Identity, OriginPoint };
 
-	float WorldTime = GetWorld()->GetTimeSeconds();
+	double WorldTime = GetWorld()->GetTimeSeconds();
 	
 	// Start the frame with the current DeltaTime
 	PhysicsUpdate.StartFrame(DeltaTime);
@@ -204,30 +212,39 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	{
 		const float& TimeTick = PhysicsUpdate.TimeTick;
 
-		// 0. Spatial Hashing - Generate shape pairs based on proximity and efficiency ratings for priority
+		// Spatial Hashing - Generate shape pairs based on proximity and efficiency ratings for priority
 		if (CurrentHashingSystem)
 		{
 			CurrentHashingSystem->Solve(&SpatialHashingInput, &SpatialHashingOutput, Origin, TimeTick);
 			CurrentHashingSystem->DrawDebug(&SpatialHashingInput, &SpatialHashingOutput, Origin, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 		
-		// 1. Solve Broad-Phase Collision
+		// Solve Broad-Phase Collision
 		if (CurrentBroadPhaseCollisionDetection)
 		{
 			// Optional but common optimization step where you quickly check if objects are close enough to potentially
 			// collide. It reduces the number of detailed collision checks needed in the narrow phase.
 			BroadPhaseInput.PotentialCollisionPairings = &SpatialHashingOutput.ShapePairs;
+			BroadPhaseInput.WorldTime = WorldTime;
 			CurrentBroadPhaseCollisionDetection->DetectCollision(&BroadPhaseInput, &BroadPhaseOutput, CurrentCollisionDetectionHandler);
 			CurrentBroadPhaseCollisionDetection->DrawDebug(&BroadPhaseInput, &BroadPhaseOutput, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 
-		// 2. Solve Linear & Angular Physics
+		// Pre-Solve Activity State (Wake)
+		if (CurrentActivityStateHandler)
+		{
+			ActivityStateHandlerInput.WorldTime = WorldTime;
+			CurrentActivityStateHandler->PreSolveWake(&ActivityStateHandlerInput, &LinearInput, &AngularInput, DeltaTime);
+		}
+
+		// Solve Linear & Angular Physics
 		
 		// These steps calculate the velocities that will be applied to the object. By solving linear and angular
 		// physics first, you get the raw velocities that are then used in integration.
 		
 		if (CurrentLinearSolver)
 		{
+			LinearInput.WorldTime = WorldTime;
 			CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, Origin, TimeTick);
 			CurrentLinearSolver->DrawDebug(&LinearInput, &LinearOutput, ShapeTransforms, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
@@ -238,8 +255,15 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 			CurrentAngularSolver->DrawDebug(&AngularInput, &AngularOutput, ShapeTransforms, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld(),
 				FColor::Emerald, FColor::Cyan, FColor::Orange);
 		}
+
+		// Post-Solve Activity State (Sleep)
+		if (CurrentActivityStateHandler)
+		{
+			CurrentActivityStateHandler->PostSolveSleep(&ActivityStateHandlerInput, &LinearInput, &AngularInput, &LinearOutput, &AngularOutput, DeltaTime);
+			CurrentActivityStateHandler->DrawDebug(&ActivityStateHandlerInput, ShapeTransforms, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
+		}
 		
-		// 3. Solve Integration
+		// Solve Integration
 		
 		// This part of the solver takes the results from the linear and angular solvers and updates the position and
 		// orientation of objects over time. It essentially integrates the calculated forces and torques to determine
@@ -265,23 +289,23 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 			}
 		}
 		
-		// 4. @todo Record state of all objects post-integration for replay purposes
+		// @todo Record state of all objects post-integration for replay purposes
 
-		// 4.5 @todo Override the physics engine's output with recorded data
+		// @todo Override the physics engine's output with recorded data
 
 		if (CurrentReplaySystem)
 		{
 			CurrentReplaySystem->RecordPhysicsState(&RecordedData, WorldTime, &LinearInput, &AngularInput);
 		}
 		//
-		// // 5. Spatial Hashing - Re-Generate shape pairs, because the shapes have moved and narrow-phase is expensive
+		// // Spatial Hashing - Re-Generate shape pairs, because the shapes have moved and narrow-phase is expensive
 		// if (CurrentHashingSystem)
 		// {
 		// 	// @todo use mesh or actor TM probably
 		// 	CurrentHashingSystem->Solve(&SpatialHashingInput, &SpatialHashingOutput, Origin, TimeTick);
 		// }
 		
-		// 6. @todo Solve Narrow-Phase Collision
+		// @todo Solve Narrow-Phase Collision
 		// @todo add checks for nothing in nearby bucket, skip both broad phase and narrow phase if required
 		// if (CurrentNarrowPhaseCollisionDetection)
 		// {
@@ -292,12 +316,12 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		// This step checks for actual collisions using detailed geometry after the object has been moved.
 		// It’s a more precise and computationally expensive check compared to the broad phase.
 
-		// 7. @todo Solve Contact
+		// @todo Solve Contact
 
 		// After detecting a collision, this step resolves it by adjusting the object's position and velocities. It
 		// prevents interpenetration and handles the physical response of the objects involved in the collision.
 
-		// 8. @todo Solve Constraints (Multiple!)
+		// @todo Solve Constraints (Multiple!)
 
 		// This handles constraints that limit or define the relationships between objects, such as joints
 		// (e.g., hinges or sliders) that allow or restrict certain movements between connected objects.

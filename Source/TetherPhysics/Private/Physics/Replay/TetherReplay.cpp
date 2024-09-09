@@ -22,7 +22,7 @@ void UTetherReplay::RecordPhysicsState(FTetherIO* RecordedData, double TimeStamp
 			ObjectRecording->AddFrame(TimeStamp, LinearInput, AngularInput);
 
 			// Log the physics state to Visual Logger
-			UE_VLOG(this, LogTetherReplay, Log, TEXT("Recorded Physics State for Shape: %s at Time: %f"), *Shape->GetShapeType().ToString(), TimeStamp);
+			UE_VLOG(this, LogTetherReplay, Log, TEXT("Recorded Physics State for Shape: %s at Time: %f"), *Shape->GetName(), TimeStamp);
 		}
 	}
 }
@@ -54,7 +54,7 @@ bool UTetherReplay::ReplayPhysicsState(const FTetherIO* RecordedData, double Tim
 					bSuccess = true;
 					
 					// Log the replayed physics state
-					UE_VLOG(this, LogTetherReplay, Log, TEXT("Replayed Physics State for Shape: %s at Time: %f"), *Shape->GetShapeType().ToString(), TimeStamp);
+					UE_VLOG(this, LogTetherReplay, Log, TEXT("Replayed Physics State for Shape: %s at Time: %f"), *Shape->GetName(), TimeStamp);
 
 					// In ShortCircuit mode, return immediately after the first successful match
 					if (ReplayMode == ETetherReplayMode::ShortCircuit)

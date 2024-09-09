@@ -30,6 +30,9 @@ class TETHERPHYSICS_API UTetherPhysicsSolverAngular : public UObject
 {
 	GENERATED_BODY()
 
+protected:
+	static void ApplyAngularDamping(FVector& AngularVelocity, const FAngularInputSettings& Settings, float DeltaTime);
+
 public:
 	/**
 	 * Perform angular physics calculations based on the input data and produce output results.
