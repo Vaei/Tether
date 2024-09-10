@@ -10,14 +10,14 @@ void UTetherIntegrationSolverRK4::Solve(const FTetherIO* InputData, FTetherIO* O
 	const auto* Input = InputData->GetDataIO<FIntegrationInput>();
 	auto* Output = OutputData->GetDataIO<FIntegrationOutput>();
 
-	Output->Shapes.Reset();
-
 	// Loop through each shape being simulated
 	for (const auto& ShapeItr : *Input->Shapes)
 	{
 		// Retrieve shape data
 		const FTetherShape* const& Shape = ShapeItr.Key;
-		const FTransform* CurrentTransform = ShapeItr.Value;
+
+		// Grab the transform from output if it exists due to updating multiple times per tick; otherwise from Input on first sub-tick
+		const FTransform* CurrentTransform = Output->Shapes.Contains(Shape) ? &Output->Shapes[Shape] : ShapeItr.Value;
 		FTransform Transform = *CurrentTransform;
 		
 		// Get the shape-specific input and output data
@@ -66,6 +66,15 @@ void UTetherIntegrationSolverRK4::Solve(const FTetherIO* InputData, FTetherIO* O
 
 		// Update the output data for rotation
 		Transform.SetRotation(NewRotation);
-		Output->Shapes.Add(Shape, Transform);
+		
+		// Update or Add Transform
+		if (Output->Shapes.Contains(Shape))
+		{
+			Output->Shapes[Shape] = Transform;
+		}
+		else
+		{
+			Output->Shapes.Add(Shape, Transform);
+		}
 	}
 }

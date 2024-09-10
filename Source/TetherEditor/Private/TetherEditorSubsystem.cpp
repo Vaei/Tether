@@ -190,6 +190,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	IntegrationInput.LinearOutput = &LinearOutput;
 	IntegrationInput.AngularInput = &AngularInput;
 	IntegrationInput.AngularOutput = &AngularOutput;
+	IntegrationOutput.Shapes.Reset();
 	RecordedData.Shapes = &Shapes;
 	
 	// Compute an origin at the center of all shape actors
@@ -272,21 +273,6 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		if (CurrentIntegrationSolver)
 		{
 			CurrentIntegrationSolver->Solve(&IntegrationInput, &IntegrationOutput, TimeTick);
-
-			// Update actual transforms based on integration result
-			for (const auto& ActorItr : ShapeActorMap)
-			{
-				const FTetherShape* const& Shape = ActorItr.Key;
-				ATetherEditorShapeActor* Actor = ActorItr.Value;
-				if (ensure(IsValid(Actor)))
-				{
-					const FTransform* Transform = IntegrationOutput.Shapes.Find(Shape);
-					if (ensure(Transform))
-					{
-						Actor->SetActorTransform(*Transform);
-					}
-				}
-			}
 		}
 		
 		// @todo Record state of all objects post-integration for replay purposes
@@ -333,6 +319,21 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 
 		WorldTime += TimeTick;
 		PhysicsUpdate.FinalizeTick();
+	}
+	
+	// Update actual transforms based on integration result
+	for (const auto& ActorItr : ShapeActorMap)
+	{
+		const FTetherShape* const& Shape = ActorItr.Key;
+		ATetherEditorShapeActor* Actor = ActorItr.Value;
+		if (ensure(IsValid(Actor)))
+		{
+			const FTransform* Transform = IntegrationOutput.Shapes.Find(Shape);
+			if (ensure(Transform))
+			{
+				Actor->SetActorTransform(*Transform);
+			}
+		}
 	}
 
 	// Print any pending messages
