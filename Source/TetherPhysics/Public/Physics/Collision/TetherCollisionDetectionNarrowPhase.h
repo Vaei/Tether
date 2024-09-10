@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TetherIO.h"
 #include "Shapes/TetherShape.h"
 #include "UObject/Object.h"
 #include "TetherCollisionDetectionNarrowPhase.generated.h"
 
+class UTetherCollisionDetectionHandler;
 struct FTetherNarrowPhaseCollisionOutput;
 
 /**
@@ -35,12 +37,15 @@ class TETHERPHYSICS_API UTetherCollisionDetectionNarrowPhase : public UObject
 
 public:
 	/**
-	 * Perform detailed collision detection between objects using narrow-phase techniques.
+	 * Perform narrow-phase collision detection between pairs of objects identified in the broad phase.
+	 * This involves detailed checks between the shapes of the objects to detect actual collisions,
+	 * calculate contact points, penetration depth, and other collision response data.
 	 *
-	 * @param BoneShapes The array of shapes representing objects in the simulation.
-	 * @param Output The output array that will store the detailed collision information for each detected collision.
+	 * @param InputData						The input data structure containing the potential collision pairs from the broad-phase, as well as shape and transformation data.
+	 * @param OutputData					The output data structure that will store detailed collision information, such as contact points, penetration depth, and collision normal.
+	 * @param CollisionDetectionHandler		The handler responsible for performing the narrow-phase collision checks for specific shape types.
 	 */
-	virtual void DetectCollision(const TArray<FTetherShape>& BoneShapes, TArray<FTetherNarrowPhaseCollisionOutput>& Output) const;
+	virtual void DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData, const FTetherIO* LinearOutputData, FTetherIO* AngularOutputData, const UTetherCollisionDetectionHandler* CollisionDetectionHandler) const;
 
 	/**
 	 * Visualize the results of the narrow-phase collision detection.

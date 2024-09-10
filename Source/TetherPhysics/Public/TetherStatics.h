@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+#include "TetherStatics.generated.h"
 
 /**
  * Declares a custom stats group for the Tether system, used for profiling and performance tracking.
@@ -29,3 +31,20 @@ namespace FTether
 	 */
 	static constexpr float MomentOfInertia = 12.f;
 }
+
+UCLASS()
+class TETHERPHYSICS_API UTetherStatics : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+
+public:
+	static FVector GetVelocityAtPoint(const FVector& Point, const FVector& CenterOfMass, const FVector& LinearVelocity, const FVector& AngularVelocity)
+	{
+		// Compute the vector from the center of mass to the given point
+		const FVector r = Point - CenterOfMass;
+
+		// Calculate the velocity at the point, using the linear and angular velocity
+		// The angular contribution is given by AngularVelocity x r
+		return LinearVelocity + FVector::CrossProduct(AngularVelocity, r);
+	}
+};

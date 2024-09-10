@@ -387,6 +387,8 @@ struct TETHERPHYSICS_API FLinearOutput : public FTetherIO
 
 	/** Linear velocity results for each shape in the simulation */
 	TMap<const FTetherShape*, FLinearOutputData> ShapeData;
+
+	const FVector& GetLinearVelocity(const FTetherShape* Shape) const { return ShapeData.FindChecked(Shape).LinearVelocity; }
 };
 
 /**
@@ -432,6 +434,9 @@ struct TETHERPHYSICS_API FAngularOutput : public FTetherIO
 
 	/** Angular velocity results for each shape in the simulation */
 	TMap<const FTetherShape*, FAngularOutputData> ShapeData;
+	
+	const FVector& GetAngularVelocity(const FTetherShape* Shape) const { return ShapeData.FindChecked(Shape).AngularVelocity; }
+	const FVector& GetInertia(const FTetherShape* Shape) const { return ShapeData.FindChecked(Shape).Inertia; }
 };
 
 /**
@@ -530,6 +535,85 @@ struct TETHERPHYSICS_API FIntegrationOutput : public FTetherIO
 };
 
 /**
+ * Input data for broad-phase collision detection.
+ *
+ * This struct contains information needed for performing broad-phase collision detection,
+ * including the array of shapes to be processed and the potential collision pairs identified
+ * during spatial hashing.
+ */
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionInput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FTetherNarrowPhaseCollisionInput()
+		: Shapes(nullptr)
+		, CollisionPairings(nullptr)
+	{}
+
+	/** Array of shapes to be processed in the narrow-phase collision detection */
+	const TArray<FTetherShape*>* Shapes;
+
+	/** Pairings detected during Broad-Phase collision */
+	const TArray<FTetherShapePair>* CollisionPairings;
+};
+
+/**
+ * Individual shape output data of a narrow-phase collision check.
+ *
+ * This struct includes properties such as whether a collision occurred,
+ * the contact point, and the penetration depth of the collision.
+ */
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionEntry : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FTetherNarrowPhaseCollisionEntry()
+		: ShapeA(nullptr)
+		, ShapeB(nullptr)
+		, bHasCollision(false)
+		, ContactPoint(FVector::ZeroVector)
+		, ContactNormal(FVector::ZeroVector)
+		, PenetrationDepth(0.f)
+		, RelativeVelocity(FVector::ZeroVector)
+	{}
+
+	FTetherNarrowPhaseCollisionEntry(const FTetherShape* InShapeA, const FTetherShape* InShapeB, bool bInHasCollision = false)
+		: ShapeA(InShapeA)
+		, ShapeB(InShapeB)
+		, bHasCollision(bInHasCollision)
+		, ContactPoint(FVector::ZeroVector)
+		, ContactNormal(FVector::ZeroVector)
+		, PenetrationDepth(0.f)
+		, RelativeVelocity(FVector::ZeroVector)
+	{}
+	
+	const FTetherShape* ShapeA;
+	const FTetherShape* ShapeB;
+
+	/** Indicates whether a collision was detected */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	bool bHasCollision;
+
+	/** Contact point of the collision */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FVector ContactPoint;
+
+	/** Normal vector at the contact point */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FVector ContactNormal;
+
+	/** Depth of penetration in the collision */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	float PenetrationDepth;
+
+	/** Relative velocity at the contact point */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FVector RelativeVelocity;
+};
+
+/**
  * Output data of a narrow-phase collision check.
  *
  * This struct includes properties such as whether a collision occurred,
@@ -541,22 +625,9 @@ struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionOutput : public FTetherIO
 	GENERATED_BODY()
 
 	FTetherNarrowPhaseCollisionOutput()
-		: bHasCollision(false)
-		, ContactPoint(FVector::ZeroVector)
-		, PenetrationDepth(0.f)
 	{}
 
-	/** Indicates whether a collision was detected */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	bool bHasCollision;
-
-	/** Contact point of the collision */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FVector ContactPoint;
-
-	/** Depth of penetration in the collision */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	float PenetrationDepth;
+	TArray<FTetherNarrowPhaseCollisionEntry> Collisions;
 };
 
 /**

@@ -183,6 +183,8 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	// Pass shapes to Inputs
 	SpatialHashingInput.Shapes = &Shapes;
 	BroadPhaseInput.Shapes = &Shapes;
+	NarrowPhaseInput.Shapes = &Shapes;
+	NarrowPhaseInput.CollisionPairings = &BroadPhaseOutput.CollisionPairings;
 	ActivityStateHandlerInput.Shapes = &Shapes;
 	ActivityStateHandlerInput.Settings = &Data->ActivitySettings;
 	IntegrationInput.Shapes = &ShapeTransforms;
@@ -190,7 +192,7 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	IntegrationInput.LinearOutput = &LinearOutput;
 	IntegrationInput.AngularInput = &AngularInput;
 	IntegrationInput.AngularOutput = &AngularOutput;
-	IntegrationOutput.Shapes.Reset();
+	IntegrationOutput.Shapes.Reset();  // Reset to re-init from input
 	RecordedData.Shapes = &Shapes;
 	
 	// Compute an origin at the center of all shape actors
@@ -279,25 +281,18 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 
 		// @todo Override the physics engine's output with recorded data
 
-		if (CurrentReplaySystem)
-		{
-			CurrentReplaySystem->RecordPhysicsState(&RecordedData, WorldTime, &LinearInput, &AngularInput);
-		}
-		//
-		// // Spatial Hashing - Re-Generate shape pairs, because the shapes have moved and narrow-phase is expensive
-		// if (CurrentHashingSystem)
+		// if (CurrentReplaySystem)
 		// {
-		// 	// @todo use mesh or actor TM probably
-		// 	CurrentHashingSystem->Solve(&SpatialHashingInput, &SpatialHashingOutput, Origin, TimeTick);
+		// 	CurrentReplaySystem->RecordPhysicsState(&RecordedData, WorldTime, &LinearInput, &AngularInput);
 		// }
-		
+
 		// @todo Solve Narrow-Phase Collision
 		// @todo add checks for nothing in nearby bucket, skip both broad phase and narrow phase if required
-		// if (CurrentNarrowPhaseCollisionDetection)
-		// {
-		// 	CurrentNarrowPhaseCollisionDetection->DetectCollision(TempDevShapes, NarrowPhaseOutput);
-		// 	CurrentNarrowPhaseCollisionDetection->DrawDebug(NarrowPhaseOutput, Output.AnimInstanceProxy);
-		// }
+		if (CurrentNarrowPhaseCollisionDetection)
+		{
+			CurrentNarrowPhaseCollisionDetection->DetectCollision(&NarrowPhaseInput, &NarrowPhaseOutput);
+			// CurrentNarrowPhaseCollisionDetection->DrawDebug(NarrowPhaseOutput, Output.AnimInstanceProxy);
+		}
 
 		// This step checks for actual collisions using detailed geometry after the object has been moved.
 		// It’s a more precise and computationally expensive check compared to the broad phase.

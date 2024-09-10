@@ -79,7 +79,10 @@ protected:
 	FTetherBroadPhaseCollisionOutput BroadPhaseOutput;
 
 	UPROPERTY()
-	TArray<FTetherNarrowPhaseCollisionOutput> NarrowPhaseOutput;
+	FTetherNarrowPhaseCollisionInput NarrowPhaseInput;
+
+	UPROPERTY()
+	FTetherNarrowPhaseCollisionOutput NarrowPhaseOutput;
 
 	UPROPERTY(Transient)
 	FGameplayTag LastHashingSystem = FGameplayTag::EmptyTag;
