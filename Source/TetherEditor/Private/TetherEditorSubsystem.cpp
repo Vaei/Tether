@@ -315,6 +315,13 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		WorldTime += TimeTick;
 		PhysicsUpdate.FinalizeTick();
 	}
+
+	// Delta can be incredibly low, especially on first run, so that it never enters the while() loop
+	// Alternatively, we could do while() instead, but that means inconsistent ticks when the render delta is tiny
+	if (!PhysicsUpdate.bEverTicked)
+	{
+		return;
+	}
 	
 	// Update actual transforms based on integration result
 	for (const auto& ActorItr : ShapeActorMap)

@@ -36,7 +36,10 @@ struct TETHER_API FTetherPhysicsUpdate
 
 	/** The accumulated time since the last sub-tick, used to determine if a new sub-tick is needed */
 	float RemainingTime;
-
+	
+	/** If false, we didn't entire the while loop even once */
+	bool bEverTicked;
+	
 	/**
 	 * Initialize the time tick and remaining time based on the simulation frame rate.
 	 * 
@@ -45,6 +48,7 @@ struct TETHER_API FTetherPhysicsUpdate
 	FTetherPhysicsUpdate(float SimulationFrameRate = 60.f)
 		: TimeTick(1.f / SimulationFrameRate)	// Calculate the time per tick
 		, RemainingTime(0.f)					// Initialize the remaining time to zero
+		, bEverTicked(false)
 	{}
 
 	/**
@@ -56,6 +60,7 @@ struct TETHER_API FTetherPhysicsUpdate
 	{
 		// Accumulate the time since the last frame
 		RemainingTime += DeltaTime;
+		bEverTicked = ShouldTick();
 	}
 
 	/**
