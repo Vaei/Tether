@@ -377,9 +377,14 @@ bool UTetherCollisionDetectionHandler::Broad_BoundingSphere_AABB(const FTetherSh
 // BoundingSphere vs BoundingSphere
 bool UTetherCollisionDetectionHandler::Broad_BoundingSphere_BoundingSphere(const FTetherShape_BoundingSphere* A, const FTetherShape_BoundingSphere* B)
 {
+	// Calculate the squared distance between the centers of the bounding spheres
 	const float DistanceSquared = FVector::DistSquared(A->Center, B->Center);
+    
+	// Calculate the sum of the radii
 	const float RadiusSum = A->Radius + B->Radius;
-	return DistanceSquared <= FMath::Square(RadiusSum + KINDA_SMALL_NUMBER);
+    
+	// Check if the squared distance is less than or equal to the squared sum of the radii
+	return DistanceSquared <= FMath::Square(RadiusSum);
 }
 
 // BoundingSphere vs OBB
@@ -621,16 +626,36 @@ bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_AABB(const FTetherS
 // Narrow-phase collision check for BoundingSphere vs BoundingSphere
 bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_BoundingSphere(const FTetherShape_BoundingSphere* A, const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionEntry& Output)
 {
-	if (Broad_BoundingSphere_BoundingSphere(A, B))
+	// Calculate the squared distance between sphere centers
+	const float DistanceSquared = FVector::DistSquared(A->Center, B->Center);
+	const float RadiusSum = A->Radius + B->Radius;
+
+	// If the squared distance is less than or equal to the squared sum of the radii, the spheres are colliding
+	if (DistanceSquared <= FMath::Square(RadiusSum))
 	{
-		float Distance = FVector::Dist(A->Center, B->Center);
-		if (Distance <= A->Radius + B->Radius)
+		// Calculate the actual distance between the centers
+		float Distance = FMath::Sqrt(DistanceSquared);
+
+		// Calculate the contact point as the midpoint between the centers
+		Output.ContactPoint = (A->Center + B->Center) * 0.5f;
+
+		// Compute the penetration depth (the amount by which the spheres overlap)
+		Output.PenetrationDepth = RadiusSum - Distance;
+
+		// Calculate the contact normal as the normalized direction from A to B
+		if (Distance > KINDA_SMALL_NUMBER) // Avoid division by zero
 		{
-			Output.ContactPoint = (A->Center + B->Center) * 0.5f;
-			Output.PenetrationDepth = (A->Radius + B->Radius) - Distance;
-			return true;
+			Output.ContactNormal = (B->Center - A->Center).GetSafeNormal();
 		}
+		else
+		{
+			Output.ContactNormal = FVector::ZeroVector; // If the centers overlap perfectly
+		}
+
+		return true;
 	}
+
+	// No collision
 	return false;
 }
 
