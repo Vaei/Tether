@@ -6,52 +6,18 @@
 #include "TetherIO.h"
 #include "TetherStatics.h"
 #include "Physics/Collision/TetherCollisionDetectionHandler.h"
+#include "System/TetherDrawing.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherCollisionDetectionNarrowPhase)
 
 namespace FTether
 {
 	TAutoConsoleVariable<bool> CVarTetherLogNarrowPhaseCollision(TEXT("p.Tether.NarrowPhase.Log"), false, TEXT("Log Tether Narrow-Phase collisions"));
-}
 
-	// Output.Reset();
-	//
-	// // Loop through all pairs of shapes in the array
-	// for (int32 i = 0; i < BoneShapes.Num(); ++i)
-	// {
-	// 	for (int32 j = i + 1; j < BoneShapes.Num(); ++j)
-	// 	{
-	// 		const FTetherShape& ShapeA = BoneShapes[i];
-	// 		const FTetherShape& ShapeB = BoneShapes[j];
-	//
-	// 		if (ShapeA.IsValid() && ShapeB.IsValid())
-	// 		{
-	// 			if (FTetherShape::AreShapesIgnoringEachOther(ShapeA, ShapeB))
-	// 			{
-	// 				continue;
-	// 			}
-	//
-	// 			// Perform the detailed collision check between ShapeA and ShapeB
-	// 			FTetherNarrowPhaseCollisionOutput CollisionResult;
-	// 			if (ShapeA.CheckNarrowCollision(ShapeB, CollisionResult))
-	// 			{
-	// 				if (FTether::CVarTetherLogNarrowPhaseCollision.GetValueOnAnyThread())
-	// 				{
-	// 					UE_LOG(LogTether, Log, TEXT("Narrow-Phase Collision detected between Shape %d and Shape %d!"), i, j);
-	// 					UE_LOG(LogTether, Log, TEXT("Contact Point: %s"), *CollisionResult.ContactPoint.ToString());
-	// 					UE_LOG(LogTether, Log, TEXT("Penetration Depth: %f"), CollisionResult.PenetrationDepth);
-	// 				}
-	//
-	// 				// Store the shapes, primarily for debugging at this point
-	// 				CollisionResult.ShapeA = ShapeA;
-	// 				CollisionResult.ShapeB = ShapeB;
-	//
-	// 				// Store the collision result
-	// 				Output.Add(CollisionResult);
-	// 			}
-	// 		}
-	// 	}
-	// }
+#if ENABLE_DRAW_DEBUG
+	TAutoConsoleVariable<bool> CVarTetherDrawNarrowPhaseCollision(TEXT("p.Tether.NarrowPhase.Draw"), false, TEXT("Draw Tether Narrow-Phase collisions"));
+#endif
+}
 
 void UTetherCollisionDetectionNarrowPhase::DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData,
 	const FTetherIO* LinearOutputData, FTetherIO* AngularOutputData,
@@ -105,23 +71,51 @@ void UTetherCollisionDetectionNarrowPhase::DetectCollision(const FTetherIO* Inpu
 	}
 }
 
-void UTetherCollisionDetectionNarrowPhase::DrawDebug(const TArray<FTetherNarrowPhaseCollisionOutput>& CollisionOutputs,
-	FAnimInstanceProxy* Proxy) const
+void UTetherCollisionDetectionNarrowPhase::DrawDebug(const FTetherIO* InputData,
+	const FTetherIO* OutputData, TArray<FTetherDebugText>* PendingDebugText, float LifeTime, FAnimInstanceProxy* Proxy, const
+	UWorld* World, const FColor& CollisionColor, const FColor& NoCollisionColor, const FColor& InfoColor,
+	const FColor& TextColor, bool bPersistentLines, float Thickness) const
 {
-	// for (const FTetherNarrowPhaseCollisionOutput& CollisionOutput : CollisionOutputs)
-	// {
-	// 	if (CollisionOutput.bHasCollision)
-	// 	{
-	// 		// Highlight actual collisions in a different color (e.g., red)
-	// 		CollisionOutput.ShapeA.DrawDebug(AnimInstanceProxy, FColor::Red);
-	// 		CollisionOutput.ShapeB.DrawDebug(AnimInstanceProxy, FColor::Red);
-	//
-	// 		// Draw the collision point
-	// 		AnimInstanceProxy->AnimDrawDebugPoint(CollisionOutput.ContactPoint, 10.0f, FColor::Red);
-	//
-	// 		// Optionally, draw the penetration depth
-	// 		FVector PenetrationEnd = CollisionOutput.ContactPoint + FVector(0, 0, CollisionOutput.PenetrationDepth);
-	// 		AnimInstanceProxy->AnimDrawDebugLine(CollisionOutput.ContactPoint, PenetrationEnd, FColor::Red, false, -1.f, 2.f, SDPG_World);
-	// 	}
-	// }
+#if ENABLE_DRAW_DEBUG
+	if (!FTether::CVarTetherDrawNarrowPhaseCollision.GetValueOnAnyThread())
+	{
+		return;
+	}
+	
+	const auto* Input = InputData->GetDataIO<FTetherNarrowPhaseCollisionInput>();
+	const auto* Output = OutputData->GetDataIO<FTetherNarrowPhaseCollisionOutput>();
+
+	for (const FTetherShape* Shape : *Input->Shapes)
+	{
+		const FTetherNarrowPhaseCollisionEntry* ShapeEntry = Output->Collisions.FindByPredicate(
+			[Shape](const FTetherNarrowPhaseCollisionEntry& Entry)
+		{
+			return Entry.ShapeA == Shape || Entry.ShapeB == Shape;
+		});
+
+		const bool bColliding = ShapeEntry != nullptr;
+		const FColor& Color = bColliding ? CollisionColor : NoCollisionColor;
+
+		Shape->DrawDebug(World, Proxy, Color, bPersistentLines, LifeTime, Thickness);
+
+		if (bColliding)
+		{
+			// Draw the contact point
+			UTetherDrawing::DrawPoint(World, Proxy, ShapeEntry->ContactPoint, InfoColor, 10.f, bPersistentLines, LifeTime);
+
+			// Draw penetration depth information as text
+			FVector EndPoint = ShapeEntry->ContactPoint + ShapeEntry->ContactNormal * ShapeEntry->PenetrationDepth;
+
+			const FString PenetrationDepthText = FString::Printf(TEXT("Penetration Depth: %s"), *FString::SanitizeFloat(ShapeEntry->PenetrationDepth, 2));
+			UTetherDrawing::DrawText(PenetrationDepthText, PendingDebugText, Shape, EndPoint, TextColor);
+
+			FVector EndPointOffset = EndPoint + FVector::UpVector * 2.5f;
+			const FString RelativeVelocityText = FString::Printf(TEXT("Relative Velocity: %s"), *FString::SanitizeFloat(ShapeEntry->RelativeVelocity.Size(), 2));
+			UTetherDrawing::DrawText(RelativeVelocityText, PendingDebugText, Shape, EndPointOffset, TextColor);
+
+			// Optionally, draw the contact normal as a vector
+			UTetherDrawing::DrawArrow(World, Proxy, ShapeEntry->ContactPoint, EndPoint, InfoColor, 10.f, bPersistentLines, LifeTime, Thickness);
+		}
+	}
+#endif
 }

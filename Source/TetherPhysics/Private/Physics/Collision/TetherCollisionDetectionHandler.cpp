@@ -531,14 +531,26 @@ bool UTetherCollisionDetectionHandler::Broad_Pipe_Pipe(const FTetherShape_Pipe* 
 // Narrow-phase collision check for AABB vs AABB
 bool UTetherCollisionDetectionHandler::Narrow_AABB_AABB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionEntry& Output)
 {
-	if (Broad_AABB_AABB(A, B))
+	constexpr float Tolerance = KINDA_SMALL_NUMBER;
+
+	// Check for overlap on X, Y, and Z axes
+	float OverlapX = FMath::Min(A->Max.X, B->Max.X) - FMath::Max(A->Min.X, B->Min.X);
+	float OverlapY = FMath::Min(A->Max.Y, B->Max.Y) - FMath::Max(A->Min.Y, B->Min.Y);
+	float OverlapZ = FMath::Min(A->Max.Z, B->Max.Z) - FMath::Max(A->Min.Z, B->Min.Z);
+
+	// If any overlap is less than or equal to zero, no collision occurred
+	if (OverlapX <= 0.0f + Tolerance || OverlapY <= 0.0f + Tolerance || OverlapZ <= 0.0f + Tolerance)
 	{
-		Output.bHasCollision = true;
-		Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
-		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
-		return true;
+		return false; // No collision
 	}
-	return false;
+
+	// Calculate the contact point (midpoint between the two centers)
+	Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
+
+	// Calculate the penetration depth as the smallest overlap
+	Output.PenetrationDepth = FMath::Min(OverlapX, FMath::Min(OverlapY, OverlapZ));
+
+	return true;
 }
 
 // Narrow-phase collision check for AABB vs BoundingSphere
@@ -551,7 +563,6 @@ bool UTetherCollisionDetectionHandler::Narrow_AABB_BoundingSphere(const FTetherS
 		
 		if (DistanceSquared <= FMath::Square(B->Radius))
 		{
-			Output.bHasCollision = true;
 			Output.ContactPoint = ClosestPoint;
 			Output.PenetrationDepth = B->Radius - FMath::Sqrt(DistanceSquared);
 			return true;
@@ -586,7 +597,6 @@ bool UTetherCollisionDetectionHandler::Narrow_AABB_Capsule(const FTetherShape_Ax
 	// Check if the distance is less than the radius of the capsule
 	if (DistanceSquared <= FMath::Square(B->Radius))
 	{
-		Output.bHasCollision = true;
 		Output.ContactPoint = (ClosestPointOnCapsule + ClosestPointOnAABB) * 0.5f;
 		Output.PenetrationDepth = B->Radius - FMath::Sqrt(DistanceSquared);
 		return true;
@@ -616,7 +626,6 @@ bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_BoundingSphere(cons
 		float Distance = FVector::Dist(A->Center, B->Center);
 		if (Distance <= A->Radius + B->Radius)
 		{
-			Output.bHasCollision = true;
 			Output.ContactPoint = (A->Center + B->Center) * 0.5f;
 			Output.PenetrationDepth = (A->Radius + B->Radius) - Distance;
 			return true;
@@ -632,7 +641,6 @@ bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_OBB(const FTetherSh
 	if (Broad_BoundingSphere_OBB(A, B))
 	{
 		// Placeholder: Assume collision at center points
-		Output.bHasCollision = true;
 		Output.ContactPoint = (A->Center + B->GetCenter()) * 0.5f;
 		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
 		return true;
@@ -647,7 +655,6 @@ bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_Capsule(const FTeth
 	if (Broad_BoundingSphere_Capsule(A, B))
 	{
 		// Placeholder: Assume collision at center points
-		Output.bHasCollision = true;
 		Output.ContactPoint = (A->Center + B->GetCenter()) * 0.5f;
 		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
 		return true;
@@ -715,7 +722,6 @@ bool UTetherCollisionDetectionHandler::Narrow_OBB_AABB(const FTetherShape_Orient
     }
 
     // If all axes overlap
-    Output.bHasCollision = true;
     Output.ContactPoint = (ACenter + BCenter) * 0.5f; // Simplified contact point
     Output.PenetrationDepth = 0.0f; // Placeholder; refine based on actual overlap calculations
 
@@ -793,7 +799,6 @@ bool UTetherCollisionDetectionHandler::Narrow_OBB_OBB(const FTetherShape_Oriente
     }
 
     // If all axes overlap
-    Output.bHasCollision = true;
     Output.ContactPoint = (ACenter + BCenter) * 0.5f; // Simplified contact point
     Output.PenetrationDepth = 0.0f; // Placeholder; refine based on actual overlap calculations
 
@@ -807,7 +812,6 @@ bool UTetherCollisionDetectionHandler::Narrow_OBB_Capsule(const FTetherShape_Ori
 	if (Broad_OBB_Capsule(A, B))
 	{
 		// Placeholder: Assume collision at center points
-		Output.bHasCollision = true;
 		Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
 		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
 		return true;
@@ -877,7 +881,6 @@ bool UTetherCollisionDetectionHandler::Narrow_Capsule_Capsule(const FTetherShape
     // Check if the capsules overlap considering the hemispheres
     if (DistanceSquared <= FMath::Square(CombinedRadii))
     {
-        Output.bHasCollision = true;
         Output.ContactPoint = (ClosestPointA + ClosestPointB) * 0.5f;
         Output.PenetrationDepth = CombinedRadii - FMath::Sqrt(DistanceSquared);
 
@@ -932,7 +935,6 @@ bool UTetherCollisionDetectionHandler::Narrow_Capsule_Pipe(const FTetherShape_Ca
 	// Determine if the capsule's closest point is within the pipe's thickness
 	if (ClosestDistanceSquared <= FMath::Square(A->Radius))
 	{
-		Output.bHasCollision = true;
 		Output.ContactPoint = ClosestPointOnPipe;
 		Output.PenetrationDepth = A->Radius - FMath::Sqrt(ClosestDistanceSquared);
 		return true;
@@ -970,7 +972,6 @@ bool UTetherCollisionDetectionHandler::Narrow_Pipe_AABB(const FTetherShape_Pipe*
 		// Check if this segment intersects with the AABB
 		if (FMath::LineBoxIntersection(FBox(AABBMin, AABBMax), SegmentStart, SegmentEnd, FVector::ZeroVector))
 		{
-			Output.bHasCollision = true;
 			Output.ContactPoint = (SegmentStart + SegmentEnd) * 0.5f;
 			Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
 			return true;
@@ -1011,7 +1012,6 @@ bool UTetherCollisionDetectionHandler::Narrow_Pipe_BoundingSphere(const FTetherS
 		// Check if the distance from the closest point to the sphere's center is less than the sphere's radius
 		if (FVector::DistSquared(ClosestPoint, SphereCenter) <= FMath::Square(SphereRadius))
 		{
-			Output.bHasCollision = true;
 			Output.ContactPoint = ClosestPoint;
 			Output.PenetrationDepth = SphereRadius - FVector::Dist(ClosestPoint, SphereCenter);
 			return true;
@@ -1050,7 +1050,6 @@ bool UTetherCollisionDetectionHandler::Narrow_Pipe_OBB(const FTetherShape_Pipe* 
 		// Project the segment onto the OBB's axes
 		if (FMath::LineBoxIntersection(FBox::BuildAABB(OBBCenter, OBBExtent), SegmentStart, SegmentEnd, OBBRotation.RotateVector(FVector::ZeroVector)))
 		{
-			Output.bHasCollision = true;
 			Output.ContactPoint = (SegmentStart + SegmentEnd) * 0.5f;
 			Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
 			return true;
@@ -1099,7 +1098,6 @@ bool UTetherCollisionDetectionHandler::Narrow_Pipe_Capsule(const FTetherShape_Pi
 		// Check if the distance between the closest points is less than the combined radii
 		if (FVector::DistSquared(ClosestPointOnCapsule, ClosestPointOnPipe) <= FMath::Square(CapsuleRadius))
 		{
-			Output.bHasCollision = true;
 			Output.ContactPoint = (ClosestPointOnCapsule + ClosestPointOnPipe) * 0.5f;
 			Output.PenetrationDepth = CapsuleRadius - FVector::Dist(ClosestPointOnCapsule, ClosestPointOnPipe);
 			return true;
@@ -1153,7 +1151,6 @@ bool UTetherCollisionDetectionHandler::Narrow_Pipe_Pipe(const FTetherShape_Pipe*
 			float CombinedThickness = PipeAOuterDimensions.Z + PipeBOuterDimensions.Z;
 			if (FVector::DistSquared(ClosestPointA, ClosestPointB) <= FMath::Square(CombinedThickness))
 			{
-				Output.bHasCollision = true;
 				Output.ContactPoint = (ClosestPointA + ClosestPointB) * 0.5f;
 				Output.PenetrationDepth = CombinedThickness - FVector::Dist(ClosestPointA, ClosestPointB);
 				return true;

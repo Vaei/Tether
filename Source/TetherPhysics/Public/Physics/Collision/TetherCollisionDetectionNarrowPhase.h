@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "TetherIO.h"
-#include "Shapes/TetherShape.h"
 #include "UObject/Object.h"
 #include "TetherCollisionDetectionNarrowPhase.generated.h"
 
+struct FTetherDebugText;
 class UTetherCollisionDetectionHandler;
 struct FTetherNarrowPhaseCollisionOutput;
 
@@ -46,12 +46,7 @@ public:
 	 * @param CollisionDetectionHandler		The handler responsible for performing the narrow-phase collision checks for specific shape types.
 	 */
 	virtual void DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData, const FTetherIO* LinearOutputData, FTetherIO* AngularOutputData, const UTetherCollisionDetectionHandler* CollisionDetectionHandler) const;
-
-	/**
-	 * Visualize the results of the narrow-phase collision detection.
-	 *
-	 * @param CollisionOutput The results of the narrow-phase collision detection, including contact points and penetration depths.
-	 * @param Proxy Pointer to the animation instance proxy for drawing debug information.
-	 */
-	virtual void DrawDebug(const TArray<FTetherNarrowPhaseCollisionOutput>& CollisionOutput, FAnimInstanceProxy* Proxy) const;
+	
+	virtual void DrawDebug(const FTetherIO* InputData, const FTetherIO* OutputData, TArray<FTetherDebugText>* PendingDebugText = nullptr,
+		float LifeTime = -1.f, FAnimInstanceProxy* Proxy = nullptr, const UWorld* World = nullptr, const FColor& CollisionColor = FColor::Red, const FColor& NoCollisionColor = FColor::Blue, const FColor& InfoColor = FColor::Orange, const FColor& TextColor = FColor::White, bool bPersistentLines = false, float Thickness = 0.f) const;
 };

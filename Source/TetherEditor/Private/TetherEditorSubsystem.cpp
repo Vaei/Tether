@@ -290,8 +290,8 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		// @todo add checks for nothing in nearby bucket, skip both broad phase and narrow phase if required
 		if (CurrentNarrowPhaseCollisionDetection)
 		{
-			CurrentNarrowPhaseCollisionDetection->DetectCollision(&NarrowPhaseInput, &NarrowPhaseOutput);
-			// CurrentNarrowPhaseCollisionDetection->DrawDebug(NarrowPhaseOutput, Output.AnimInstanceProxy);
+			CurrentNarrowPhaseCollisionDetection->DetectCollision(&NarrowPhaseInput, &NarrowPhaseOutput, &LinearOutput, &AngularOutput, CurrentCollisionDetectionHandler);
+			CurrentNarrowPhaseCollisionDetection->DrawDebug(&NarrowPhaseInput, &NarrowPhaseOutput, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 
 		// This step checks for actual collisions using detailed geometry after the object has been moved.

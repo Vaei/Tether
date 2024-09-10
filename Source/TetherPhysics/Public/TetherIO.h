@@ -572,7 +572,6 @@ struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionEntry : public FTetherIO
 	FTetherNarrowPhaseCollisionEntry()
 		: ShapeA(nullptr)
 		, ShapeB(nullptr)
-		, bHasCollision(false)
 		, ContactPoint(FVector::ZeroVector)
 		, ContactNormal(FVector::ZeroVector)
 		, PenetrationDepth(0.f)
@@ -582,7 +581,6 @@ struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionEntry : public FTetherIO
 	FTetherNarrowPhaseCollisionEntry(const FTetherShape* InShapeA, const FTetherShape* InShapeB, bool bInHasCollision = false)
 		: ShapeA(InShapeA)
 		, ShapeB(InShapeB)
-		, bHasCollision(bInHasCollision)
 		, ContactPoint(FVector::ZeroVector)
 		, ContactNormal(FVector::ZeroVector)
 		, PenetrationDepth(0.f)
@@ -591,10 +589,6 @@ struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionEntry : public FTetherIO
 	
 	const FTetherShape* ShapeA;
 	const FTetherShape* ShapeB;
-
-	/** Indicates whether a collision was detected */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	bool bHasCollision;
 
 	/** Contact point of the collision */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
