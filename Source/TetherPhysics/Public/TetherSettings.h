@@ -34,7 +34,7 @@ class UTetherDataAsset;
  * - Solvers: A map of gameplay tags to available physics solver classes.
  * - Collision Detection Handler: The class used to manage collisions between different shapes in the Tether physics system.
  */
-UCLASS(Config=Game)
+UCLASS(Config=Game, DefaultConfig)
 class TETHERPHYSICS_API UTetherSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()

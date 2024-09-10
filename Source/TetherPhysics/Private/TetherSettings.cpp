@@ -64,5 +64,8 @@ void UTetherSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChan
 			EditorSubsystemDataAsset = UTetherDataAsset::StaticClass()->GetDefaultObject();
 		}
 	}
+
+	// Save the updated config to the .ini file
+	SaveConfig();
 }
 #endif
