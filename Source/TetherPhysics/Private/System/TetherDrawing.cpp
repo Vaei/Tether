@@ -27,6 +27,21 @@ void UTetherDrawing::DrawLine(const UWorld* World, FAnimInstanceProxy* Proxy, co
 #endif
 }
 
+void UTetherDrawing::DrawPoint(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
+	const FColor& Color, float Size, bool bPersistentLines, float LifeTime)
+{
+#if ENABLE_DRAW_DEBUG
+	if (Proxy)
+	{
+		Proxy->AnimDrawDebugPoint(Center, Size, Color, bPersistentLines, LifeTime);
+	}
+	else if (World)
+	{
+		DrawDebugPoint(World, Center, Size, Color, bPersistentLines, LifeTime);
+	}
+#endif
+}
+
 void UTetherDrawing::DrawArrow(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Start, const FVector& End,
 	const FColor& Color, float ArrowSize, bool bPersistentLines, float LifeTime, float Thickness)
 {
