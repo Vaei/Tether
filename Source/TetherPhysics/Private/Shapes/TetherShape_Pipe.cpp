@@ -7,11 +7,14 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TetherShape_Pipe)
 
-FTetherShape_Pipe::FTetherShape_Pipe(const FVector& InCenter, const FVector& InOuterDimensions, float InArcAngle, const FRotator& InRotation)
+FTetherShape_Pipe::FTetherShape_Pipe(const FVector& InCenter, float InOuterRadius, float InInnerRadius,
+	float InThickness, float InArcAngle, const FRotator& InRotation)
 	: Center(InCenter)
-	, OuterDimensions(InOuterDimensions)
-	, ArcAngle(InArcAngle)
 	, Rotation(InRotation)
+	, OuterRadius(InOuterRadius)
+	, InnerRadius(InInnerRadius)
+	, Thickness(InThickness)
+	, ArcAngle(InArcAngle)
 {
 	TetherShapeClass = UTetherShapeObject_Pipe::StaticClass();
 	
@@ -37,8 +40,10 @@ void FTetherShape_Pipe::ToLocalSpace_Implementation()
 
 FTetherShape_AxisAlignedBoundingBox FTetherShape_Pipe::GetBoundingBox() const
 {
-	// Calculate the bounding box based on the pipe's outer dimensions and rotation
-	FVector Extents = OuterDimensions * 0.5f;
+	// Calculate the extents based on the pipe's outer radius and thickness
+	FVector Extents { OuterRadius, OuterRadius, Thickness * 0.5f };
+    
+	// Apply rotation to calculate the bounding box in world space
 	FVector Min = Center - Extents;
 	FVector Max = Center + Extents;
 
@@ -82,16 +87,20 @@ void UTetherShapeObject_Pipe::TransformToWorldSpace(FTetherShape& Shape, const F
 	// Transform the center to world space
 	FVector TransformedCenter = WorldTransform.TransformPosition(Pipe->Center);
 
-	// Apply scaling to the outer dimensions based on the scale of the world transform
+	// Apply scaling to the pipe's radii and thickness based on the scale of the world transform
 	FVector Scale = WorldTransform.GetScale3D();
-	FVector TransformedOuterDimensions = Pipe->OuterDimensions * Scale;
+	float TransformedOuterRadius = Pipe->OuterRadius * Scale.X;  // Assuming uniform scale for the radius
+	float TransformedInnerRadius = Pipe->InnerRadius * Scale.X;  // Same scaling for inner radius
+	float TransformedThickness = Pipe->Thickness * Scale.Z;      // Thickness along Z-axis
 
 	// Apply the rotation
 	FRotator TransformedRotation = WorldTransform.GetRotation().Rotator() + Pipe->Rotation;
 
 	// Update the pipe with the transformed values
 	Pipe->Center = TransformedCenter;
-	Pipe->OuterDimensions = TransformedOuterDimensions;
+	Pipe->OuterRadius = TransformedOuterRadius;
+	Pipe->InnerRadius = TransformedInnerRadius;
+	Pipe->Thickness = TransformedThickness;
 	Pipe->Rotation = TransformedRotation;
 }
 
@@ -118,6 +127,6 @@ void UTetherShapeObject_Pipe::DrawDebug(const FTetherShape& Shape, FAnimInstance
 {
 #if ENABLE_DRAW_DEBUG
     const auto* Pipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&Shape);
-	UTetherDrawing::DrawPipe(World, Proxy, Pipe->Center, Pipe->OuterDimensions, Pipe->ArcAngle, Pipe->Rotation, Color, bPersistentLines, LifeTime, Thickness);
+	UTetherDrawing::DrawPipe(World, Proxy, Pipe->Center, Pipe->OuterRadius, Pipe->InnerRadius, Pipe->Thickness, Pipe->ArcAngle, Pipe->Rotation, Color, bPersistentLines, LifeTime, Thickness);
 #endif
 }

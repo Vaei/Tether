@@ -149,22 +149,21 @@ void UTetherDrawing::DrawCapsule(const UWorld* World, FAnimInstanceProxy* Proxy,
 #endif
 }
 
-void UTetherDrawing::DrawPipe(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
-	const FVector& OuterDimensions, float ArcAngle, const FRotator& Rotation, const FColor& Color,
+void UTetherDrawing::DrawPipe(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float OuterRadius,
+	float InnerRadius, float PipeThickness, float ArcAngle, const FRotator& Rotation, const FColor& Color,
 	bool bPersistentLines, float LifeTime, float Thickness)
 {
 #if ENABLE_DRAW_DEBUG
-    float OuterRadius = FMath::Max(OuterDimensions.X, OuterDimensions.Y) * 0.5f;
-    float InnerRadius = FMath::Min(OuterDimensions.X, OuterDimensions.Y) * 0.5f;
-    float PipeThickness = OuterDimensions.Z;
-
+    // Prepare the rotation vectors
     FVector UpVector = Rotation.RotateVector(FVector::UpVector);
     FVector RightVector = Rotation.RotateVector(FVector::RightVector);
     FVector ForwardVector = Rotation.RotateVector(FVector::ForwardVector);
 
+    // Calculate the number of segments based on the arc angle
     int32 NumSegments = FMath::Max(1, FMath::RoundToInt(ArcAngle / 14.f));
     float AngleStep = ArcAngle / NumSegments;
 
+    // Pre-allocate arrays to store points
     TArray<FVector> OuterBottomPoints, InnerBottomPoints, OuterTopPoints, InnerTopPoints;
     OuterBottomPoints.SetNum(NumSegments + 1);
     InnerBottomPoints.SetNum(NumSegments + 1);

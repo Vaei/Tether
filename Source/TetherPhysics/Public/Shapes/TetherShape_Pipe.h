@@ -21,10 +21,10 @@ struct TETHERPHYSICS_API FTetherShape_Pipe : public FTetherShape
 	GENERATED_BODY()
 
 	FTetherShape_Pipe()
-		: FTetherShape_Pipe(FVector::ZeroVector, FVector(20.f, 20.f, 5.f), 360.f, FRotator::ZeroRotator)
+		: FTetherShape_Pipe(FVector::ZeroVector, 20.f, 10.f, 10.f, 360.f, FRotator::ZeroRotator)
 	{}
 
-	FTetherShape_Pipe(const FVector& InCenter, const FVector& InOuterDimensions, float InArcAngle, const FRotator& InRotation);
+	FTetherShape_Pipe(const FVector& InCenter, float InOuterRadius, float InInnerRadius, float InThickness, float InArcAngle, const FRotator& InRotation);
 
 	/** Creates a clone of the Pipe shape, preserving its specific type and data */
 	virtual TSharedPtr<FTetherShape> Clone() const override { return MakeShared<FTetherShape_Pipe>(*this); }
@@ -41,17 +41,25 @@ struct TETHERPHYSICS_API FTetherShape_Pipe : public FTetherShape
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector Center;
 
-	/** Outer dimensions of the pipe (width, height, thickness) */
+	/** Rotation of the pipe */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FRotator Rotation;
+	
+	/** Radius of the outermost section of the pipe */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(ClampMin="0", UIMin="0"))
-	FVector OuterDimensions;
+	float OuterRadius;
+
+	/** Radius of the innermost section of the pipe */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(ClampMin="0", UIMin="0"))
+	float InnerRadius;
+
+	/** Thickness of the pipe */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(ClampMin="0", UIMin="0"))
+	float Thickness;
 
 	/** Arc angle of the pipe in degrees (0 to 360), representing the portion of the pipe */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(ClampMin="0", UIMin="0", ClampMax="360", UIMax="360"))
 	float ArcAngle;
-
-	/** Rotation of the pipe */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FRotator Rotation;
 };
 
 /**

@@ -22,7 +22,7 @@ public:
 	static void DrawBox(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, const FVector& Extent, const FQuat& Rotation, const FColor& Color, bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
 	static void DrawSphere(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float Radius, int32 Segments, const FColor& Color, bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
 	static void DrawCapsule(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float HalfHeight, float Radius, const FRotator& Rotation, const FColor& Color, bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
-	static void DrawPipe(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, const FVector& OuterDimensions, float ArcAngle, const FRotator& Rotation, const FColor& Color, bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
+	static void DrawPipe(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float OuterRadius, float InnerRadius, float PipeThickness, float ArcAngle, const FRotator& Rotation, const FColor& Color, bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
 	static void DrawCircle(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float Radius, int32 Segments, const FColor& Color, const FVector& YAxis = FVector::RightVector, const FVector& ZAxis = FVector::UpVector, bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
 	
 	static void DrawRotationGizmo(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center,
