@@ -773,6 +773,9 @@ bool UTetherCollisionDetectionHandler::Narrow_OBB_OBB(const FTetherShape_Oriente
     Axes[13] = FVector::CrossProduct(AZ, BY);
     Axes[14] = FVector::CrossProduct(AZ, BZ);
 
+    float MinPenetrationDepth = FLT_MAX; // Track the smallest overlap
+    FVector BestAxis = FVector::ZeroVector; // Track the best axis for penetration
+
     for (const FVector& Axis : Axes)
     {
         if (Axis.IsNearlyZero()) continue;  // Skip near-degenerate axes
@@ -796,11 +799,20 @@ bool UTetherCollisionDetectionHandler::Narrow_OBB_OBB(const FTetherShape_Oriente
         {
             return false; // No collision
         }
+
+        // Calculate the overlap (penetration depth) on this axis
+        float PenetrationDepth = (AProjection + BProjection) - Distance;
+        if (PenetrationDepth < MinPenetrationDepth)
+        {
+            MinPenetrationDepth = PenetrationDepth;
+            BestAxis = NormalizedAxis;
+        }
     }
 
-    // If all axes overlap
+    // If all axes overlap, calculate the contact point and penetration depth
     Output.ContactPoint = (ACenter + BCenter) * 0.5f; // Simplified contact point
-    Output.PenetrationDepth = 0.0f; // Placeholder; refine based on actual overlap calculations
+    Output.PenetrationDepth = MinPenetrationDepth; // Set the minimum penetration depth
+    Output.ContactNormal = BestAxis; // Set the normal of the deepest penetration axis
 
     return true;
 }
