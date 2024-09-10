@@ -302,6 +302,9 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		// After detecting a collision, this step resolves it by adjusting the object's position and velocities. It
 		// prevents interpenetration and handles the physical response of the objects involved in the collision.
 
+		// Each shape has its own contact solver assigned
+		// e.g. Soft body, Rigid body
+
 		// @todo Solve Constraints (Multiple!)
 
 		// This handles constraints that limit or define the relationships between objects, such as joints
@@ -312,6 +315,13 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		// respected, regardless of the results of other physics calculations. You might have multiple constraints to
 		// solve, depending on the complexity of your simulation.
 
+		// @todo Solve Post-Projection
+
+		// Post-projection usually comes after both contact and constraint solvers. The reason is that both contact
+		// resolution and constraints can introduce small positional errors due to floating-point precision,
+		// integration errors, or other numerical artifacts. Post-projection corrects these errors by moving objects
+		// directly into a valid state after both the contact and constraint solvers have run.
+		
 		WorldTime += TimeTick;
 		PhysicsUpdate.FinalizeTick();
 	}

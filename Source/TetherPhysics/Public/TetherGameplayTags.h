@@ -37,6 +37,14 @@ namespace FTetherGameplayTags
 
 	/** Gameplay tags for tether contact solvers */
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Contact);
+	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Contact_RigidBody_Standard);
+	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Contact_RigidBody_ProjectedGaussSeidel);
+	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Contact_RigidBody_SequentialImpulse);
+	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Contact_RigidBody_Iterative);
+
+	/** Gameplay tags for tether post-solve corrections */
+	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_PostSimulation);
+	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_PostSimulation_PostProjection);
 
 	/** Gameplay tags for tether replay system */
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Replay);
