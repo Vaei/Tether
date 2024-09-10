@@ -127,7 +127,7 @@ FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_Capsule::GetBoundingBox(c
 	return Capsule->GetBoundingBox();
 }
 
-void UTetherShapeObject_Capsule::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy, UWorld* World,
+void UTetherShapeObject_Capsule::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy, const UWorld* World,
 	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG

@@ -107,7 +107,7 @@ FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_BoundingSphere::GetBoundi
 }
 
 void UTetherShapeObject_BoundingSphere::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy,
-	UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
+	const UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
 	const auto* Sphere = FTetherShapeCaster::CastChecked<FTetherShape_BoundingSphere>(&Shape);

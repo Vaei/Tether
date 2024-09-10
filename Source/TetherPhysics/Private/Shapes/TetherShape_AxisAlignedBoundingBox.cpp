@@ -119,7 +119,7 @@ FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_AxisAlignedBoundingBox::G
 }
 
 void UTetherShapeObject_AxisAlignedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy,
-	UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
+	const UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
 	const auto* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);

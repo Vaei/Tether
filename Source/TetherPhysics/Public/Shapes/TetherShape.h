@@ -158,7 +158,7 @@ protected:
 
 public:
 	/** Draws the shape for debugging purposes using the animation instance proxy */
-	void DrawDebug(UWorld* World, FAnimInstanceProxy* Proxy, const FColor& Color = FColor::Red,
+	void DrawDebug(const UWorld* World, FAnimInstanceProxy* Proxy, const FColor& Color = FColor::Red,
 		bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f) const;
 };
 
@@ -252,6 +252,6 @@ public:
 
 	/** Draws the shape for debugging purposes */
 	virtual void DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy = nullptr,
-		UWorld* World = nullptr, const FColor& Color = FColor::Red, bool bPersistentLines = false,
+		const UWorld* World = nullptr, const FColor& Color = FColor::Red, bool bPersistentLines = false,
 		float LifeTime = -1.f, float Thickness = 0.f) const {}
 };

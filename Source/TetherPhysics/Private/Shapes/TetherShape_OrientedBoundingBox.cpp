@@ -119,8 +119,8 @@ FTetherShape_AxisAlignedBoundingBox UTetherShapeObject_OrientedBoundingBox::GetB
 	return OBB->GetBoundingBox();
 }
 
-void UTetherShapeObject_OrientedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy, UWorld* World,
-	const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
+void UTetherShapeObject_OrientedBoundingBox::DrawDebug(const FTetherShape& Shape, FAnimInstanceProxy* Proxy,
+	const UWorld* World, const FColor& Color, bool bPersistentLines, float LifeTime, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
 	const auto* OBB = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&Shape);
