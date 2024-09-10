@@ -24,7 +24,7 @@ void UTetherEditorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	Super::OnWorldBeginPlay(InWorld);
 
 	const TSoftObjectPtr<UTetherDataAsset>& SoftData = UTetherSettings::Get()->EditorSubsystemDataAsset;
-	if (SoftData.IsValid())
+	if (!SoftData.IsNull())
 	{
 		Data = SoftData.LoadSynchronous();
 	}
