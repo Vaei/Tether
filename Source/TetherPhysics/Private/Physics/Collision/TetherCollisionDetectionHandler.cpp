@@ -887,48 +887,42 @@ bool UTetherCollisionDetectionHandler::Narrow_Capsule_Capsule(const FTetherShape
     FVector A_Top = A->Center + A->Rotation.RotateVector(FVector::UpVector) * (A->HalfHeight - A->Radius);  // The half height goes to the extent, not the center of the hemisphere!
     FVector A_Bottom = A->Center - A->Rotation.RotateVector(FVector::UpVector) * (A->HalfHeight - A->Radius);
 
-    // Log the calculated positions for debugging
-    // UE_LOG(LogTether, Warning, TEXT("Capsule A Top: %s"), *A_Top.ToString());
-    // UE_LOG(LogTether, Warning, TEXT("Capsule A Bottom: %s"), *A_Bottom.ToString());
-
     // Calculate the top and bottom points of Capsule B (including hemispheres)
     FVector B_Top = B->Center + B->Rotation.RotateVector(FVector::UpVector) * (B->HalfHeight - B->Radius);
     FVector B_Bottom = B->Center - B->Rotation.RotateVector(FVector::UpVector) * (B->HalfHeight - B->Radius);
-
-    // Log the calculated positions for debugging
-    // UE_LOG(LogTether, Warning, TEXT("Capsule B Top: %s"), *B_Top.ToString());
-    // UE_LOG(LogTether, Warning, TEXT("Capsule B Bottom: %s"), *B_Bottom.ToString());
 
     // Find the closest points between the line segments representing the capsules
     FVector ClosestPointA, ClosestPointB;
     FMath::SegmentDistToSegmentSafe(A_Bottom, A_Top, B_Bottom, B_Top, ClosestPointA, ClosestPointB);
 
-    // Log the closest points for debugging
-    // UE_LOG(LogTether, Warning, TEXT("Closest Point A: %s"), *ClosestPointA.ToString());
-    // UE_LOG(LogTether, Warning, TEXT("Closest Point B: %s"), *ClosestPointB.ToString());
-
     // Compute the distance between the closest points
     float DistanceSquared = FVector::DistSquared(ClosestPointA, ClosestPointB);
     float CombinedRadii = A->Radius + B->Radius;
 
-    // Log the distance and combined radii for debugging
-    // UE_LOG(LogTether, Warning, TEXT("Distance Squared: %f"), DistanceSquared);
-    // UE_LOG(LogTether, Warning, TEXT("Combined Radii: %f"), CombinedRadii);
-
     // Check if the capsules overlap considering the hemispheres
     if (DistanceSquared <= FMath::Square(CombinedRadii))
     {
-        Output.ContactPoint = (ClosestPointA + ClosestPointB) * 0.5f;
-        Output.PenetrationDepth = CombinedRadii - FMath::Sqrt(DistanceSquared);
+    	float Distance = FMath::Sqrt(DistanceSquared);
 
-        // Log collision detection
-        // UE_LOG(LogTether, Warning, TEXT("Collision detected. Contact Point: %s, Penetration Depth: %f"), *Output.ContactPoint.ToString(), Output.PenetrationDepth);
+    	// Calculate the contact point as the midpoint between the closest points
+    	Output.ContactPoint = (ClosestPointA + ClosestPointB) * 0.5f;
 
+    	// Compute the penetration depth (the amount by which the capsules overlap)
+    	Output.PenetrationDepth = CombinedRadii - Distance;
+    	
+    	// Calculate the contact normal as the normalized vector between the closest points
+    	if (Distance > KINDA_SMALL_NUMBER)  // Avoid division by zero
+    	{
+    		Output.ContactNormal = (ClosestPointB - ClosestPointA).GetSafeNormal();
+    	}
+    	else
+    	{
+    		Output.ContactNormal = FVector::ZeroVector; // If the capsules are perfectly overlapping
+    	}
+    	
         return true;
     }
 
-    // Log that no collision was detected
-    // UE_LOG(LogTether, Warning, TEXT("No collision detected."));
     return false;
 }
 
