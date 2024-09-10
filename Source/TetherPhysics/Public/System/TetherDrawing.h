@@ -17,6 +17,7 @@ class TETHERPHYSICS_API UTetherDrawing : public UBlueprintFunctionLibrary
 
 public:
 	static void DrawLine(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Start, const FVector& End, const FColor& Color, bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
+	static void DrawPoint(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, const FColor& Color, float Size = 4.f, bool bPersistentLines = false, float LifeTime = -1.f);
 	static void DrawArrow(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Start, const FVector& End, const FColor& Color, float ArrowSize = 40.f, bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
 	static void DrawBox(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, const FVector& Extent, const FQuat& Rotation, const FColor& Color, bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
 	static void DrawSphere(const UWorld* World, FAnimInstanceProxy* Proxy, const FVector& Center, float Radius, int32 Segments, const FColor& Color, bool bPersistentLines = false, float LifeTime = -1.f, float Thickness = 0.f);
