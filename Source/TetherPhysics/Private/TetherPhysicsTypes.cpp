@@ -9,7 +9,7 @@
 
 void FTetherCommonSharedSolverData::UpdateSolverData(const FGameplayTag& HashingSystem,
 	const FGameplayTag& CollisionDetectionHandler, const FGameplayTag& BroadPhaseCollisionDetection,
-	const FGameplayTag& NarrowPhaseCollisionDetection, const FGameplayTag& ContactSolver)
+	const FGameplayTag& NarrowPhaseCollisionDetection)
 {
 	if (LastHashingSystem != HashingSystem)
 	{
@@ -34,17 +34,11 @@ void FTetherCommonSharedSolverData::UpdateSolverData(const FGameplayTag& Hashing
 		LastNarrowPhaseCollisionDetection = NarrowPhaseCollisionDetection;
 		CurrentNarrowPhaseCollisionDetection = UTetherSettings::GetNarrowPhaseSystem(NarrowPhaseCollisionDetection);
 	}
-
-	if (LastContactSolver != ContactSolver)
-	{
-		LastContactSolver = ContactSolver;
-		// CurrentContactSolver = UTetherSettings::GetNarrowPhaseSystem(ContactSolver);
-	}
 }
 
 void FTetherCommonShapeSolverData::UpdateSolverData(const FGameplayTag& ActivityStateHandler,
 	const FGameplayTag& LinearSolver, const FGameplayTag& AngularSolver, const FGameplayTag& IntegrationSolver,
-	const FGameplayTag& ReplaySystem)
+	const FGameplayTag& ReplaySystem, const FGameplayTag& ContactSolver)
 {
 	// Detect any change in the gameplay tag, and update with the corresponding object
 	
@@ -77,9 +71,15 @@ void FTetherCommonShapeSolverData::UpdateSolverData(const FGameplayTag& Activity
 		LastReplaySystem = ReplaySystem;
 		CurrentReplaySystem = UTetherSettings::GetReplaySystem(ReplaySystem);
 	}
+	
+	if (LastContactSolver != ContactSolver)
+	{
+		LastContactSolver = ContactSolver;
+		CurrentContactSolver = UTetherSettings::GetContactSolver(ContactSolver);
+	}
 }
 
 void FTetherCommonShapeSolvers::UpdateSolvers()
 {
-	UpdateSolverData(ActivityStateHandler, LinearSolver, AngularSolver, IntegrationSolver, ReplaySystem);
+	UpdateSolverData(ActivityStateHandler, LinearSolver, AngularSolver, IntegrationSolver, ReplaySystem, ContactSolver);
 }

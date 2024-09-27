@@ -7,6 +7,7 @@
 #include "TetherIO.h"
 #include "TetherPhysicsTypes.generated.h"
 
+class UTetherContactSolver;
 class UTetherCollisionDetectionNarrowPhase;
 class UTetherCollisionDetectionBroadPhase;
 class UTetherCollisionDetectionHandler;
@@ -40,9 +41,6 @@ public:
 
 	UPROPERTY(Transient)
 	const UTetherCollisionDetectionNarrowPhase* CurrentNarrowPhaseCollisionDetection = nullptr;
-	
-	// UPROPERTY(Transient)
-	// const UTetherContactSolver* CurrentContactSolver = nullptr;
 
 protected:
 	UPROPERTY(Transient)
@@ -57,13 +55,9 @@ protected:
 	UPROPERTY(Transient)
 	FGameplayTag LastNarrowPhaseCollisionDetection = FGameplayTag::EmptyTag;
 
-	UPROPERTY(Transient)
-	FGameplayTag LastContactSolver = FGameplayTag::EmptyTag;
-
 public:
 	void UpdateSolverData(const FGameplayTag& HashingSystem, const FGameplayTag& CollisionDetectionHandler,
-	const FGameplayTag& BroadPhaseCollisionDetection, const FGameplayTag& NarrowPhaseCollisionDetection,
-	const FGameplayTag& ContactSolver);
+	const FGameplayTag& BroadPhaseCollisionDetection, const FGameplayTag& NarrowPhaseCollisionDetection);
 };
 
 /**
@@ -80,17 +74,14 @@ struct TETHERPHYSICS_API FTetherCommonSharedSolvers : public FTetherCommonShared
 		, CollisionDetectionHandler(FTetherGameplayTags::Tether_Detection_CollisionHandler)
 		, BroadPhaseCollisionDetection(FTetherGameplayTags::Tether_Detection_BroadPhase)
 		, NarrowPhaseCollisionDetection(FTetherGameplayTags::Tether_Detection_NarrowPhase)
-		, ContactSolver(FTetherGameplayTags::Tether_Solver_Contact)
 	{}
 
 	FTetherCommonSharedSolvers(const FGameplayTag& InHashingSystem, const FGameplayTag& InCollisionDetectionHandler,
-		const FGameplayTag& InBroadPhaseCollisionDetection, const FGameplayTag& InNarrowPhaseCollisionDetection,
-		const FGameplayTag& InContactSolver)
+	const FGameplayTag& InBroadPhaseCollisionDetection, const FGameplayTag& InNarrowPhaseCollisionDetection)
 		: HashingSystem(InHashingSystem)
 		, CollisionDetectionHandler(InCollisionDetectionHandler)
 		, BroadPhaseCollisionDetection(InBroadPhaseCollisionDetection)
 		, NarrowPhaseCollisionDetection(InNarrowPhaseCollisionDetection)
-		, ContactSolver(InContactSolver)
 	{}
 
 protected:
@@ -105,9 +96,6 @@ protected:
 		
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Detection.NarrowPhase"))
 	FGameplayTag NarrowPhaseCollisionDetection;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Solver.Contact"))
-	FGameplayTag ContactSolver;
 
 public:
 	void UpdateSolvers();
@@ -193,6 +181,9 @@ struct TETHERPHYSICS_API FTetherCommonShapeSolverData
 	UPROPERTY(Transient)
 	const UTetherReplay* CurrentReplaySystem = nullptr;
 
+	UPROPERTY(Transient)
+	const UTetherContactSolver* CurrentContactSolver = nullptr;
+
 protected:
 	UPROPERTY(Transient)
 	FGameplayTag LastActivityStateHandler = FGameplayTag::EmptyTag;
@@ -208,10 +199,14 @@ protected:
 
 	UPROPERTY(Transient)
 	FGameplayTag LastReplaySystem = FGameplayTag::EmptyTag;
+	
+	UPROPERTY(Transient)
+	FGameplayTag LastContactSolver = FGameplayTag::EmptyTag;
 
 public:
 	void UpdateSolverData(const FGameplayTag& ActivityStateHandler, const FGameplayTag& LinearSolver,
-		const FGameplayTag& AngularSolver, const FGameplayTag& IntegrationSolver, const FGameplayTag& ReplaySystem);
+	const FGameplayTag& AngularSolver, const FGameplayTag& IntegrationSolver, const FGameplayTag& ReplaySystem,
+	const FGameplayTag& ContactSolver);
 };
 
 /**
@@ -228,6 +223,7 @@ struct TETHERPHYSICS_API FTetherCommonShapeSolvers : public FTetherCommonShapeSo
 		, LinearSolver(FTetherGameplayTags::Tether_Solver_Linear)
 		, AngularSolver(FTetherGameplayTags::Tether_Solver_Angular)
 		, IntegrationSolver(FTetherGameplayTags::Tether_Solver_Integration_Euler)
+		, ContactSolver(FTetherGameplayTags::Tether_Solver_Contact_RigidBody_ImpulseVelocityLevel)
 	{}
 
 protected:
@@ -245,6 +241,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Replay"))
 	FGameplayTag ReplaySystem = FTetherGameplayTags::Tether_Replay;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Solver.Contact"))
+	FGameplayTag ContactSolver;
 
 public:
 	void UpdateSolvers();

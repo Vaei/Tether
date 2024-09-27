@@ -11,6 +11,7 @@
 #include "Physics/Handlers/TetherActivityStateHandler.h"
 #include "Physics/Hashing/TetherHashing.h"
 #include "Physics/Replay/TetherReplay.h"
+#include "Physics/Solvers/Contact/TetherContactSolver.h"
 #include "Physics/Solvers/Integration/TetherIntegrationSolver.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverAngular.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverLinear.h"
@@ -72,9 +73,13 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Solver.Integration"))
 	TMap<FGameplayTag, TSubclassOf<UTetherIntegrationSolver>> IntegrationSolvers;
 	
-	/** A map of gameplay tags to available solvers for Tether */
+	/** A map of gameplay tags to available replay systems for Tether */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Replay"))
 	TMap<FGameplayTag, TSubclassOf<UTetherReplay>> ReplaySystems;
+	
+	/** A map of gameplay tags to available solvers for Tether */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether, meta=(Categories="Tether.Solver.Contact"))
+	TMap<FGameplayTag, TSubclassOf<UTetherContactSolver>> ContactSolvers;
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category=Tether)
@@ -188,6 +193,17 @@ public:
 	static const UTetherReplay* GetReplaySystem(const FGameplayTag& Tag)
 	{
 		return GetInternal<UTetherReplay>(Tag, Get()->ReplaySystems);
+	}
+
+	/** Retrieves a contact solver based on the provided gameplay tag and casts it to the specified type */
+	template<typename T>
+	static const T* GetContactSolver(const FGameplayTag& Tag)
+	{
+		return GetInternal<UTetherContactSolver, T>(Tag, Get()->ContactSolvers);
+	}
+	static const UTetherContactSolver* GetContactSolver(const FGameplayTag& Tag)
+	{
+		return GetInternal<UTetherContactSolver>(Tag, Get()->ContactSolvers);
 	}
 	
 protected:

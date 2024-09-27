@@ -10,6 +10,10 @@
 #include "Physics/Collision/TetherCollisionDetectionNarrowPhase.h"
 #include "Physics/Hashing/TetherHashingSpatial.h"
 #include "Physics/Replay/TetherReplay.h"
+#include "Physics/Solvers/Contact/TetherContactSolverImpulseVelocityLevel.h"
+#include "Physics/Solvers/Contact/TetherContactSolverIterative.h"
+#include "Physics/Solvers/Contact/TetherContactSolverProjectedGaussSeidel.h"
+#include "Physics/Solvers/Contact/TetherContactSolverSequentialImpulse.h"
 #include "Physics/Solvers/Integration/TetherIntegrationSolverEuler.h"
 #include "Physics/Solvers/Integration/TetherIntegrationSolverRK4.h"
 #include "Physics/Solvers/Integration/TetherIntegrationSolverVerlet.h"
@@ -44,6 +48,12 @@ UTetherSettings::UTetherSettings(const FObjectInitializer& ObjectInitializer)
 
 	// Default Replay System
 	ReplaySystems.Add({ FTetherGameplayTags::Tether_Replay.GetTag(), UTetherReplay::StaticClass() });
+
+	// Default Contact Solvers
+	ContactSolvers.Add({ FTetherGameplayTags::Tether_Solver_Contact_RigidBody_ImpulseVelocityLevel.GetTag(), UTetherContactSolverImpulseVelocityLevel::StaticClass() });
+	ContactSolvers.Add({ FTetherGameplayTags::Tether_Solver_Contact_RigidBody_ProjectedGaussSeidel.GetTag(), UTetherContactSolverProjectedGaussSeidel::StaticClass() });
+	ContactSolvers.Add({ FTetherGameplayTags::Tether_Solver_Contact_RigidBody_SequentialImpulse.GetTag(), UTetherContactSolverSequentialImpulse::StaticClass() });
+	ContactSolvers.Add({ FTetherGameplayTags::Tether_Solver_Contact_RigidBody_Iterative.GetTag(), UTetherContactSolverIterative::StaticClass() });
 
 #if WITH_EDITORONLY_DATA
 	// Default Editor Subsystem Data Asset
