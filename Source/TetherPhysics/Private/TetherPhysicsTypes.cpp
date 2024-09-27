@@ -11,6 +11,8 @@ void FTetherCommonSharedSolverData::UpdateSolverData(const FGameplayTag& Hashing
 	const FGameplayTag& CollisionDetectionHandler, const FGameplayTag& BroadPhaseCollisionDetection,
 	const FGameplayTag& NarrowPhaseCollisionDetection)
 {
+	// Update the solver data for shared solvers based on gameplay tags
+	
 	if (LastHashingSystem != HashingSystem)
 	{
 		LastHashingSystem = HashingSystem;
@@ -40,7 +42,7 @@ void FTetherCommonShapeSolverData::UpdateSolverData(const FGameplayTag& Activity
 	const FGameplayTag& LinearSolver, const FGameplayTag& AngularSolver, const FGameplayTag& IntegrationSolver,
 	const FGameplayTag& ReplaySystem, const FGameplayTag& ContactSolver)
 {
-	// Detect any change in the gameplay tag, and update with the corresponding object
+	// Update the solver data for per-shape solvers based on gameplay tags.
 	
 	if (LastActivityStateHandler != ActivityStateHandler)
 	{
@@ -81,5 +83,6 @@ void FTetherCommonShapeSolverData::UpdateSolverData(const FGameplayTag& Activity
 
 void FTetherCommonShapeSolvers::UpdateSolvers()
 {
+	// Updates all solvers for the shape
 	UpdateSolverData(ActivityStateHandler, LinearSolver, AngularSolver, IntegrationSolver, ReplaySystem, ContactSolver);
 }

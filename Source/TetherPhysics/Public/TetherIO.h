@@ -6,7 +6,10 @@
 #include "Shapes/TetherShape.h"
 #include "TetherIO.generated.h"
 
-/** Damping model used for linear or angular motion. */
+/** 
+ * Damping model used for linear or angular motion.
+ * Specifies how damping should be applied to reduce velocity over time.
+ */
 UENUM(BlueprintType)
 enum class ETetherDampingModel : uint8
 {
@@ -15,11 +18,8 @@ enum class ETetherDampingModel : uint8
 };
 
 /**
- * Enum to define the strategy for sizing buckets in spatial hashing.
- *
- * This enumeration allows you to choose between automatic and fixed sizing strategies for buckets in the spatial grid.
- * Depending on the chosen strategy, the system will either automatically adjust the bucket size based on the largest shape
- * or use a fixed bucket size, with optional warnings when shapes do not fit within the bucket size.
+ * Strategy for determining the size of spatial hashing buckets.
+ * Spatial hashing divides space into grid-like buckets to optimize collision detection and other spatial queries.
  */
 UENUM(BlueprintType)
 enum class ETetherBucketSizingStrategy : uint8
@@ -30,17 +30,10 @@ enum class ETetherBucketSizingStrategy : uint8
 };
 
 /**
- * Determines the behavior of the replay system when handling multiple shapes.
+ * Defines how replay behavior is handled when dealing with multiple shapes.
  *
- * - Completion: This mode ensures that all shapes are checked, and the function will return true
- *   if at least one shape successfully replays its physics state. This is useful when you want to
- *   guarantee that all potential replays are evaluated, and the final result reflects whether any
- *   shape matched the given timestamp.
- *
- * - ShortCircuit: This mode causes the replay process to halt as soon as a successful replay is found.
- *   It returns true immediately after the first successful replay, making it more efficient in cases
- *   where finding the first match is sufficient. This mode can be particularly useful for optimizing
- *   performance when you do not need to evaluate all shapes.
+ * - Completion: This mode ensures all shapes are checked for replay. The function will return true if at least one shape successfully replays its physics state.
+ * - ShortCircuit: This mode terminates the replay search as soon as a successful replay is found. It's more efficient when only one match is required.
  */
 UENUM(BlueprintType)
 enum class ETetherReplayMode : uint8
@@ -52,39 +45,34 @@ enum class ETetherReplayMode : uint8
 /**
  * Base struct for input/output operations in the Tether physics system.
  *
- * FTetherIO serves as a foundational structure designed to support polymorphism, allowing projects
- * to extend and customize data types for various purposes within the physics system. 
- * This includes creating custom solvers, hashing algorithms, and other physics-related components.
- *
- * By using FTetherIO as a base, derived structs can be seamlessly integrated into the Tether framework, 
- * enabling flexible and reusable code. This struct provides templated methods for setting and retrieving data, 
- * making it easier to manage different types of input/output operations.
+ * FTetherIO provides a base structure for handling polymorphic input/output data, supporting custom extensions 
+ * for solvers, spatial hashing, and other components in the Tether physics engine.
  *
  * Key Features:
- * - Polymorphism: Supports inheritance, allowing for custom extensions specific to your project’s needs.
- * - Flexibility: Facilitates the creation of custom data structures for solvers, hashing, and other physics operations.
- * - Reusability: Provides a standardized way to handle various input/output data types within the Tether system.
+ * - Polymorphism: Enables custom extensions to integrate into the physics system.
+ * - Flexibility: Supports custom data structures for various physics operations.
+ * - Reusability: Provides a standardized way to manage input/output data across the physics engine.
  */
 USTRUCT()
 struct TETHERPHYSICS_API FTetherIO
 {
 	GENERATED_BODY()
 
-	// SetDataIO should copy the data from the input StructData to the current instance
+	/** Copy the data from the input StructData to the current instance */
 	template<typename StructType>
 	void SetDataIO(const StructType& StructData)
 	{
 		*this = *reinterpret_cast<const FTetherIO*>(&StructData);
 	}
 
-    // GetDataIO returns a mutable pointer to the current instance cast to StructType
+    /** @return a mutable pointer to the current instance cast to StructType */
     template<typename StructType>
     StructType* GetDataIO()
     {
         return static_cast<StructType*>(this);
     }
     
-    // GetDataIO returns a const pointer to the current instance cast to StructType
+    /** @return a const pointer to the current instance cast to StructType */
     template<typename StructType>
     const StructType* GetDataIO() const
     {
@@ -115,15 +103,15 @@ struct TETHERPHYSICS_API FSpatialHashingInput : public FTetherIO
 		, OriginOffset(InOrigin)
 	{}
 
-	/** Strategy for sizing buckets in spatial hashing. */
+	/** Strategy for determining the size of buckets in spatial hashing. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	ETetherBucketSizingStrategy BucketSizeMode;
 
-	/** Size of each bucket in the spatial hash grid */
+	/** Size of each bucket in the spatial grid */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(EditCondition="BucketSizeMode!=ETetherBucketSizeMode::Automatic", EditConditionHides))
 	FVector BucketSize;
 
-	/** Origin of the spatial hash grid */
+	/** Offset for the origin of the spatial grid */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector OriginOffset;
 };
@@ -143,22 +131,22 @@ struct TETHERPHYSICS_API FSpatialHashingOutput : public FTetherIO
 		: BucketSize(FVector::ZeroVector)
 	{}
 
-	/** Size of each bucket in the spatial hash grid, after being computed according to FSpatialHashingInput::BucketSizeMode */
+	/** Computed bucket size after applying spatial hashing input settings */
 	FVector BucketSize;
 	
-	/** Pairs of shapes that should be tested for collisions */
+	/** Pairs of shapes identified for broad-phase collision testing */
 	TArray<FTetherShapePair> ShapePairs;
 
-	/** Spatial hash map storing shape indices by grid cell */
+	/** Spatial hash map associating grid cells with shape indices */
 	TMap<FIntVector, TArray<int32>> SpatialHashMap;
 };
 
 /**
- * Configuration settings for controlling the sleep and wake behavior of physics objects in the Tether physics engine.
- * This struct defines various thresholds for linear and angular forces, acceleration, velocity, and collision activity,
- * which determine when an object should transition between awake and asleep states. 
- * The thresholds help reduce unnecessary computations by allowing objects to sleep when they are at rest or unaffected 
- * by significant forces, while ensuring they wake up when external influences are applied.
+ * Input settings controlling the sleep/wake behavior of physics objects.
+ *
+ * FActivitySettings defines thresholds for velocity, force, acceleration, and recent collision activity, 
+ * determining when an object transitions between awake and asleep states. These thresholds help minimize unnecessary
+ * computations by putting objects to sleep when at rest and waking them when external forces act on them.
  */
 USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FActivitySettings
@@ -176,50 +164,33 @@ struct TETHERPHYSICS_API FActivitySettings
 		, SleepDelay(1.f)
 	{}
 	
-	/**
-	 * Time threshold (in seconds) for detecting recent broad-phase collisions. 
-	 * If a broad-phase collision occurred within this time window, the object will wake up.
-	 */
+	/** Time window (in seconds) to check for recent broad-phase collisions to wake an object. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float RecentBroadPhaseCollisionTime;
 	
-	/**
-	 * Minimum linear velocity threshold to keep the object awake.
-	 * If the object's linear velocity falls below this threshold, it will be considered for sleeping.
-	 */
+	/** Minimum linear velocity for an object to stay awake. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float LinearVelocityThreshold;
 	
-	/**
-	 * Linear force threshold (Newtons) to wake the object. 
-	 * If the force applied to the object exceeds this threshold, it will wake up.
-	 */
+	/** Force threshold (Newtons) required to wake an object. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float LinearForceThreshold;
 	
-	/**
-	 * Linear acceleration threshold (cm/s²) to wake the object. 
-	 * If the object experiences an acceleration higher than this value, it will wake up.
-	 */
+	/** Acceleration threshold (cm/s²) required to wake an object. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float LinearAccelerationThreshold;
 	
-	/**
-	 * Angular velocity threshold (radians/second) to wake the object. 
-	 * If the object's angular velocity exceeds this threshold, it will wake up.
-	 */
+	/** Minimum angular velocity (radians/second) required to keep an object awake. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float AngularVelocityThreshold;
 	
-	/**
-	 * Angular torque threshold (Newton-meters) to wake the object. 
-	 * If the torque applied to the object exceeds this threshold, it will wake up.
-	 */
+	/** Torque threshold (Newton-meters) required to wake an object. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float AngularTorqueThreshold;
 	
 	/**
-	 * Minimum kinetic energy threshold to transition an object to sleep.
+	 * Energy threshold below which the object may transition to sleep.
+	 * 
 	 * If the combined linear and angular kinetic energy of the object falls below this threshold,
 	 * the object will be considered for sleep. A lower value makes the object more sensitive
 	 * to small movements, while a higher value requires more energy for the object to stay awake.
@@ -232,13 +203,20 @@ struct TETHERPHYSICS_API FActivitySettings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float EnergyThreshold;
 
-	/** When entering sleep state, delay for this amount of time, and reset the delay if we should wake */
+	/** Delay before transitioning an object to sleep. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	float SleepDelay;
 };
 
 /**
+ * Input data for managing the activity (sleep/wake) state of a physics object.
  *
+ * FActivityStateInput contains settings that determine whether a physics object should remain awake
+ * or transition to sleep based on its motion, forces, and recent collision activity.
+ *
+ * This struct is typically used in conjunction with solvers or activity state handlers to manage 
+ * the physics object's activity state within the simulation, helping to optimize performance by 
+ * allowing objects to sleep when they are at rest.
  */
 USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FActivityStateInput : public FTetherIO
@@ -248,6 +226,7 @@ struct TETHERPHYSICS_API FActivityStateInput : public FTetherIO
 	FActivityStateInput()
 	{}
 
+	/** Settings that control the sleep and wake thresholds for a physics object */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FActivitySettings Settings;
 };
@@ -324,6 +303,7 @@ struct TETHERPHYSICS_API FLinearInput : public FTetherIO
 	FLinearInput()
 	{}
 
+	/** Settings for forces, mass, damping, and other properties influencing linear motion */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FLinearInputSettings Settings;
 };
@@ -431,7 +411,8 @@ struct TETHERPHYSICS_API FAngularInput : public FTetherIO
 
 	FAngularInput()
 	{}
-	
+
+	/** Settings for torques, mass, damping, and other properties influencing angular motion */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FAngularInputSettings Settings;
 };
@@ -551,7 +532,10 @@ struct TETHERPHYSICS_API FNarrowPhaseInput : public FTetherIO
 	/** Pairings detected during Broad-Phase collision */
 	const TArray<FTetherShapePair>* CollisionPairings;
 
+	/** Map of linear outputs for each shape, used in collision response */
 	TMap<const FTetherShape*, const FLinearOutput*> LinearOutputs;
+
+	/** Map of angular outputs for each shape, used in collision response */
 	TMap<const FTetherShape*, const FAngularOutput*> AngularOutputs;
 };
 
@@ -583,8 +567,11 @@ struct TETHERPHYSICS_API FNarrowPhaseCollision : public FTetherIO
 		, PenetrationDepth(0.f)
 		, RelativeVelocity(FVector::ZeroVector)
 	{}
-	
+
+	/** The first shape involved in the collision */
 	const FTetherShape* ShapeA;
+
+	/** The second shape involved in the collision */
 	const FTetherShape* ShapeB;
 
 	/** Contact point of the collision */
@@ -618,6 +605,7 @@ struct TETHERPHYSICS_API FNarrowPhaseOutput : public FTetherIO
 	FNarrowPhaseOutput()
 	{}
 
+	/** Array of collisions detected during narrow-phase collision detection */
 	TArray<FNarrowPhaseCollision> Collisions;
 };
 

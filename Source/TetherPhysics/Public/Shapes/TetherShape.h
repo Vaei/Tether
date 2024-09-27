@@ -10,9 +10,7 @@
 struct FTetherShape_AxisAlignedBoundingBox;
 class UTetherShapeObject;
 
-/**
- * Defines how a physics object is controlled within the Tether physics engine.
- */
+/** Defines how a physics object is controlled within the Tether physics engine. */
 UENUM(BlueprintType)
 enum class ETetherSimulationMode : uint8
 {
@@ -21,9 +19,7 @@ enum class ETetherSimulationMode : uint8
 	Inertial			UMETA(ToolTip="Retains internal physics like damping but won't apply external forces"),
 };
 
-/**
- * Defines the wake/sleep state of a physics object, determining whether it's actively simulated or idle.
- */
+/** Defines the wake/sleep state of a physics object, determining whether it's actively simulated or idle. */
 UENUM(BlueprintType)
 enum class ETetherActivityState : uint8
 {
@@ -67,57 +63,64 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	TSubclassOf<UTetherShapeObject> TetherShapeClass = nullptr;
 
-	/** Defines how a physics object is controlled within the Tether physics engine. */
+	/** Defines how a physics object is controlled within the Tether physics engine */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	ETetherSimulationMode SimulationMode = ETetherSimulationMode::Simulated;
 
-	/** Defines the wake/sleep state of a physics object, determining whether it's actively simulated or idle. */
+	/** Defines the wake/sleep state of a physics object, determining whether it's actively simulated or idle */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	ETetherActivityState ActivityState = ETetherActivityState::Awake;
 
+	/** @return true if the object is awake */
 	bool IsAwake() const
 	{
 		return ActivityState == ETetherActivityState::Awake || ActivityState == ETetherActivityState::ForceAwake;
 	}
 
+	/** @return true if the object is asleep */
 	bool IsAsleep() const
 	{
 		return !IsAwake();
 	}
 
-	/** How long until we sleep if nothing wakes us before then */
+	/** Time remaining until the object sleeps, if not disturbed */
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	float TimeUntilSleep = 0.f;
 
-	/** World Time when last broad phase collision resulted in an overlap */
+	/** Last world time a broad phase collision occurred involving this shape */
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	double LastBroadCollisionTime = INFINITY;
 
-	/** World Time when last narrow phase collision resulted in an overlap */
+	/** Last world time a narrow phase collision occurred involving this shape */
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	double LastNarrowCollisionTime = INFINITY;
 
+	/** Calculates the time since a specified event, accounting for infinite time values */
 	static double TimeSince(double WorldTime, double Time)
 	{
 		if (FMath::IsNearlyEqual(Time, INFINITY)) { return INFINITY; }
 		return WorldTime - Time;
 	}
 
+	/** Returns the time since the last broad phase collision occurred */
 	double TimeSinceBroadCollision(double WorldTime) const
 	{
 		return TimeSince(WorldTime, LastBroadCollisionTime);
 	}
 
+	/** Checks if a broad phase collision occurred recently within a specified time window */
 	bool HasRecentBroadCollision(double WorldTime, double Time) const
 	{
 		return TimeSinceBroadCollision(WorldTime) <= Time;
 	}
 
+	/** Returns the time since the last narrow phase collision occurred */
 	double TimeSinceNarrowCollision(double WorldTime) const
 	{
 		return TimeSince(WorldTime, LastNarrowCollisionTime);
 	}
 
+	/** Checks if a narrow phase collision occurred recently within a specified time window */
 	bool HasRecentNarrowCollision(double WorldTime, double Time) const
 	{
 		return TimeSinceNarrowCollision(WorldTime) <= Time;
@@ -133,25 +136,36 @@ public:
 	/** Cache local space data to avoid precision or rounding data loss over time */
 	TSharedPtr<FTetherShape> LocalSpaceData = nullptr;
 
-	/** Shapes that should be ignored during collision detection @TODO actually implement this */
+	/** Shape to be ignored during collision detection @TODO actually implement this */
 	UPROPERTY()
 	TArray<TWeakObjectPtr<UTetherShapeObject>> IgnoredShapes;
 
-	/** Tags to categorize shapes that should be ignored during collision detection @TODO actually implement this */
+	/** Shape types to be ignored during collision detection @TODO actually implement this */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FGameplayTagContainer IgnoredShapeTypes;
 
+	/** @return the shape's object that manages its virtual behavior */
 	UTetherShapeObject* GetTetherShapeObject() const;
+
+	/** @return the gameplay tag identifying the shape's type */
 	FGameplayTag GetShapeType() const;
+
+	/** @return the static tag representing the shape's type */
 	static FGameplayTag StaticShapeType() { return FGameplayTag::EmptyTag; }
 
+	/** @return the name of the shape, typically used for debugging purposes */
 	FString GetName() const;
+
+	/** @return the FName representation of the shape name */
 	FName GetFName() const { return FName(GetName()); }
 
+	/** Retrieves the center of the shape in local space */
 	FVector GetLocalSpaceCenter() const;
-	
+
+	/** Checks if the shape is valid */
 	bool IsValid() const;
 
+	/** Checks if this shape is set to ignore collisions with another shape */
 	bool IsIgnored(const FTetherShape& Other) const;
 
 	/** Checks if two shapes are set to ignore each other */
@@ -160,17 +174,17 @@ public:
 	/** Returns whether the shape is currently in world space */
 	bool IsWorldSpace() const { return bWorldSpace; }
 
-	/** Converts the shape's data to world space using the given transformation */
+	/** Converts the shape's data to world space using the provided world-space transform */
 	void ToWorldSpace(const FTransform& InWorldTransform);
 
 	/** Converts the shape's data back to local space */
 	void ToLocalSpace();
 
-	/** Returns the shape's world transformation that was applied to convert from local space */
+	/** @return the shape's world transform that was applied to convert from local space */
 	const FTransform& GetAppliedWorldTransform() const { return AppliedWorldTransform; }
 
 protected:
-	/** The transformation that was applied to the shape when converting to world space */
+	/** The transform that was applied to the shape when converting to world space */
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
 	FTransform AppliedWorldTransform = FTransform::Identity;
 
@@ -185,7 +199,7 @@ public:
 };
 
 /**
- * A simple struct representing a pair of shapes for collision detection.
+ * A struct representing a pair of shapes for collision detection.
  *
  * FTetherShapePair is used to store the indices of two shapes that are to be tested for collisions
  * in the physics simulation. It includes a method to check if two pairs are equal, regardless of the order
@@ -214,6 +228,7 @@ struct TETHERPHYSICS_API FTetherShapePair
 		, ShapeB(InShapeB)
 	{}
 
+	/** Checks if the specified shape is part of this pair */
 	bool ContainsShape(const FTetherShape* Shape) const
 	{
 		return ShapeA == Shape || ShapeB == Shape;
@@ -236,14 +251,9 @@ struct TETHERPHYSICS_API FTetherShapePair
 /**
  * Base class for defining behavior and virtual functions for tether shapes.
  *
- * UTetherShapeObject provides the functionality needed for tether shapes that
- * go beyond the data stored in FTetherShape. Since USTRUCTs don't support polymorphism,
- * this class is used to override functions, handle complex behaviors, and manage
- * operations like transformation and drawing that require virtual methods.
- *
- * This class is typically subclassed to define specific behaviors for different types of shapes
- * in the physics system. All functions in this class should be `const` as the object is
- * generally used in a read-only context to manage tether shapes.
+ * UTetherShapeObject handles complex behaviors that can't be stored in FTetherShape.
+ * This class is subclassed to define specific behaviors for various types of shapes,
+ * including how they are transformed and drawn for debugging purposes.
  */
 UCLASS(Const, Abstract, NotBlueprintable, NotBlueprintType)
 class TETHERPHYSICS_API UTetherShapeObject : public UObject
@@ -251,10 +261,10 @@ class TETHERPHYSICS_API UTetherShapeObject : public UObject
 	GENERATED_BODY()
 
 public:
-	/** Returns the gameplay tag that identifies the type of shape */
+	/** @return the gameplay tag that identifies the type of shape */
 	virtual FGameplayTag GetShapeType() const { return FGameplayTag::EmptyTag; }
 
-	/** Returns the center of the shape in local space */
+	/** @return the center of the shape in local space */
 	virtual FVector GetLocalSpaceShapeCenter(const FTetherShape& Shape) const { return FVector::ZeroVector; }
 
 	/** Transforms the shape data from local space to world space */
@@ -263,10 +273,10 @@ public:
 	/** Transforms the shape data from world space back to local space */
 	virtual void TransformToLocalSpace(FTetherShape& Shape) const {}
 
-	/** Gets the shape as a bounding box */
+	/** @return the bounding box of the shape */
 	virtual FTetherShape_AxisAlignedBoundingBox GetBoundingBox(const FTetherShape& Shape) const;
 
-	/** Gets the shape identifier for debugging purposes */
+	/** @return the shape identifier for debugging purposes */
 	virtual FString GetShapeDebugString() const { return GetShapeType().ToString(); }
 
 	/** Draws the shape for debugging purposes */

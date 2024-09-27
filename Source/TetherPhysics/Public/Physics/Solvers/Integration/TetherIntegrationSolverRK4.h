@@ -23,15 +23,17 @@ class TETHERPHYSICS_API UTetherIntegrationSolverRK4 : public UTetherIntegrationS
 
 public:
 	/**
-	 * Perform RK4 integration to update positions and rotations.
-	 *
-	 * This method updates the physical state (position and rotation) of each shape 
-	 * in the physics simulation by utilizing the linear and angular velocities 
-	 * provided by the linear and angular solvers.
+	 * Perform physics integration to update positions and velocities.
 	 * 
-	 * @param InputData  Pointer to the input data, containing linear and angular velocities.
-	 * @param OutputData Pointer to the output data where the results of the RK4 integration will be stored.
-	 * @param DeltaTime  The time step for the simulation, used to calculate the new state.
+	 * This method is called for each shape in the simulation to compute new physical states 
+	 * based on the input data and the current state of the world. The output data contains 
+	 * the updated physical state after the integration step.
+	 *
+	 * @param Shape		The shape being simulated.
+	 * @param InputData  Pointer to the input data for the current physics state.
+	 * @param OutputData Pointer to the output data storing the results of the physics update.
+	 * @param DeltaTime  The time step for the simulation, used to compute time-dependent changes.
+	 * @param WorldTime  The current world time appended by TimeTicks.
 	 */
 	virtual void Solve(const FTetherShape* Shape, const FTetherIO* InputData, FTetherIO* OutputData,
 		float DeltaTime, double WorldTime) const override;

@@ -31,28 +31,44 @@ class TETHERPHYSICS_API UTetherPhysicsSolverLinear : public UObject
 	GENERATED_BODY()
 
 protected:
+	/**
+	 * Applies linear damping to the velocity of the shape, reducing its linear speed over time based on the damping model.
+	 *
+	 * @param Velocity   The current velocity of the shape, modified in place.
+	 * @param Settings   Input settings that contain damping parameters.
+	 * @param DeltaTime  The time step used for applying the damping effect.
+	 */
 	static void ApplyLinearDamping(FVector& Velocity, const FLinearInputSettings& Settings, float DeltaTime);
 	
 public:
 	/**
-	 * Perform linear physics calculations based on the input data and produce output results.
+	 * Perform linear physics calculations for the given shape, updating its velocity and position.
 	 *
-	 * @param InputData  Pointer to the input data containing the current linear state of the physics objects.
+	 * This method solves linear forces, acceleration, and damping for a specific shape, using the input data
+	 * to compute the updated velocity and other linear properties.
+	 *
+	 * @param Shape      The shape whose linear motion is being solved.
+	 * @param InputData  Pointer to the input data containing the current state of the shape's linear physics.
 	 * @param OutputData Pointer to the output data where the results of the linear physics calculations will be stored.
 	 * @param DeltaTime  The time step for the simulation, used to calculate time-dependent linear effects.
+	 * @param WorldTime  The current world time, typically used for logging or time-sensitive calculations.
 	 */
 	virtual void Solve(FTetherShape* Shape, const FTetherIO* InputData, FTetherIO* OutputData, float DeltaTime,
 		float WorldTime) const;
 
 	/**
-	 * Visualizes the physics solver's key properties for debugging purposes.
+	 * Visualizes the linear motion solver's key properties for debugging purposes.
 	 * 
-	 * @param InputData             Pointer to the input data used in the physics solver.
+	 * This function draws debug visualizations for velocity, forces, and acceleration based on the current
+	 * state of the shape's linear motion, helping to visualize the solver's impact on each shape.
+	 * 
+	 * @param Shape                 The shape for which the debug information is being drawn.
+	 * @param InputData             Pointer to the input data used in the linear physics solver.
 	 * @param OutputData            Pointer to the output data containing the results of the physics calculations.
-	 * @param PendingDebugText	    Array of Debug Texts that to be drawn by the viewport
+	 * @param PendingDebugText	    Array of Debug Texts that will be drawn by the viewport.
 	 * @param LifeTime              The duration for which the debug lines should be visible (negative values mean infinite).
-	 * @param Proxy					Pointer to the animation instance proxy for drawing debug information.
-	 * @param World                 Pointer to the world context in which the debugging visualization occurs.
+	 * @param Proxy					Pointer to the animation instance proxy for drawing debug information (optional).
+	 * @param World                 Pointer to the world context in which the debugging visualization occurs (optional).
 	 * @param VelocityColor			The color used to visualize the velocity.
 	 * @param ForceColor            The color used to visualize the applied forces.
 	 * @param AccelerationColor     The color used to visualize the acceleration.
