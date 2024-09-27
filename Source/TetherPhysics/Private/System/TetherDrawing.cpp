@@ -249,34 +249,6 @@ FString UTetherDrawing::GetActivityStateString(ETetherActivityState State)
 	}
 }
 
-UCanvas* UTetherDrawing::GetDefaultCanvas()
-{
-	if (GEngine && GEngine->GameViewport)
-	{
-		static FName CanvasName(TEXT("CanvasObject"));
-
-		// Cache to avoid FString/FName conversions/compares
-		static TMap<FName, UCanvas*> CanvasMap;
-		UCanvas** FoundCanvas = CanvasMap.Find(CanvasName);
-		if (!FoundCanvas)
-		{
-			UCanvas* CanvasObject = FindObject<UCanvas>(GetTransientPackage(),*CanvasName.ToString());
-			if (!CanvasObject)
-			{
-				CanvasObject = NewObject<UCanvas>(GetTransientPackage(), CanvasName);
-				CanvasObject->AddToRoot();
-			}
-
-			CanvasMap.Add(CanvasName, CanvasObject);
-			return CanvasObject;
-		}
-
-		return *FoundCanvas;
-	}
-
-	return nullptr;
-}
-
 #if WITH_EDITOR
 FEditorViewportClient* UTetherDrawing::GetActiveEditorViewportClient()
 {

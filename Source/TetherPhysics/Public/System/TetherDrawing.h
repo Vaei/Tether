@@ -61,9 +61,6 @@ public:
 
 	/** Converts an activity state enum to its string representation. */
 	static FString GetActivityStateString(ETetherActivityState State);
-	
-public:
-	static UCanvas* GetDefaultCanvas();
 
 public:
 #if WITH_EDITOR
