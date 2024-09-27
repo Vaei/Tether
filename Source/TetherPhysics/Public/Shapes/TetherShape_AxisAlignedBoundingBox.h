@@ -40,6 +40,8 @@ struct TETHERPHYSICS_API FTetherShape_AxisAlignedBoundingBox : public FTetherSha
 	FVector GetBoxExtents() const {	return (Max - Min) * 0.5f; }
 	
 	void ToLocalSpace_Implementation();
+
+	FVector ComputeCenter() const;
 	
 	/** Minimum corner of the AABB, representing the smallest x, y, and z coordinates */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)

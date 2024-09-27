@@ -10,7 +10,7 @@
 
 struct FTetherDebugText;
 class UTetherCollisionDetectionHandler;
-struct FTetherBroadPhaseCollisionOutput;
+struct FBroadPhaseOutput;
 
 /**
  * Base class for broad-phase collision detection in the Tether physics system.
@@ -40,8 +40,10 @@ public:
 	 * @param InputData						The input data structure containing relevant information, such as the array of shapes representing objects in the simulation and other spatial hashing data.
 	 * @param OutputData					The output data structure that will store the pairs of objects that should be further tested in the narrow-phase collision detection.
 	 * @param CollisionDetectionHandler		The handler to use for collision detection
+	 * @param WorldTime						Current WorldTime appended by TimeTicks
 	 */
-	virtual void DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData, const UTetherCollisionDetectionHandler* CollisionDetectionHandler) const;
+	virtual void DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData,
+		const UTetherCollisionDetectionHandler* CollisionDetectionHandler, float DeltaTime, double WorldTime) const;
 
 	/**
 	 * Visualize the results of the broad-phase collision detection.
@@ -57,7 +59,7 @@ public:
 	 * @param NoOverlapColor		The color used for drawing debug information where collisions have NOT been detected (optional).
 	 * @param OverlapColor			The color used for drawing debug information where collisions have been detected (optional).
 	 */
-	virtual void DrawDebug(const FTetherIO* InputData, const FTetherIO* OutputData,
+	virtual void DrawDebug(const TArray<FTetherShape*>* Shapes, const FTetherIO* InputData, const FTetherIO* OutputData,
 		TArray<FTetherDebugText>* PendingDebugText = nullptr, float LifeTime = -1.f,
 		FAnimInstanceProxy* Proxy = nullptr, UWorld* World = nullptr, bool bForceDraw = false,
 		const FColor& NoTestColor = FColor::White, const FColor& OverlapColor = FColor::Orange,

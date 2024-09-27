@@ -47,13 +47,25 @@ FTetherShape_AxisAlignedBoundingBox FTetherShape_Pipe::GetBoundingBox() const
 	FVector Min = Center - Extents;
 	FVector Max = Center + Extents;
 
-	return FTetherShape_AxisAlignedBoundingBox(Min, Max, IsWorldSpace(), WorldTransform);
+	return FTetherShape_AxisAlignedBoundingBox(Min, Max, IsWorldSpace(), AppliedWorldTransform);
 }
 
 FVector UTetherShapeObject_Pipe::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
 {
-	const auto* Pipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&Shape);
-	return Pipe->Center;
+	if (Shape.IsWorldSpace())
+	{
+		if (ensureAlways(Shape.LocalSpaceData.IsValid()))
+		{
+			const auto* LocalPipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(Shape.LocalSpaceData.Get());
+			return LocalPipe->Center;
+		}
+	}
+	else
+	{
+		const auto* Pipe = FTetherShapeCaster::CastChecked<FTetherShape_Pipe>(&Shape);
+		return Pipe->Center;
+	}
+	return FVector::ZeroVector;
 }
 
 void UTetherShapeObject_Pipe::TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const
@@ -63,7 +75,7 @@ void UTetherShapeObject_Pipe::TransformToWorldSpace(FTetherShape& Shape, const F
 	if (Shape.IsWorldSpace())
 	{
 		// Already in world space
-		if (!Shape.GetWorldTransform().Equals(WorldTransform))
+		if (!Shape.GetAppliedWorldTransform().Equals(WorldTransform))
 		{
 			// Transform has changed, revert to world first
 			TransformToLocalSpace(Shape);

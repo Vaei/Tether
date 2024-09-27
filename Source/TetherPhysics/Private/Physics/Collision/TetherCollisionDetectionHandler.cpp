@@ -173,7 +173,7 @@ bool UTetherCollisionDetectionHandler::CheckBroadCollision(const FTetherShape* S
 	return false;
 }
 
-bool UTetherCollisionDetectionHandler::CheckNarrowCollision(const FTetherShape* ShapeA, const FTetherShape* ShapeB, FTetherNarrowPhaseCollisionEntry& Output) const
+bool UTetherCollisionDetectionHandler::CheckNarrowCollision(const FTetherShape* ShapeA, const FTetherShape* ShapeB, FNarrowPhaseCollision& Output) const
 {
 	if (ShapeA->GetShapeType() == FTetherGameplayTags::Tether_Shape_AxisAlignedBoundingBox)
 	{
@@ -534,7 +534,7 @@ bool UTetherCollisionDetectionHandler::Broad_Pipe_Pipe(const FTetherShape_Pipe* 
 }
 
 // Narrow-phase collision check for AABB vs AABB
-bool UTetherCollisionDetectionHandler::Narrow_AABB_AABB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_AABB_AABB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B, FNarrowPhaseCollision& Output)
 {
 	constexpr float Tolerance = KINDA_SMALL_NUMBER;
 
@@ -550,7 +550,7 @@ bool UTetherCollisionDetectionHandler::Narrow_AABB_AABB(const FTetherShape_AxisA
 	}
 
 	// Calculate the contact point (midpoint between the two centers)
-	Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
+	Output.ContactPoint = (A->GetLocalSpaceCenter() + B->GetLocalSpaceCenter()) * 0.5f;
 
 	// Calculate the penetration depth as the smallest overlap
 	Output.PenetrationDepth = FMath::Min(OverlapX, FMath::Min(OverlapY, OverlapZ));
@@ -559,7 +559,7 @@ bool UTetherCollisionDetectionHandler::Narrow_AABB_AABB(const FTetherShape_AxisA
 }
 
 // Narrow-phase collision check for AABB vs BoundingSphere
-bool UTetherCollisionDetectionHandler::Narrow_AABB_BoundingSphere(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_AABB_BoundingSphere(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_BoundingSphere* B, FNarrowPhaseCollision& Output)
 {
 	if (Broad_AABB_BoundingSphere(A, B))
 	{
@@ -577,13 +577,13 @@ bool UTetherCollisionDetectionHandler::Narrow_AABB_BoundingSphere(const FTetherS
 }
 
 // Narrow-phase collision check for AABB vs OBB
-bool UTetherCollisionDetectionHandler::Narrow_AABB_OBB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_AABB_OBB(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_OrientedBoundingBox* B, FNarrowPhaseCollision& Output)
 {
 	// Reuse the logic from Narrow_OBB_AABB since AABB vs OBB and OBB vs AABB are symmetrical
 	return Narrow_OBB_AABB(B, A, Output);
 }
 
-bool UTetherCollisionDetectionHandler::Narrow_AABB_Capsule(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_Capsule* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_AABB_Capsule(const FTetherShape_AxisAlignedBoundingBox* A, const FTetherShape_Capsule* B, FNarrowPhaseCollision& Output)
 {
 	// Get the top and bottom points of the capsule
 	FVector CapsuleTop = B->Center + B->Rotation.RotateVector(FVector::UpVector) * (B->HalfHeight - B->Radius);
@@ -612,19 +612,19 @@ bool UTetherCollisionDetectionHandler::Narrow_AABB_Capsule(const FTetherShape_Ax
 
 // Narrow-phase collision check for Pipe vs AABB
 bool UTetherCollisionDetectionHandler::Narrow_AABB_Pipe(const FTetherShape_AxisAlignedBoundingBox* A,
-	const FTetherShape_Pipe* B, FTetherNarrowPhaseCollisionEntry& Output)
+	const FTetherShape_Pipe* B, FNarrowPhaseCollision& Output)
 {
 	return Narrow_Pipe_AABB(B, A, Output); // Symmetric to Pipe vs AABB
 }
 
 // Narrow-phase collision check for BoundingSphere vs AABB
-bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_AABB(const FTetherShape_BoundingSphere* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_AABB(const FTetherShape_BoundingSphere* A, const FTetherShape_AxisAlignedBoundingBox* B, FNarrowPhaseCollision& Output)
 {
 	return Narrow_AABB_BoundingSphere(B, A, Output); // Symmetric to AABB vs BoundingSphere
 }
 
 // Narrow-phase collision check for BoundingSphere vs BoundingSphere
-bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_BoundingSphere(const FTetherShape_BoundingSphere* A, const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_BoundingSphere(const FTetherShape_BoundingSphere* A, const FTetherShape_BoundingSphere* B, FNarrowPhaseCollision& Output)
 {
 	// Calculate the squared distance between sphere centers
 	const float DistanceSquared = FVector::DistSquared(A->Center, B->Center);
@@ -660,13 +660,13 @@ bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_BoundingSphere(cons
 }
 
 // Narrow-phase collision check for BoundingSphere vs OBB
-bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_OBB(const FTetherShape_BoundingSphere* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_OBB(const FTetherShape_BoundingSphere* A, const FTetherShape_OrientedBoundingBox* B, FNarrowPhaseCollision& Output)
 {
 	// Implement a more precise narrow-phase check for BoundingSphere vs OBB
 	if (Broad_BoundingSphere_OBB(A, B))
 	{
 		// Placeholder: Assume collision at center points
-		Output.ContactPoint = (A->Center + B->GetCenter()) * 0.5f;
+		Output.ContactPoint = (A->Center + B->GetLocalSpaceCenter()) * 0.5f;
 		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
 		return true;
 	}
@@ -674,13 +674,13 @@ bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_OBB(const FTetherSh
 }
 
 // Narrow-phase collision check for BoundingSphere vs Capsule
-bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_Capsule(const FTetherShape_BoundingSphere* A, const FTetherShape_Capsule* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_Capsule(const FTetherShape_BoundingSphere* A, const FTetherShape_Capsule* B, FNarrowPhaseCollision& Output)
 {
 	// Implement a more precise narrow-phase check for BoundingSphere vs Capsule
 	if (Broad_BoundingSphere_Capsule(A, B))
 	{
 		// Placeholder: Assume collision at center points
-		Output.ContactPoint = (A->Center + B->GetCenter()) * 0.5f;
+		Output.ContactPoint = (A->Center + B->GetLocalSpaceCenter()) * 0.5f;
 		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
 		return true;
 	}
@@ -689,16 +689,16 @@ bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_Capsule(const FTeth
 
 // Symmetric narrow-phase collision check for BoundingSphere vs Pipe
 bool UTetherCollisionDetectionHandler::Narrow_BoundingSphere_Pipe(const FTetherShape_BoundingSphere* A,
-	const FTetherShape_Pipe* B, FTetherNarrowPhaseCollisionEntry& Output)
+	const FTetherShape_Pipe* B, FNarrowPhaseCollision& Output)
 {
 	return Narrow_Pipe_BoundingSphere(B, A, Output); // Symmetric to Pipe vs BoundingSphere
 }
 
 // Narrow-phase collision check for OBB vs AABB
-bool UTetherCollisionDetectionHandler::Narrow_OBB_AABB(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_OBB_AABB(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_AxisAlignedBoundingBox* B, FNarrowPhaseCollision& Output)
 {
     // Get the center and half-extents of the AABB
-    FVector BCenter = B->GetCenter();
+    FVector BCenter = B->GetLocalSpaceCenter();
     FVector BExtents = (B->Max - B->Min) * 0.5f;
 
     // Get the local axes of the OBB
@@ -754,14 +754,14 @@ bool UTetherCollisionDetectionHandler::Narrow_OBB_AABB(const FTetherShape_Orient
 }
 
 // Narrow-phase collision check for OBB vs BoundingSphere
-bool UTetherCollisionDetectionHandler::Narrow_OBB_BoundingSphere(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_OBB_BoundingSphere(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_BoundingSphere* B, FNarrowPhaseCollision& Output)
 {
 	// Implement a more precise narrow-phase check for OBB vs BoundingSphere
 	return Narrow_BoundingSphere_OBB(B, A, Output); // Symmetric to BoundingSphere vs OBB
 }
 
 // Narrow-phase collision check for OBB vs OBB
-bool UTetherCollisionDetectionHandler::Narrow_OBB_OBB(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_OBB_OBB(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_OrientedBoundingBox* B, FNarrowPhaseCollision& Output)
 {
     FVector ACenter = A->Center;
     FVector AExtents = A->Extent;
@@ -843,13 +843,13 @@ bool UTetherCollisionDetectionHandler::Narrow_OBB_OBB(const FTetherShape_Oriente
 }
 
 // Narrow-phase collision check for OBB vs Capsule
-bool UTetherCollisionDetectionHandler::Narrow_OBB_Capsule(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_Capsule* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_OBB_Capsule(const FTetherShape_OrientedBoundingBox* A, const FTetherShape_Capsule* B, FNarrowPhaseCollision& Output)
 {
 	// Implement a more precise narrow-phase check for OBB vs Capsule
 	if (Broad_OBB_Capsule(A, B))
 	{
 		// Placeholder: Assume collision at center points
-		Output.ContactPoint = (A->GetCenter() + B->GetCenter()) * 0.5f;
+		Output.ContactPoint = (A->GetLocalSpaceCenter() + B->GetLocalSpaceCenter()) * 0.5f;
 		Output.PenetrationDepth = 0.0f; // Placeholder for actual penetration depth calculation
 		return true;
 	}
@@ -858,30 +858,30 @@ bool UTetherCollisionDetectionHandler::Narrow_OBB_Capsule(const FTetherShape_Ori
 
 // Symmetric narrow-phase collision check for OBB vs Pipe
 bool UTetherCollisionDetectionHandler::Narrow_OBB_Pipe(const FTetherShape_OrientedBoundingBox* A,
-	const FTetherShape_Pipe* B, FTetherNarrowPhaseCollisionEntry& Output)
+	const FTetherShape_Pipe* B, FNarrowPhaseCollision& Output)
 {
 	return Narrow_Pipe_OBB(B, A, Output); // Symmetric to Pipe vs OBB
 }
 
 // Narrow-phase collision check for Capsule vs AABB
-bool UTetherCollisionDetectionHandler::Narrow_Capsule_AABB(const FTetherShape_Capsule* A, const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_Capsule_AABB(const FTetherShape_Capsule* A, const FTetherShape_AxisAlignedBoundingBox* B, FNarrowPhaseCollision& Output)
 {
 	return Narrow_AABB_Capsule(B, A, Output); // Symmetric to AABB vs Capsule
 }
 
 // Narrow-phase collision check for Capsule vs BoundingSphere
-bool UTetherCollisionDetectionHandler::Narrow_Capsule_BoundingSphere(const FTetherShape_Capsule* A, const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_Capsule_BoundingSphere(const FTetherShape_Capsule* A, const FTetherShape_BoundingSphere* B, FNarrowPhaseCollision& Output)
 {
 	return Narrow_BoundingSphere_Capsule(B, A, Output); // Symmetric to BoundingSphere vs Capsule
 }
 
 // Narrow-phase collision check for Capsule vs OBB
-bool UTetherCollisionDetectionHandler::Narrow_Capsule_OBB(const FTetherShape_Capsule* A, const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_Capsule_OBB(const FTetherShape_Capsule* A, const FTetherShape_OrientedBoundingBox* B, FNarrowPhaseCollision& Output)
 {
 	return Narrow_OBB_Capsule(B, A, Output); // Symmetric to OBB vs Capsule
 }
 
-bool UTetherCollisionDetectionHandler::Narrow_Capsule_Capsule(const FTetherShape_Capsule* A, const FTetherShape_Capsule* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_Capsule_Capsule(const FTetherShape_Capsule* A, const FTetherShape_Capsule* B, FNarrowPhaseCollision& Output)
 {
     // Calculate the top and bottom points of Capsule A (including hemispheres)
     FVector A_Top = A->Center + A->Rotation.RotateVector(FVector::UpVector) * (A->HalfHeight - A->Radius);  // The half height goes to the extent, not the center of the hemisphere!
@@ -927,7 +927,7 @@ bool UTetherCollisionDetectionHandler::Narrow_Capsule_Capsule(const FTetherShape
 }
 
 bool UTetherCollisionDetectionHandler::Narrow_Capsule_Pipe(const FTetherShape_Capsule* A, const FTetherShape_Pipe* B,
-	FTetherNarrowPhaseCollisionEntry& Output)
+	FNarrowPhaseCollision& Output)
 {
 	// @todo
 	return false;
@@ -977,7 +977,7 @@ bool UTetherCollisionDetectionHandler::Narrow_Capsule_Pipe(const FTetherShape_Ca
 }
 
 bool UTetherCollisionDetectionHandler::Narrow_Pipe_AABB(const FTetherShape_Pipe* A,
-	const FTetherShape_AxisAlignedBoundingBox* B, FTetherNarrowPhaseCollisionEntry& Output)
+	const FTetherShape_AxisAlignedBoundingBox* B, FNarrowPhaseCollision& Output)
 {
 	// @todo
 	return false;
@@ -1017,7 +1017,7 @@ bool UTetherCollisionDetectionHandler::Narrow_Pipe_AABB(const FTetherShape_Pipe*
 }
 
 bool UTetherCollisionDetectionHandler::Narrow_Pipe_BoundingSphere(const FTetherShape_Pipe* A,
-	const FTetherShape_BoundingSphere* B, FTetherNarrowPhaseCollisionEntry& Output)
+	const FTetherShape_BoundingSphere* B, FNarrowPhaseCollision& Output)
 {
 	// @todo
 	return false;
@@ -1059,7 +1059,7 @@ bool UTetherCollisionDetectionHandler::Narrow_Pipe_BoundingSphere(const FTetherS
 }
 
 bool UTetherCollisionDetectionHandler::Narrow_Pipe_OBB(const FTetherShape_Pipe* A,
-	const FTetherShape_OrientedBoundingBox* B, FTetherNarrowPhaseCollisionEntry& Output)
+	const FTetherShape_OrientedBoundingBox* B, FNarrowPhaseCollision& Output)
 {
 	// @todo
 	return false;
@@ -1099,7 +1099,7 @@ bool UTetherCollisionDetectionHandler::Narrow_Pipe_OBB(const FTetherShape_Pipe* 
 }
 
 bool UTetherCollisionDetectionHandler::Narrow_Pipe_Capsule(const FTetherShape_Pipe* A, const FTetherShape_Capsule* B,
-	FTetherNarrowPhaseCollisionEntry& Output)
+	FNarrowPhaseCollision& Output)
 {
 	// @todo
 	return false;
@@ -1148,7 +1148,7 @@ bool UTetherCollisionDetectionHandler::Narrow_Pipe_Capsule(const FTetherShape_Pi
 	// return false;
 }
 
-bool UTetherCollisionDetectionHandler::Narrow_Pipe_Pipe(const FTetherShape_Pipe* A, const FTetherShape_Pipe* B, FTetherNarrowPhaseCollisionEntry& Output)
+bool UTetherCollisionDetectionHandler::Narrow_Pipe_Pipe(const FTetherShape_Pipe* A, const FTetherShape_Pipe* B, FNarrowPhaseCollision& Output)
 {
     // Transform both pipes to world space
     FVector PipeACenter = A->Center;

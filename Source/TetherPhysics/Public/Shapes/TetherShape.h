@@ -4,12 +4,34 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "TetherPhysicsTypes.h"
 #include "UObject/Object.h"
 #include "TetherShape.generated.h"
 
 struct FTetherShape_AxisAlignedBoundingBox;
 class UTetherShapeObject;
+
+/**
+ * Defines how a physics object is controlled within the Tether physics engine.
+ */
+UENUM(BlueprintType)
+enum class ETetherSimulationMode : uint8
+{
+	Simulated			UMETA(ToolTip="Simulated by the physics engine"),
+	Kinematic			UMETA(ToolTip="Does not respond to physics forces"),
+	Inertial			UMETA(ToolTip="Retains internal physics like damping but won't apply external forces"),
+};
+
+/**
+ * Defines the wake/sleep state of a physics object, determining whether it's actively simulated or idle.
+ */
+UENUM(BlueprintType)
+enum class ETetherActivityState : uint8
+{
+	Awake				UMETA(ToolTip="Awake and actively simulated"),
+	ForceAwake			UMETA(ToolTip="Awake and actively simulated - will not sleep"),
+	Asleep				UMETA(ToolTip="Asleep and not simulated until disturbed"),
+	ForceAsleep			UMETA(ToolTip="Asleep and not simulated even if disturbed - will not wake"),
+};
 
 /**
  * The settings and data container for a tether shape in the Tether physics system.
@@ -126,7 +148,7 @@ public:
 	FString GetName() const;
 	FName GetFName() const { return FName(GetName()); }
 
-	FVector GetCenter() const;
+	FVector GetLocalSpaceCenter() const;
 	
 	bool IsValid() const;
 
@@ -144,13 +166,13 @@ public:
 	/** Converts the shape's data back to local space */
 	void ToLocalSpace();
 
-	/** Returns the shape's world transformation */
-	const FTransform& GetWorldTransform() const { return WorldTransform; }
+	/** Returns the shape's world transformation that was applied to convert from local space */
+	const FTransform& GetAppliedWorldTransform() const { return AppliedWorldTransform; }
 
 protected:
 	/** The transformation that was applied to the shape when converting to world space */
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
-	FTransform WorldTransform = FTransform::Identity;
+	FTransform AppliedWorldTransform = FTransform::Identity;
 
 	/** Indicates whether the shape is currently in world space */
 	UPROPERTY(BlueprintReadOnly, Category=Tether)
@@ -173,31 +195,28 @@ USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FTetherShapePair
 {
 	GENERATED_BODY()
-	
-	/** Index of the first shape in the pair */
-	int32 ShapeIndexA;
 
-	/** Index of the second shape in the pair */
-	int32 ShapeIndexB;
+	FTetherShape* ShapeA;
+	FTetherShape* ShapeB;
 
 	FTetherShapePair()
-		: ShapeIndexA(INDEX_NONE)
-		, ShapeIndexB(INDEX_NONE)
+		: ShapeA(nullptr)
+		, ShapeB(nullptr)
 	{}
 
 	/** 
 	 * Constructor to initialize the pair with the indices of two shapes 
-	 * @param InShapeIndexA Index of the first shape
-	 * @param InShapeIndexB Index of the second shape
+	 * @param InShapeA The first shape
+	 * @param InShapeB The second shape
 	 */
-	FTetherShapePair(int32 InShapeIndexA, int32 InShapeIndexB)
-		: ShapeIndexA(InShapeIndexA)
-		, ShapeIndexB(InShapeIndexB)
+	FTetherShapePair(FTetherShape* InShapeA, FTetherShape* InShapeB)
+		: ShapeA(InShapeA)
+		, ShapeB(InShapeB)
 	{}
 
-	bool ContainsShape(int32 ShapeIndex) const
+	bool ContainsShape(const FTetherShape* Shape) const
 	{
-		return ShapeIndexA == ShapeIndex || ShapeIndexB == ShapeIndex;
+		return ShapeA == Shape || ShapeB == Shape;
 	}
 	
 	/**
@@ -209,8 +228,8 @@ struct TETHERPHYSICS_API FTetherShapePair
 	 */
 	bool operator==(const FTetherShapePair& Other) const
 	{
-		return (ShapeIndexA == Other.ShapeIndexA && ShapeIndexB == Other.ShapeIndexB) ||
-			   (ShapeIndexA == Other.ShapeIndexB && ShapeIndexB == Other.ShapeIndexA);
+		return (ShapeA == Other.ShapeA && ShapeB == Other.ShapeB) ||
+			   (ShapeA == Other.ShapeB && ShapeB == Other.ShapeA);
 	}
 };
 

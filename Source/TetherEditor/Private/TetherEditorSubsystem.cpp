@@ -8,7 +8,6 @@
 #include "TetherEditorShapeActor.h"
 #include "Physics/Collision/TetherCollisionDetectionBroadPhase.h"
 #include "Physics/Hashing/TetherHashingSpatial.h"
-#include "Physics/Replay/TetherReplay.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverAngular.h"
 #include "Physics/Solvers/Physics/TetherPhysicsSolverLinear.h"
 
@@ -26,10 +25,10 @@ void UTetherEditorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const TSoftObjectPtr<UTetherDataAsset>& SoftData = UTetherSettings::Get()->EditorSubsystemDataAsset;
 	if (!SoftData.IsNull())
 	{
-		Data = SoftData.LoadSynchronous();
+		DataAsset = SoftData.LoadSynchronous();
 	}
 
-	if (!ensureAlways(Data))
+	if (!ensureAlways(DataAsset))
 	{
 		// Can never run
 		return;
@@ -37,9 +36,15 @@ void UTetherEditorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 	bHasWorldBegunPlay = true;
 
-	SpatialHashingInput = Data->SpatialHashingInput;
+	// Grab solvers from the data asset
+	SharedData.Solvers = FTetherCommonSharedSolvers {
+		DataAsset->HashingSystem, DataAsset->CollisionDetectionHandler, DataAsset->BroadPhaseCollisionDetection,
+		DataAsset->NarrowPhaseCollisionDetection, DataAsset->ContactSolver
+	};
+	
+	SharedData.SpatialHashingInput = DataAsset->SpatialHashingInput;
 
-	PhysicsUpdate = { Data->SimulationFrameRate };
+	PhysicsUpdate = { DataAsset->SimulationFrameRate };
 
 	// Match render tick to physics tick, if the engine can keep up
 	if (FTether::CVarTetherMatchFramerateToSimRate.GetValueOnGameThread())
@@ -48,7 +53,7 @@ void UTetherEditorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		{
 			// GEngine->SetMaxFPS(SimulationFrameRate);  // We don't use this, because we can't then clear it easily
 	
-			FString Command = FString::Printf(TEXT("t.maxfps %f"), Data->SimulationFrameRate);
+			FString Command = FString::Printf(TEXT("t.maxfps %f"), DataAsset->SimulationFrameRate);
 			GEngine->Exec(nullptr, *Command);
 		}
 	}
@@ -69,63 +74,12 @@ void UTetherEditorSubsystem::Deinitialize()
 
 bool UTetherEditorSubsystem::UpdateGameplayTagReferences()
 {
-	if (LastHashingSystem != Data->HashingSystem)
-	{
-		LastHashingSystem = Data->HashingSystem;
-		CurrentHashingSystem = UTetherSettings::GetHashingSystem(Data->HashingSystem);
-	}
-	
-	if (LastCollisionDetectionHandler != Data->CollisionDetectionHandler)
-	{
-		LastCollisionDetectionHandler = Data->CollisionDetectionHandler;
-		CurrentCollisionDetectionHandler = UTetherSettings::GetCollisionDetectionHandler(Data->CollisionDetectionHandler);
-	}
+	SharedData.Solvers.UpdateSolverData(DataAsset->HashingSystem, DataAsset->CollisionDetectionHandler,
+		DataAsset->BroadPhaseCollisionDetection, DataAsset->NarrowPhaseCollisionDetection, DataAsset->ContactSolver);
 
-	if (!ensure(CurrentCollisionDetectionHandler))
+	if (!ensure(SharedData.Solvers.CurrentCollisionDetectionHandler))
 	{
 		return false;
-	}
-	
-	if (LastBroadPhaseCollisionDetection != Data->BroadPhaseCollisionDetection)
-	{
-		LastBroadPhaseCollisionDetection = Data->BroadPhaseCollisionDetection;
-		CurrentBroadPhaseCollisionDetection = UTetherSettings::GetBroadPhaseSystem(Data->BroadPhaseCollisionDetection);
-	}
-	
-	if (LastActivityStateHandler != Data->ActivityStateHandler)
-	{
-		LastActivityStateHandler = Data->ActivityStateHandler;
-		CurrentActivityStateHandler = UTetherSettings::GetActivityStateHandler<UTetherActivityStateHandler>(Data->ActivityStateHandler);
-	}
-
-	if (LastLinearSolver != Data->LinearSolver)
-	{
-		LastLinearSolver = Data->LinearSolver;
-		CurrentLinearSolver = UTetherSettings::GetLinearPhysicsSolver<UTetherPhysicsSolverLinear>(Data->LinearSolver);
-	}
-
-	if (LastAngularSolver != Data->AngularSolver)
-	{
-		LastAngularSolver = Data->AngularSolver;
-		CurrentAngularSolver = UTetherSettings::GetAngularPhysicsSolver<UTetherPhysicsSolverAngular>(Data->AngularSolver);
-	}
-
-	if (LastIntegrationSolver != Data->IntegrationSolver)
-	{
-		LastIntegrationSolver = Data->IntegrationSolver;
-		CurrentIntegrationSolver = UTetherSettings::GetIntegrationSolver<UTetherIntegrationSolver>(Data->IntegrationSolver);
-	}
-
-	if (LastReplaySystem != Data->ReplaySystem)
-	{
-		LastReplaySystem = Data->ReplaySystem;
-		CurrentReplaySystem = UTetherSettings::GetReplaySystem(Data->ReplaySystem);
-	}
-
-	if (LastNarrowPhaseCollisionDetection != Data->NarrowPhaseCollisionDetection)
-	{
-		LastNarrowPhaseCollisionDetection = Data->NarrowPhaseCollisionDetection;
-		CurrentNarrowPhaseCollisionDetection = UTetherSettings::GetNarrowPhaseSystem(Data->NarrowPhaseCollisionDetection);
 	}
 	
 	return true;
@@ -147,54 +101,38 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	}
 	
 	// Build Arrays, Maps, Input data for each shape
-	TArray<FTetherShape*> Shapes;
-	TArray<FVector> Origins;
+	TArray<FTetherShape*> Shapes;	// Shapes grabbed from each editor shape actor
+	TArray<FVector> Origins;		// Averaged locations of all editor shape actors
 	TMap<const FTetherShape*, ATetherEditorShapeActor*> ShapeActorMap;
-	TMap<const FTetherShape*, const FTransform*> ShapeTransforms;
 	for (ATetherEditorShapeActor* Actor : ShapeActors)
 	{
-		// Cache transform for computing origin
-		Origins.Add(Actor->GetActorLocation());
-		
 		// Grab Shape
 		FTetherShape* Shape = Actor->GetTetherShape();
 
-		// Convert to world space
-		Shape->ToWorldSpace(Actor->GetActorTransform());
+		// Convert to world space, initializing from the actor's transform
+		if (!Shape->IsWorldSpace())
+		{
+			Shape->ToWorldSpace(Actor->GetActorTransform());
+		}
 
 		// Add to Shapes Array
 		Shapes.Add(Shape);
 
+		// Cache and update solvers
+		FTetherCommonShapeData* const& SData = ShapeData.FindOrAdd(Shape, &Actor->ShapeData);
+		SData->InitializeShapeData();
+		SData->Solvers.UpdateSolvers();
+		
+		// Cache transform for computing origin
+		Origins.Add(Shape->GetAppliedWorldTransform().GetLocation());
+		
 		// Add to ShapeActorMap TMap
 		ShapeActorMap.Add(Shape, Actor);
-
-		// Add to ShapeTransforms TMap
-		ShapeTransforms.Add(Shape, &Actor->GetActorTransform());
-
-		// Cache LinearInputs
-		FLinearInputSettings& LinearSettings = LinearInput.ShapeSettings.FindOrAdd(Shape);
-		LinearSettings = Actor->LinearInputSettings;
-
-		// Cache AngularInputs
-		FAngularInputSettings& AngularSettings = AngularInput.ShapeSettings.FindOrAdd(Shape);
-		AngularSettings = Actor->AngularInputSettings;
 	}
 
-	// Pass shapes to Inputs
-	SpatialHashingInput.Shapes = &Shapes;
-	BroadPhaseInput.Shapes = &Shapes;
-	NarrowPhaseInput.Shapes = &Shapes;
-	NarrowPhaseInput.CollisionPairings = &BroadPhaseOutput.CollisionPairings;
-	ActivityStateHandlerInput.Shapes = &Shapes;
-	ActivityStateHandlerInput.Settings = &Data->ActivitySettings;
-	IntegrationInput.Shapes = &ShapeTransforms;
-	IntegrationInput.LinearInput = &LinearInput;
-	IntegrationInput.LinearOutput = &LinearOutput;
-	IntegrationInput.AngularInput = &AngularInput;
-	IntegrationInput.AngularOutput = &AngularOutput;
-	IntegrationOutput.Shapes.Reset();  // Reset to re-init from input
-	RecordedData.Shapes = &Shapes;
-	
+	// Initialize shared data
+	SharedData.InitializeSharedData();
+
 	// Compute an origin at the center of all shape actors
 	FVector OriginPoint = FVector::ZeroVector;
 
@@ -215,83 +153,117 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 	{
 		const float& TimeTick = PhysicsUpdate.TimeTick;
 
-		// Spatial Hashing - Generate shape pairs based on proximity and efficiency ratings for priority
-		if (CurrentHashingSystem)
+		/* Spatial Hashing - Generate shape pairs based on proximity and efficiency ratings for priority */
+		if (SharedData.Solvers.CurrentHashingSystem)
 		{
-			CurrentHashingSystem->Solve(&SpatialHashingInput, &SpatialHashingOutput, Origin, TimeTick);
-			CurrentHashingSystem->DrawDebug(&SpatialHashingInput, &SpatialHashingOutput, Origin, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
+			SharedData.Solvers.CurrentHashingSystem->Solve(&Shapes, &SharedData.SpatialHashingInput,
+				&SharedData.SpatialHashingOutput, Origin, TimeTick, WorldTime);
+			
+			SharedData.Solvers.CurrentHashingSystem->DrawDebug(&Shapes, &SharedData.SpatialHashingInput,
+				&SharedData.SpatialHashingOutput, Origin, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 		
-		// Solve Broad-Phase Collision
-		if (CurrentBroadPhaseCollisionDetection)
+		/* Solve Broad-Phase Collision */
+		if (SharedData.Solvers.CurrentBroadPhaseCollisionDetection)
 		{
-			// Optional but common optimization step where you quickly check if objects are close enough to potentially
-			// collide. It reduces the number of detailed collision checks needed in the narrow phase.
-			BroadPhaseInput.PotentialCollisionPairings = &SpatialHashingOutput.ShapePairs;
-			BroadPhaseInput.WorldTime = WorldTime;
-			CurrentBroadPhaseCollisionDetection->DetectCollision(&BroadPhaseInput, &BroadPhaseOutput, CurrentCollisionDetectionHandler);
-			CurrentBroadPhaseCollisionDetection->DrawDebug(&BroadPhaseInput, &BroadPhaseOutput, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
-		}
-
-		// Pre-Solve Activity State (Wake)
-		if (CurrentActivityStateHandler)
-		{
-			ActivityStateHandlerInput.WorldTime = WorldTime;
-			CurrentActivityStateHandler->PreSolveWake(&ActivityStateHandlerInput, &LinearInput, &AngularInput, DeltaTime);
+			// Common optimization step where you quickly check if objects are close enough to potentially collide.
+			// It reduces the number of detailed collision checks needed in the narrow phase.
+			
+			SharedData.Solvers.CurrentBroadPhaseCollisionDetection->DetectCollision(&SharedData.BroadPhaseInput,
+				&SharedData.BroadPhaseOutput, SharedData.Solvers.CurrentCollisionDetectionHandler, TimeTick, WorldTime);
+			
+			SharedData.Solvers.CurrentBroadPhaseCollisionDetection->DrawDebug(&Shapes, &SharedData.BroadPhaseInput,
+				&SharedData.BroadPhaseOutput, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 
-		// Solve Linear & Angular Physics
-		
-		// These steps calculate the velocities that will be applied to the object. By solving linear and angular
-		// physics first, you get the raw velocities that are then used in integration.
-		
-		if (CurrentLinearSolver)
-		{
-			LinearInput.WorldTime = WorldTime;
-			CurrentLinearSolver->Solve(&LinearInput, &LinearOutput, Origin, TimeTick);
-			CurrentLinearSolver->DrawDebug(&LinearInput, &LinearOutput, ShapeTransforms, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
-		}
-		
-		if (CurrentAngularSolver)
-		{
-			CurrentAngularSolver->Solve(&AngularInput, &AngularOutput, Origin, TimeTick);
-			CurrentAngularSolver->DrawDebug(&AngularInput, &AngularOutput, ShapeTransforms, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld(),
-				FColor::Emerald, FColor::Cyan, FColor::Orange);
-		}
+		// Update in preparation for Narrow-Phase
+		SharedData.NarrowPhaseInput.LinearOutputs.Reset();
+		SharedData.NarrowPhaseInput.AngularOutputs.Reset();
 
-		// Post-Solve Activity State (Sleep)
-		if (CurrentActivityStateHandler)
+		// Execute per-shape solvers
+		for (auto& ShapeItr : ShapeData)
 		{
-			CurrentActivityStateHandler->PostSolveSleep(&ActivityStateHandlerInput, &LinearInput, &AngularInput, &LinearOutput, &AngularOutput, DeltaTime);
-			CurrentActivityStateHandler->DrawDebug(&ActivityStateHandlerInput, ShapeTransforms, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
+			FTetherShape* Shape = ShapeItr.Key;
+			FTetherCommonShapeData* Data = ShapeItr.Value;
+
+			/* Pre-Solve Activity State (Wake) */
+			
+			if (Data->Solvers.CurrentActivityStateHandler)
+			{
+				Data->Solvers.CurrentActivityStateHandler->PreSolveWake(Shape, &Data->ActivityInput,
+					&Data->LinearInput, &Data->AngularInput, TimeTick, WorldTime);
+			}
+			
+			/* Solve Linear & Angular Physics
+			 *	These steps calculate the velocities that will be applied to the object. By solving linear and angular
+			 *	physics first, you get the raw velocities that are then used in integration. */
+
+			if (Data->Solvers.CurrentLinearSolver)
+			{
+				Data->Solvers.CurrentLinearSolver->Solve(Shape, &Data->LinearInput, &Data->LinearOutput,
+					TimeTick, WorldTime);
+				
+				Data->Solvers.CurrentLinearSolver->DrawDebug(Shape, &Data->LinearInput, &Data->LinearOutput,
+					&DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
+			}
+
+			if (Data->Solvers.CurrentAngularSolver)
+			{
+				Data->Solvers.CurrentAngularSolver->Solve(Shape, &Data->AngularInput, &Data->AngularOutput,
+					TimeTick, WorldTime);
+				
+				Data->Solvers.CurrentAngularSolver->DrawDebug(Shape, &Data->AngularInput, &Data->AngularOutput,
+					&DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
+			}
+
+			/* Post-Solve Activity State (Sleep) */
+			if (Data->Solvers.CurrentActivityStateHandler)
+			{
+				Data->Solvers.CurrentActivityStateHandler->PostSolveSleep(Shape, &Data->ActivityInput,
+					&Data->LinearInput, &Data->AngularInput, &Data->LinearOutput,
+					&Data->AngularOutput, TimeTick, WorldTime);
+				
+				Data->Solvers.CurrentActivityStateHandler->DrawDebug(Shape, &Data->ActivityInput,
+					&DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
+			}
+
+			/* Solve Integration
+			 *	This part of the solver takes the results from the linear and angular solvers and updates the position
+			 *	and orientation of objects over time. It essentially integrates the calculated forces and torques to
+			 *	determine how an object should move in the next time step.
+			 */
+			if (Data->Solvers.CurrentIntegrationSolver)
+			{
+				Data->Solvers.CurrentIntegrationSolver->Solve(Shape, &Data->IntegrationInput, &Data->IntegrationOutput,
+					TimeTick, WorldTime);
+
+				// Update shape with new transform
+				Shape->ToWorldSpace(Data->IntegrationOutput.Transform);
+			}
+
+			// @TODO Test this and find a proper use-case
+			// // Record state of all objects post-integration for replay purposes
+			// if (Data->Solvers.CurrentReplaySystem)
+			// {
+			// 	Data->Solvers.CurrentReplaySystem->RecordPhysicsState(Shape, &Data->RecordedData, WorldTime,
+			// 		&Data->LinearInput, &Data->AngularInput);
+			// }
+
+			// Update in preparation for Narrow-Phase
+			SharedData.NarrowPhaseInput.LinearOutputs.Add(Shape, &Data->LinearOutput);
+			SharedData.NarrowPhaseInput.AngularOutputs.Add(Shape, &Data->AngularOutput);
 		}
-		
-		// Solve Integration
-		
-		// This part of the solver takes the results from the linear and angular solvers and updates the position and
-		// orientation of objects over time. It essentially integrates the calculated forces and torques to determine
-		// how an object should move in the next time step.
-
-		if (CurrentIntegrationSolver)
-		{
-			CurrentIntegrationSolver->Solve(&IntegrationInput, &IntegrationOutput, TimeTick);
-		}
-		
-		// @todo Record state of all objects post-integration for replay purposes
-
-		// @todo Override the physics engine's output with recorded data
-
-		// if (CurrentReplaySystem)
-		// {
-		// 	CurrentReplaySystem->RecordPhysicsState(&RecordedData, WorldTime, &LinearInput, &AngularInput);
-		// }
+		// ~Execute per-shape solvers
 
 		// @todo Solve Narrow-Phase Collision
-		// @todo add checks for nothing in nearby bucket, skip both broad phase and narrow phase if required
-		if (CurrentNarrowPhaseCollisionDetection)
+		if (SharedData.Solvers.CurrentNarrowPhaseCollisionDetection)
 		{
-			CurrentNarrowPhaseCollisionDetection->DetectCollision(&NarrowPhaseInput, &NarrowPhaseOutput, &LinearOutput, &AngularOutput, CurrentCollisionDetectionHandler);
-			CurrentNarrowPhaseCollisionDetection->DrawDebug(&NarrowPhaseInput, &NarrowPhaseOutput, &DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
+			SharedData.Solvers.CurrentNarrowPhaseCollisionDetection->DetectCollision(&SharedData.NarrowPhaseInput,
+				&SharedData.NarrowPhaseOutput, SharedData.Solvers.CurrentCollisionDetectionHandler, TimeTick, WorldTime);
+			
+			SharedData.Solvers.CurrentNarrowPhaseCollisionDetection->DrawDebug(&Shapes,
+				&SharedData.NarrowPhaseInput, &SharedData.NarrowPhaseOutput,
+				&DebugTextService.PendingDebugText, TimeTick, nullptr, GetWorld());
 		}
 
 		// This step checks for actual collisions using detailed geometry after the object has been moved.
@@ -340,11 +312,8 @@ void UTetherEditorSubsystem::Tick(float DeltaTime)
 		ATetherEditorShapeActor* Actor = ActorItr.Value;
 		if (ensure(IsValid(Actor)))
 		{
-			const FTransform* Transform = IntegrationOutput.Shapes.Find(Shape);
-			if (ensure(Transform))
-			{
-				Actor->SetActorTransform(*Transform);
-			}
+			const FTransform& Transform = Shape->GetAppliedWorldTransform();
+			Actor->SetActorTransform(Transform);
 		}
 	}
 

@@ -63,66 +63,6 @@ protected:
 	FTetherPhysicsUpdate PhysicsUpdate = { SimulationFrameRate };
 
 protected:
-	UPROPERTY()
-	TArray<FTetherShape> Shapes;  // @todo remove
-
-	TArray<FTetherShape*> ShapePtrs;
-
-	UPROPERTY()
-	FSpatialHashingOutput SpatialHashingOutput;
-
-	UPROPERTY()
-	FLinearInput LinearInput;
-
-	UPROPERTY()
-	FAngularInput AngularInput;
-	
-	UPROPERTY()
-	FLinearOutput LinearOutput;
-
-	UPROPERTY()
-	FAngularOutput AngularOutput;
-
-	UPROPERTY()
-	FRecordedPhysicsData RecordedData;
-
-	UPROPERTY()
-	FTetherBroadPhaseCollisionOutput BroadPhaseOutput;
-
-	UPROPERTY()
-	TArray<FTetherNarrowPhaseCollisionOutput> NarrowPhaseOutput;
-
-	UPROPERTY(Transient)
-	FGameplayTag LastHashingSystem = FGameplayTag::EmptyTag;
-	
-	UPROPERTY(Transient)
-	FGameplayTag LastLinearSolver = FGameplayTag::EmptyTag;
-
-	UPROPERTY(Transient)
-	FGameplayTag LastAngularSolver = FGameplayTag::EmptyTag;
-	
-	UPROPERTY(Transient)
-	FGameplayTag LastReplaySystem = FGameplayTag::EmptyTag;
-
-	UPROPERTY(Transient)
-	const UTetherHashing* CurrentHashingSystem = nullptr;
-	
-	UPROPERTY(Transient)
-	const UTetherCollisionDetectionBroadPhase* CurrentBroadPhaseCollisionDetection = nullptr;
-
-	UPROPERTY(Transient)
-	const UTetherCollisionDetectionNarrowPhase* CurrentNarrowPhaseCollisionDetection = nullptr;
-	
-	UPROPERTY(Transient)
-	const UTetherPhysicsSolverLinear* CurrentLinearSolver = nullptr;
-	
-	UPROPERTY(Transient)
-	const UTetherPhysicsSolverAngular* CurrentAngularSolver = nullptr;
-	
-	UPROPERTY(Transient)
-	const UTetherReplay* CurrentReplaySystem = nullptr;
-
-protected:
 	FCompactPoseBoneIndex RootBoneIndex = FCompactPoseBoneIndex(INDEX_NONE);
 	
 protected:

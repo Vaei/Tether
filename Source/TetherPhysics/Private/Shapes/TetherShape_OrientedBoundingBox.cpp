@@ -52,13 +52,25 @@ FTetherShape_AxisAlignedBoundingBox FTetherShape_OrientedBoundingBox::GetBoundin
 		Max.Z = FMath::Max(Max.Z, Vertex.Z);
 	}
 
-	return FTetherShape_AxisAlignedBoundingBox(Min, Max, IsWorldSpace(), WorldTransform);
+	return FTetherShape_AxisAlignedBoundingBox(Min, Max, IsWorldSpace(), AppliedWorldTransform);
 }
 
 FVector UTetherShapeObject_OrientedBoundingBox::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
 {
-	const auto* OBB = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&Shape);
-	return OBB->Center;
+	if (Shape.IsWorldSpace())
+	{
+		if (ensureAlways(Shape.LocalSpaceData.IsValid()))
+		{
+			const auto* LocalOBB = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(Shape.LocalSpaceData.Get());
+			return LocalOBB->Center;
+		}
+	}
+	else
+	{
+		const auto* OBB = FTetherShapeCaster::CastChecked<FTetherShape_OrientedBoundingBox>(&Shape);
+		return OBB->Center;
+	}
+	return FVector::ZeroVector;
 }
 
 void UTetherShapeObject_OrientedBoundingBox::TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const
@@ -68,7 +80,7 @@ void UTetherShapeObject_OrientedBoundingBox::TransformToWorldSpace(FTetherShape&
 	if (Shape.IsWorldSpace())
 	{
 		// Already in world space
-		if (!Shape.GetWorldTransform().Equals(WorldTransform))
+		if (!Shape.GetAppliedWorldTransform().Equals(WorldTransform))
 		{
 			// Transform has changed, revert to world first
 			TransformToLocalSpace(Shape);

@@ -49,14 +49,26 @@ FTetherShape_AxisAlignedBoundingBox FTetherShape_Capsule::GetBoundingBox() const
 	Min -= FVector(Radius, Radius, 0.0f);
 	Max += FVector(Radius, Radius, 0.0f);
 
-	return FTetherShape_AxisAlignedBoundingBox(Min, Max, IsWorldSpace(), WorldTransform);
+	return FTetherShape_AxisAlignedBoundingBox(Min, Max, IsWorldSpace(), AppliedWorldTransform);
 }
 
 
 FVector UTetherShapeObject_Capsule::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
 {
-	const auto* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
-	return Capsule->Center;
+	if (Shape.IsWorldSpace())
+	{
+		if (ensureAlways(Shape.LocalSpaceData.IsValid()))
+		{
+			const auto* LocalCapsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(Shape.LocalSpaceData.Get());
+			return LocalCapsule->Center;
+		}
+	}
+	else
+	{
+		const auto* Capsule = FTetherShapeCaster::CastChecked<FTetherShape_Capsule>(&Shape);
+		return Capsule->Center;
+	}
+	return FVector::ZeroVector;
 }
 
 void UTetherShapeObject_Capsule::TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const
@@ -66,7 +78,7 @@ void UTetherShapeObject_Capsule::TransformToWorldSpace(FTetherShape& Shape, cons
 	if (Shape.IsWorldSpace())
 	{
 		// Already in world space
-		if (!Shape.GetWorldTransform().Equals(WorldTransform))
+		if (!Shape.GetAppliedWorldTransform().Equals(WorldTransform))
 		{
 			// Transform has changed, revert to world first
 			TransformToLocalSpace(Shape);
@@ -83,9 +95,6 @@ void UTetherShapeObject_Capsule::TransformToWorldSpace(FTetherShape& Shape, cons
 		// Cache local space data
 		Shape.LocalSpaceData = Shape.Clone();
 	}
-
-	// Clone current state prior to conversion
-	Capsule->LocalSpaceData = Capsule->Clone();
 
 	// Transform the center to world space
 	FVector TransformedCenter = WorldTransform.TransformPosition(Capsule->Center);

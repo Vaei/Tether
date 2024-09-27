@@ -20,40 +20,42 @@ namespace FTether
 }
 
 void UTetherCollisionDetectionNarrowPhase::DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData,
-	const FTetherIO* LinearOutputData, FTetherIO* AngularOutputData,
-	const UTetherCollisionDetectionHandler* CollisionDetectionHandler) const
+	const UTetherCollisionDetectionHandler* CollisionDetectionHandler, float DeltaTime, double WorldTime) const
 {
-	const auto* Input = InputData->GetDataIO<FTetherNarrowPhaseCollisionInput>();
-	auto* Output = OutputData->GetDataIO<FTetherNarrowPhaseCollisionOutput>();
-
-	const auto* LinearOutput = LinearOutputData->GetDataIO<FLinearOutput>();
-	const auto* AngularOutput = AngularOutputData->GetDataIO<FAngularOutput>();
+	const auto* Input = InputData->GetDataIO<FNarrowPhaseInput>();
+	auto* Output = OutputData->GetDataIO<FNarrowPhaseOutput>();
 
 	// Clear the output before starting
 	Output->Collisions.Reset();
 
+
 	// Iterate through each collision pairing from the broad-phase
 	for (const FTetherShapePair& Pair : *Input->CollisionPairings)
 	{
-		const FTetherShape* ShapeA = (*Input->Shapes)[Pair.ShapeIndexA];
-		const FTetherShape* ShapeB = (*Input->Shapes)[Pair.ShapeIndexB];
-
 		// Perform narrow-phase collision check between ShapeA and ShapeB
-		FTetherNarrowPhaseCollisionEntry CollisionEntry { ShapeA, ShapeB };
-		if (CollisionDetectionHandler->CheckNarrowCollision(ShapeA, ShapeB, CollisionEntry))
+		FNarrowPhaseCollision CollisionEntry { Pair.ShapeA, Pair.ShapeB };
+		if (CollisionDetectionHandler->CheckNarrowCollision(Pair.ShapeA, Pair.ShapeB, CollisionEntry))
 		{
+			// Linear Output
+			const FLinearOutput* const& LinearA = Input->LinearOutputs[Pair.ShapeA];
+			const FLinearOutput* const& LinearB = Input->LinearOutputs[Pair.ShapeB];
+
+			// Angular Output
+			const FAngularOutput* const& AngularA = Input->AngularOutputs[Pair.ShapeA];
+			const FAngularOutput* const& AngularB = Input->AngularOutputs[Pair.ShapeB];
+
 			// Get Velocity at Point
 			const FVector ContactVelocityA = UTetherStatics::GetVelocityAtPoint(CollisionEntry.ContactPoint,
-				ShapeA->GetCenter(), LinearOutput->GetLinearVelocity(ShapeA), AngularOutput->GetAngularVelocity(ShapeA));
+				Pair.ShapeA->GetLocalSpaceCenter(), LinearA->LinearVelocity, AngularA->AngularVelocity);
 			
 			const FVector ContactVelocityB = UTetherStatics::GetVelocityAtPoint(CollisionEntry.ContactPoint,
-				ShapeB->GetCenter(), LinearOutput->GetLinearVelocity(ShapeB), AngularOutput->GetAngularVelocity(ShapeB));
+				Pair.ShapeB->GetLocalSpaceCenter(), LinearB->LinearVelocity, AngularB->AngularVelocity);
 			
 			// Calculate relative velocity at the contact point
 			CollisionEntry.RelativeVelocity = ContactVelocityA - ContactVelocityB;
 
 			// Calculate the vector from the center of A to the center of B
-			FVector CollisionVector = ShapeB->GetCenter() - ShapeA->GetCenter();
+			FVector CollisionVector = Pair.ShapeB->GetLocalSpaceCenter() - Pair.ShapeA->GetLocalSpaceCenter();
 			
 			// Normalize the collision vector to get the contact normal
 			CollisionEntry.ContactNormal = CollisionVector.GetSafeNormal();
@@ -65,13 +67,13 @@ void UTetherCollisionDetectionNarrowPhase::DetectCollision(const FTetherIO* Inpu
 			if (FTether::CVarTetherLogNarrowPhaseCollision.GetValueOnAnyThread())
 			{
 				UE_LOG(LogTether, Warning, TEXT("[ %s ] Shape { %s } narrow-phase collision with { %s } at Contact Point { %s }, Penetration Depth: { %.3f }"),
-					*FString(__FUNCTION__), *ShapeA->GetName(), *ShapeB->GetName(), *CollisionEntry.ContactPoint.ToString(), CollisionEntry.PenetrationDepth);
+					*FString(__FUNCTION__), *Pair.ShapeA->GetName(), *Pair.ShapeB->GetName(), *CollisionEntry.ContactPoint.ToString(), CollisionEntry.PenetrationDepth);
 			}
 		}
 	}
 }
 
-void UTetherCollisionDetectionNarrowPhase::DrawDebug(const FTetherIO* InputData,
+void UTetherCollisionDetectionNarrowPhase::DrawDebug(const TArray<FTetherShape*>* Shapes, const FTetherIO* InputData,
 	const FTetherIO* OutputData, TArray<FTetherDebugText>* PendingDebugText, float LifeTime, FAnimInstanceProxy* Proxy, const
 	UWorld* World, const FColor& CollisionColor, const FColor& NoCollisionColor, const FColor& InfoColor,
 	const FColor& TextColor, bool bPersistentLines, float Thickness) const
@@ -82,13 +84,13 @@ void UTetherCollisionDetectionNarrowPhase::DrawDebug(const FTetherIO* InputData,
 		return;
 	}
 	
-	const auto* Input = InputData->GetDataIO<FTetherNarrowPhaseCollisionInput>();
-	const auto* Output = OutputData->GetDataIO<FTetherNarrowPhaseCollisionOutput>();
+	// const auto* Input = InputData->GetDataIO<FNarrowPhaseInput>();
+	const auto* Output = OutputData->GetDataIO<FNarrowPhaseOutput>();
 
-	for (const FTetherShape* Shape : *Input->Shapes)
+	for (const FTetherShape* Shape : *Shapes)
 	{
-		const FTetherNarrowPhaseCollisionEntry* ShapeEntry = Output->Collisions.FindByPredicate(
-			[Shape](const FTetherNarrowPhaseCollisionEntry& Entry)
+		const FNarrowPhaseCollision* ShapeEntry = Output->Collisions.FindByPredicate(
+			[Shape](const FNarrowPhaseCollision& Entry)
 		{
 			return Entry.ShapeA == Shape || Entry.ShapeB == Shape;
 		});

@@ -30,69 +30,64 @@ void UTetherPhysicsSolverLinear::ApplyLinearDamping(FVector& Velocity, const FLi
 	}
 }
 
-void UTetherPhysicsSolverLinear::Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const
+void UTetherPhysicsSolverLinear::Solve(FTetherShape* Shape, const FTetherIO* InputData, FTetherIO* OutputData,
+	float DeltaTime, float WorldTime) const
 {
 	const auto* Input = InputData->GetDataIO<FLinearInput>();
 	auto* Output = OutputData->GetDataIO<FLinearOutput>();
 
-	for (auto& ShapeItr : Input->ShapeSettings)
+	// Skip asleep shapes
+	if (Shape->IsAsleep())
 	{
-		const FTetherShape* const& Shape = ShapeItr.Key;
-		const FLinearInputSettings& Settings = ShapeItr.Value;
-
-		FLinearOutputData& LinearData = Output->ShapeData.FindOrAdd(Shape);
-		FVector& LinearVelocity = LinearData.LinearVelocity;
-
-		// Skip asleep shapes
-		if (Shape->IsAsleep())
-		{
-			continue;
-		}
-
-		// Skip Kinematic objects - they don't respond to physics forces
-		if (Shape->SimulationMode == ETetherSimulationMode::Kinematic)
-		{
-			continue;
-		}
-
-		// Inertial mode only applies damping, no external forces
-		if (Shape->SimulationMode == ETetherSimulationMode::Inertial)
-		{
-			ApplyLinearDamping(LinearVelocity, Settings, DeltaTime);
-			continue;
-		}
-
-		// Simulated mode: Apply forces, acceleration, and damping
-		const float Mass = FMath::Max(KINDA_SMALL_NUMBER, Settings.Mass);
-		FVector Acceleration = (Settings.Force - Settings.FrictionForce) / Mass;
-		Acceleration += Settings.Acceleration;
-
-		// Apply Acceleration to the Linear Velocity
-		LinearVelocity += Acceleration * DeltaTime;
-
-		// Apply damping to slow down linear velocity
-		ApplyLinearDamping(LinearVelocity, Settings, DeltaTime);
-
-		// Apply linear drag due to air resistance
-		float DragForce = Settings.LinearDragCoefficient * LinearVelocity.SizeSquared();
-		FVector Drag = -LinearVelocity.GetSafeNormal() * DragForce * DeltaTime;
-		LinearVelocity += Drag;
-
-		// Clamp the linear velocity to the maximum allowed value
-		float LinearVelocityMagnitude = LinearVelocity.Size();
-		if (LinearVelocityMagnitude > Settings.MaxLinearVelocity)
-		{
-			LinearVelocity *= Settings.MaxLinearVelocity / LinearVelocityMagnitude;
-		}
-
-		// UE_LOG(LogTemp, Log, TEXT("LinearVelocity %s"), *LinearVelocity.ToString());
+		return;
 	}
+
+	// Skip Kinematic objects - they don't respond to physics forces
+	if (Shape->SimulationMode == ETetherSimulationMode::Kinematic)
+	{
+		return;
+	}
+	
+	const FLinearInputSettings& Settings = Input->Settings;
+	FVector& LinearVelocity = Output->LinearVelocity;
+
+	// Inertial mode only applies damping, no external forces
+	if (Shape->SimulationMode == ETetherSimulationMode::Inertial)
+	{
+		ApplyLinearDamping(LinearVelocity, Settings, DeltaTime);
+		return;
+	}
+
+	// Simulated mode: Apply forces, acceleration, and damping
+	const float Mass = FMath::Max(KINDA_SMALL_NUMBER, Settings.Mass);
+	FVector Acceleration = (Settings.Force - Settings.FrictionForce) / Mass;
+	Acceleration += Settings.Acceleration;
+
+	// Apply Acceleration to the Linear Velocity
+	LinearVelocity += Acceleration * DeltaTime;
+
+	// Apply damping to slow down linear velocity
+	ApplyLinearDamping(LinearVelocity, Settings, DeltaTime);
+
+	// Apply linear drag due to air resistance
+	float DragForce = Settings.LinearDragCoefficient * LinearVelocity.SizeSquared();
+	FVector Drag = -LinearVelocity.GetSafeNormal() * DragForce * DeltaTime;
+	LinearVelocity += Drag;
+
+	// Clamp the linear velocity to the maximum allowed value
+	float LinearVelocityMagnitude = LinearVelocity.Size();
+	if (LinearVelocityMagnitude > Settings.MaxLinearVelocity)
+	{
+		LinearVelocity *= Settings.MaxLinearVelocity / LinearVelocityMagnitude;
+	}
+
+	// UE_LOG(LogTemp, Log, TEXT("LinearVelocity %s"), *LinearVelocity.ToString());
 }
 
-void UTetherPhysicsSolverLinear::DrawDebug(const FTetherIO* InputData, FTetherIO* OutputData,
-	TMap<const FTetherShape*, const FTransform*> ShapeTransforms, TArray<FTetherDebugText>* PendingDebugText,
-	float LifeTime,	FAnimInstanceProxy* Proxy, const UWorld* World, const FColor& VelocityColor,
-	const FColor& ForceColor, const FColor& AccelerationColor, bool bPersistentLines, float Thickness) const
+void UTetherPhysicsSolverLinear::DrawDebug(const FTetherShape* Shape, const FTetherIO* InputData, FTetherIO* OutputData,
+	TArray<FTetherDebugText>* PendingDebugText, float LifeTime, FAnimInstanceProxy* Proxy, const UWorld* World,
+	const FColor& VelocityColor, const FColor& ForceColor, const FColor& AccelerationColor,
+	bool bPersistentLines, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
 	if (!FTether::CVarTetherSolverLinearDraw.GetValueOnAnyThread())
@@ -108,31 +103,26 @@ void UTetherPhysicsSolverLinear::DrawDebug(const FTetherIO* InputData, FTetherIO
 	const auto* Input = InputData->GetDataIO<FLinearInput>();
 	const auto* Output = OutputData->GetDataIO<FLinearOutput>();
 
-	for (auto& ShapeItr : Input->ShapeSettings)
-	{
-		const FTetherShape* const& Shape = ShapeItr.Key;
-		const FLinearInputSettings& Settings = ShapeItr.Value;
-		const FLinearOutputData& Data = Output->ShapeData[Shape];
+	const FLinearInputSettings& Settings = Input->Settings;
 
-		static constexpr float VisualScale = 0.05f;
-		static constexpr float ArrowSize = 4.f;
-		
-		// 1. Draw Linear Velocity as an arrow
-		FVector StartLocation = ShapeTransforms[Shape]->GetLocation();
-		FVector EndLocation = StartLocation + Data.LinearVelocity * VisualScale;  // Scale velocity for visualization
-		UTetherDrawing::DrawArrow(World, Proxy, StartLocation, EndLocation, VelocityColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
-		UTetherDrawing::DrawText("Linear Velocity", PendingDebugText, Shape, EndLocation, VelocityColor);
+	static constexpr float VisualScale = 0.05f;
+	static constexpr float ArrowSize = 4.f;
+	
+	// 1. Draw Linear Velocity as an arrow
+	FVector StartLocation = Shape->GetAppliedWorldTransform().GetLocation();
+	FVector EndLocation = StartLocation + Output->LinearVelocity * VisualScale;  // Scale velocity for visualization
+	UTetherDrawing::DrawArrow(World, Proxy, StartLocation, EndLocation, VelocityColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+	UTetherDrawing::DrawText("Linear Velocity", PendingDebugText, Shape, EndLocation, VelocityColor);
 
-		// 2. Draw Net Force
-		FVector Force = Settings.Force - Settings.FrictionForce;
-		FVector ForceEndLocation = StartLocation + Force * VisualScale;  // Scale force for visualization
-		UTetherDrawing::DrawArrow(World, Proxy, StartLocation, ForceEndLocation, ForceColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
-		UTetherDrawing::DrawText("Force", PendingDebugText, Shape, ForceEndLocation, ForceColor);
+	// 2. Draw Net Force
+	FVector Force = Settings.Force - Settings.FrictionForce;
+	FVector ForceEndLocation = StartLocation + Force * VisualScale;  // Scale force for visualization
+	UTetherDrawing::DrawArrow(World, Proxy, StartLocation, ForceEndLocation, ForceColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+	UTetherDrawing::DrawText("Force", PendingDebugText, Shape, ForceEndLocation, ForceColor);
 
-		// 3. Draw Acceleration
-		FVector AccelerationEndLocation = StartLocation + Settings.Acceleration * VisualScale;  // Scale acceleration for visualization
-		UTetherDrawing::DrawArrow(World, Proxy, StartLocation, AccelerationEndLocation, AccelerationColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
-		UTetherDrawing::DrawText("Acceleration", PendingDebugText, Shape, AccelerationEndLocation, AccelerationColor);
-	}
+	// 3. Draw Acceleration
+	FVector AccelerationEndLocation = StartLocation + Settings.Acceleration * VisualScale;  // Scale acceleration for visualization
+	UTetherDrawing::DrawArrow(World, Proxy, StartLocation, AccelerationEndLocation, AccelerationColor, ArrowSize, bPersistentLines, LifeTime, Thickness);
+	UTetherDrawing::DrawText("Acceleration", PendingDebugText, Shape, AccelerationEndLocation, AccelerationColor);
 #endif
 }

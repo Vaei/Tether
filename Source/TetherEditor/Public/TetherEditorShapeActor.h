@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "TetherIO.h"
+#include "TetherPhysicsTypes.h"
 #include "GameFramework/Actor.h"
 #include "Shapes/TetherShape_AxisAlignedBoundingBox.h"
 #include "Shapes/TetherShape_OrientedBoundingBox.h"
@@ -42,10 +42,7 @@ public:
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FLinearInputSettings LinearInputSettings;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FAngularInputSettings AngularInputSettings;
+	FTetherCommonShapeData ShapeData;
 
 public:
 	ATetherEditorShapeActor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
@@ -57,4 +54,5 @@ public:
 
 public:
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
+
 };

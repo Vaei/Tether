@@ -9,7 +9,7 @@
 
 struct FTetherDebugText;
 class UTetherCollisionDetectionHandler;
-struct FTetherNarrowPhaseCollisionOutput;
+struct FNarrowPhaseOutput;
 
 /**
  * Base class for narrow-phase collision detection in the Tether physics system.
@@ -44,9 +44,10 @@ public:
 	 * @param InputData						The input data structure containing the potential collision pairs from the broad-phase, as well as shape and transformation data.
 	 * @param OutputData					The output data structure that will store detailed collision information, such as contact points, penetration depth, and collision normal.
 	 * @param CollisionDetectionHandler		The handler responsible for performing the narrow-phase collision checks for specific shape types.
+	 * @param WorldTime						Current WorldTime appended by TimeTicks
 	 */
-	virtual void DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData, const FTetherIO* LinearOutputData, FTetherIO* AngularOutputData, const UTetherCollisionDetectionHandler* CollisionDetectionHandler) const;
+	virtual void DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData, const UTetherCollisionDetectionHandler* CollisionDetectionHandler, float DeltaTime, double WorldTime) const;
 	
-	virtual void DrawDebug(const FTetherIO* InputData, const FTetherIO* OutputData, TArray<FTetherDebugText>* PendingDebugText = nullptr,
+	virtual void DrawDebug(const TArray<FTetherShape*>* Shapes, const FTetherIO* InputData, const FTetherIO* OutputData, TArray<FTetherDebugText>* PendingDebugText = nullptr,
 		float LifeTime = -1.f, FAnimInstanceProxy* Proxy = nullptr, const UWorld* World = nullptr, const FColor& CollisionColor = FColor::Red, const FColor& NoCollisionColor = FColor::Blue, const FColor& InfoColor = FColor::Orange, const FColor& TextColor = FColor::White, bool bPersistentLines = false, float Thickness = 0.f) const;
 };

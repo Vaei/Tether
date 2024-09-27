@@ -4,9 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Shapes/TetherShape.h"
-
 #include "TetherIO.generated.h"
-
 
 /** Damping model used for linear or angular motion. */
 UENUM(BlueprintType)
@@ -109,16 +107,13 @@ struct TETHERPHYSICS_API FSpatialHashingInput : public FTetherIO
 		: BucketSizeMode(InBucketSizeMode)
 		, BucketSize(50.f)
 		, OriginOffset(FVector::ZeroVector)
-		, Shapes(nullptr)
 	{}
     
-	FSpatialHashingInput(const ETetherBucketSizingStrategy& InBucketSizeMode, const FVector& InBucketSize, const FVector& InOrigin, const TArray<FTetherShape*>* InShapes)
+	FSpatialHashingInput(const ETetherBucketSizingStrategy& InBucketSizeMode, const FVector& InBucketSize, const FVector& InOrigin)
 		: BucketSizeMode(InBucketSizeMode)
 		, BucketSize(InBucketSize)
 		, OriginOffset(InOrigin)
-	{
-		Shapes = InShapes;
-	}
+	{}
 
 	/** Strategy for sizing buckets in spatial hashing. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
@@ -131,9 +126,6 @@ struct TETHERPHYSICS_API FSpatialHashingInput : public FTetherIO
 	/** Origin of the spatial hash grid */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
 	FVector OriginOffset;
-
-	/** Array of shapes to be hashed */
-	const TArray<FTetherShape*>* Shapes;
 };
 
 /**
@@ -162,26 +154,102 @@ struct TETHERPHYSICS_API FSpatialHashingOutput : public FTetherIO
 };
 
 /**
- *
+ * Configuration settings for controlling the sleep and wake behavior of physics objects in the Tether physics engine.
+ * This struct defines various thresholds for linear and angular forces, acceleration, velocity, and collision activity,
+ * which determine when an object should transition between awake and asleep states. 
+ * The thresholds help reduce unnecessary computations by allowing objects to sleep when they are at rest or unaffected 
+ * by significant forces, while ensuring they wake up when external influences are applied.
  */
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FTetherActivityStateInput : public FTetherIO
+struct TETHERPHYSICS_API FActivitySettings
 {
 	GENERATED_BODY()
 
-	FTetherActivityStateInput()
-		: Settings(nullptr)
-		, Shapes(nullptr)
-		 , WorldTime(-1.0)
+	FActivitySettings()
+		: RecentBroadPhaseCollisionTime(1.f)
+		, LinearVelocityThreshold(KINDA_SMALL_NUMBER)
+		, LinearForceThreshold(0.2f)
+		, LinearAccelerationThreshold(0.1f)
+		, AngularVelocityThreshold(0.1f)
+		, AngularTorqueThreshold(1.f)
+		, EnergyThreshold(0.05f)
+		, SleepDelay(1.f)
+	{}
+	
+	/**
+	 * Time threshold (in seconds) for detecting recent broad-phase collisions. 
+	 * If a broad-phase collision occurred within this time window, the object will wake up.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	float RecentBroadPhaseCollisionTime;
+	
+	/**
+	 * Minimum linear velocity threshold to keep the object awake.
+	 * If the object's linear velocity falls below this threshold, it will be considered for sleeping.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	float LinearVelocityThreshold;
+	
+	/**
+	 * Linear force threshold (Newtons) to wake the object. 
+	 * If the force applied to the object exceeds this threshold, it will wake up.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	float LinearForceThreshold;
+	
+	/**
+	 * Linear acceleration threshold (cm/s²) to wake the object. 
+	 * If the object experiences an acceleration higher than this value, it will wake up.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	float LinearAccelerationThreshold;
+	
+	/**
+	 * Angular velocity threshold (radians/second) to wake the object. 
+	 * If the object's angular velocity exceeds this threshold, it will wake up.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	float AngularVelocityThreshold;
+	
+	/**
+	 * Angular torque threshold (Newton-meters) to wake the object. 
+	 * If the torque applied to the object exceeds this threshold, it will wake up.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	float AngularTorqueThreshold;
+	
+	/**
+	 * Minimum kinetic energy threshold to transition an object to sleep.
+	 * If the combined linear and angular kinetic energy of the object falls below this threshold,
+	 * the object will be considered for sleep. A lower value makes the object more sensitive
+	 * to small movements, while a higher value requires more energy for the object to stay awake.
+	 *
+	 * Suggestions:
+	 * For small props or lightweight objects:			 0.01f
+	 * For mid-sized objects (vehicles, characters):	 0.05f
+	 * For larger heavier objects:						 0.10f
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	float EnergyThreshold;
+
+	/** When entering sleep state, delay for this amount of time, and reset the delay if we should wake */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	float SleepDelay;
+};
+
+/**
+ *
+ */
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FActivityStateInput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FActivityStateInput()
 	{}
 
-	const FTetherActivitySettings* Settings;
-
-	/** Shapes to manage activity state for */
-	const TArray<FTetherShape*>* Shapes;
-
-	UPROPERTY()
-	double WorldTime;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FActivitySettings Settings;
 };
 
 /**
@@ -248,18 +316,36 @@ struct TETHERPHYSICS_API FLinearInputSettings
  * This struct includes properties for forces, mass, damping, and other factors
  * that influence the linear motion of an object.
  */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FLinearInput : public FTetherIO
 {
 	GENERATED_BODY()
 
 	FLinearInput()
-		: WorldTime(-1.0)
 	{}
 
-	TMap<FTetherShape*, FLinearInputSettings> ShapeSettings;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
+	FLinearInputSettings Settings;
+};
 
-	double WorldTime;
+/**
+ * Output data for linear physics simulations, containing results for multiple shapes.
+ *
+ * This struct stores the linear output data for each shape being simulated. It includes
+ * the resulting linear velocity for each shape after the linear physics calculations
+ * have been performed, stored in a map keyed by the shape.
+ */
+USTRUCT(BlueprintType)
+struct TETHERPHYSICS_API FLinearOutput : public FTetherIO
+{
+	GENERATED_BODY()
+
+	FLinearOutput()
+	{}
+
+	/** Linear velocity resulting from the physics simulation */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Tether)
+	FVector LinearVelocity;
 };
 
 /**
@@ -338,83 +424,16 @@ struct TETHERPHYSICS_API FAngularInputSettings : public FTetherIO
  * This struct includes properties for torques, mass, damping, shape, and other factors
  * that influence the angular motion of an object.
  */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FAngularInput : public FTetherIO
 {
 	GENERATED_BODY()
 
 	FAngularInput()
 	{}
-
-	TMap<const FTetherShape*, FAngularInputSettings> ShapeSettings;
-};
-
-/**
- * Data structure representing the linear output for each shape in the physics simulation.
- * 
- * This struct holds the resulting linear velocity for each individual shape after 
- * the linear physics calculations have been applied. The velocity is updated based 
- * on forces and other effects during the simulation.
- */
-USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FLinearOutputData : public FTetherIO
-{
-	GENERATED_BODY()
-
-	FLinearOutputData()
-		: LinearVelocity(FVector::ZeroVector)
-	{}
-
-	/** Linear velocity resulting from the physics simulation */
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FVector LinearVelocity;
-};
-
-/**
- * Output data for linear physics simulations, containing results for multiple shapes.
- *
- * This struct stores the linear output data for each shape being simulated. It includes
- * the resulting linear velocity for each shape after the linear physics calculations
- * have been performed, stored in a map keyed by the shape.
- */
-USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FLinearOutput : public FTetherIO
-{
-	GENERATED_BODY()
-
-	FLinearOutput()
-	{}
-
-	/** Linear velocity results for each shape in the simulation */
-	TMap<const FTetherShape*, FLinearOutputData> ShapeData;
-
-	const FVector& GetLinearVelocity(const FTetherShape* Shape) const { return ShapeData.FindChecked(Shape).LinearVelocity; }
-};
-
-/**
- * Data structure representing the angular output for each shape in the physics simulation.
- * 
- * This struct holds the resulting angular velocity and inertia for each individual shape 
- * after the angular physics calculations have been applied. The angular velocity is 
- * influenced by forces such as torque and the object's inertia.
- */
-USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FAngularOutputData : public FTetherIO
-{
-	GENERATED_BODY()
-
-	FAngularOutputData()
-		: AngularVelocity(FVector::ZeroVector)
-		, Inertia(FVector::OneVector)
-	{}
-
-	/** Angular velocity resulting from the physics simulation */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FVector AngularVelocity;
-
-	/** Inertia of the object influencing angular motion */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FVector Inertia;
+	FAngularInputSettings Settings;
 };
 
 /**
@@ -432,11 +451,13 @@ struct TETHERPHYSICS_API FAngularOutput : public FTetherIO
 	FAngularOutput()
 	{}
 
-	/** Angular velocity results for each shape in the simulation */
-	TMap<const FTetherShape*, FAngularOutputData> ShapeData;
-	
-	const FVector& GetAngularVelocity(const FTetherShape* Shape) const { return ShapeData.FindChecked(Shape).AngularVelocity; }
-	const FVector& GetInertia(const FTetherShape* Shape) const { return ShapeData.FindChecked(Shape).Inertia; }
+	/** Angular velocity resulting from the physics simulation */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Tether)
+	FVector AngularVelocity;
+
+	/** Inertia of the object influencing angular motion */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Tether)
+	FVector Inertia;
 };
 
 /**
@@ -472,47 +493,22 @@ struct TETHERPHYSICS_API FIntegrationInput : public FTetherIO
 
 	FIntegrationInput()
 		: LinearInput(nullptr)
-		, AngularInput(nullptr)
 		, LinearOutput(nullptr)
+		, AngularInput(nullptr)
 		, AngularOutput(nullptr)
-		, Shapes(nullptr)
 	{}
 
 	/** Current linear motion data (velocity, force, etc.) */
 	FLinearInput* LinearInput;
 
-	/** Current angular motion data (torque, angular velocity, etc.) */
-	FAngularInput* AngularInput;
-
 	/** Current linear motion data (velocity, force, etc.) */
 	FLinearOutput* LinearOutput;
 
 	/** Current angular motion data (torque, angular velocity, etc.) */
+	FAngularInput* AngularInput;
+
+	/** Current angular motion data (torque, angular velocity, etc.) */
 	FAngularOutput* AngularOutput;
-
-	/** Each shape being simulated */
-	TMap<const FTetherShape*, const FTransform*>* Shapes;
-};
-
-/**
- * Output data for each shape after the physics simulation step.
- *
- * This struct contains the updated transform of the object after integration,
- * along with the previous transform to help in Verlet integration. This data is 
- * used to store the result of the integration and will be applied back to the object.
- */
-USTRUCT()
-struct TETHERPHYSICS_API FIntegrationOutputData : public FTetherIO
-{
-	GENERATED_BODY()
-
-	FIntegrationOutputData()
-		: Transform(FTransform::Identity)
-	{}
-
-	/** Updated transform (position, rotation, scale) after the physics step */
-	UPROPERTY()
-	FTransform Transform;
 };
 
 /**
@@ -522,16 +518,18 @@ struct TETHERPHYSICS_API FIntegrationOutputData : public FTetherIO
  * Each shape has an updated transform and its previous transform, used for 
  * calculating the next frame in Verlet integration.
  */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct TETHERPHYSICS_API FIntegrationOutput : public FTetherIO
 {
 	GENERATED_BODY()
 
 	FIntegrationOutput()
+		: Transform(FTransform::Identity)
 	{}
 
-	/** A map of each shape being simulated to its respective output data */
-	TMap<const FTetherShape*, FTransform> Shapes;
+	/** Resulting integrated transform */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Tether)
+	FTransform Transform;
 };
 
 /**
@@ -542,20 +540,19 @@ struct TETHERPHYSICS_API FIntegrationOutput : public FTetherIO
  * during spatial hashing.
  */
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionInput : public FTetherIO
+struct TETHERPHYSICS_API FNarrowPhaseInput : public FTetherIO
 {
 	GENERATED_BODY()
 
-	FTetherNarrowPhaseCollisionInput()
-		: Shapes(nullptr)
-		, CollisionPairings(nullptr)
+	FNarrowPhaseInput()
+		: CollisionPairings(nullptr)
 	{}
-
-	/** Array of shapes to be processed in the narrow-phase collision detection */
-	const TArray<FTetherShape*>* Shapes;
 
 	/** Pairings detected during Broad-Phase collision */
 	const TArray<FTetherShapePair>* CollisionPairings;
+
+	TMap<const FTetherShape*, const FLinearOutput*> LinearOutputs;
+	TMap<const FTetherShape*, const FAngularOutput*> AngularOutputs;
 };
 
 /**
@@ -565,11 +562,11 @@ struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionInput : public FTetherIO
  * the contact point, and the penetration depth of the collision.
  */
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionEntry : public FTetherIO
+struct TETHERPHYSICS_API FNarrowPhaseCollision : public FTetherIO
 {
 	GENERATED_BODY()
 
-	FTetherNarrowPhaseCollisionEntry()
+	FNarrowPhaseCollision()
 		: ShapeA(nullptr)
 		, ShapeB(nullptr)
 		, ContactPoint(FVector::ZeroVector)
@@ -578,7 +575,7 @@ struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionEntry : public FTetherIO
 		, RelativeVelocity(FVector::ZeroVector)
 	{}
 
-	FTetherNarrowPhaseCollisionEntry(const FTetherShape* InShapeA, const FTetherShape* InShapeB, bool bInHasCollision = false)
+	FNarrowPhaseCollision(const FTetherShape* InShapeA, const FTetherShape* InShapeB, bool bInHasCollision = false)
 		: ShapeA(InShapeA)
 		, ShapeB(InShapeB)
 		, ContactPoint(FVector::ZeroVector)
@@ -614,14 +611,14 @@ struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionEntry : public FTetherIO
  * the contact point, and the penetration depth of the collision.
  */
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionOutput : public FTetherIO
+struct TETHERPHYSICS_API FNarrowPhaseOutput : public FTetherIO
 {
 	GENERATED_BODY()
 
-	FTetherNarrowPhaseCollisionOutput()
+	FNarrowPhaseOutput()
 	{}
 
-	TArray<FTetherNarrowPhaseCollisionEntry> Collisions;
+	TArray<FNarrowPhaseCollision> Collisions;
 };
 
 /**
@@ -632,30 +629,20 @@ struct TETHERPHYSICS_API FTetherNarrowPhaseCollisionOutput : public FTetherIO
  * during spatial hashing.
  */
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FTetherBroadPhaseCollisionInput : public FTetherIO
+struct TETHERPHYSICS_API FBroadPhaseInput : public FTetherIO
 {
 	GENERATED_BODY()
 
-	FTetherBroadPhaseCollisionInput()
-		: Shapes(nullptr)
-		, PotentialCollisionPairings(nullptr)
-		, WorldTime(-1.0)
+	FBroadPhaseInput()
+		: PotentialCollisionPairings(nullptr)
 	{}
 
-	FTetherBroadPhaseCollisionInput(const TArray<FTetherShape*>* InShapes, const TArray<FTetherShapePair>* InPotentialPairs, double InWorldTime = -1.0)
-		: Shapes(InShapes)
-		, PotentialCollisionPairings(InPotentialPairs)
-		, WorldTime(InWorldTime)
+	FBroadPhaseInput(const TArray<FTetherShapePair>* InPotentialPairs)
+		: PotentialCollisionPairings(InPotentialPairs)
 	{}
-
-	/** Array of shapes to be processed in the broad-phase collision detection */
-	const TArray<FTetherShape*>* Shapes;
 
 	/** Pairs of shapes that have been identified as potential collisions during spatial hashing */
 	const TArray<FTetherShapePair>* PotentialCollisionPairings;
-
-	UPROPERTY()
-	double WorldTime;
 };
 
 /**
@@ -665,11 +652,11 @@ struct TETHERPHYSICS_API FTetherBroadPhaseCollisionInput : public FTetherIO
  * in the narrow-phase collision detection.
  */
 USTRUCT(BlueprintType)
-struct TETHERPHYSICS_API FTetherBroadPhaseCollisionOutput : public FTetherIO
+struct TETHERPHYSICS_API FBroadPhaseOutput : public FTetherIO
 {
 	GENERATED_BODY()
 
-	FTetherBroadPhaseCollisionOutput()
+	FBroadPhaseOutput()
 	{}
 
 	/** Array of collision pairs detected in the broad-phase */
@@ -750,11 +737,8 @@ struct TETHERPHYSICS_API FRecordedPhysicsData : public FTetherIO
 {
 	GENERATED_BODY()
 
-	/** Shapes to iterate when recording data */
-	const TArray<FTetherShape*>* Shapes;
-
 	/** The collection of all recorded objects in the session */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Tether)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Tether)
 	TArray<FRecordedPhysicsObject> RecordedObjects;
 
 	/**

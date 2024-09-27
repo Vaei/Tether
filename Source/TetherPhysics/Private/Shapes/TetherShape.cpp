@@ -23,7 +23,7 @@ FString FTetherShape::GetName() const
 	return GetTetherShapeObject() ? GetTetherShapeObject()->GetShapeDebugString() : GetShapeType().ToString();
 }
 
-FVector FTetherShape::GetCenter() const
+FVector FTetherShape::GetLocalSpaceCenter() const
 {
 	return GetTetherShapeObject() ? GetTetherShapeObject()->GetLocalSpaceShapeCenter(*this) : FVector::ZeroVector;
 }
@@ -53,7 +53,7 @@ void FTetherShape::ToWorldSpace(const FTransform& InWorldTransform)
 {
 	GetTetherShapeObject()->TransformToWorldSpace(*this, InWorldTransform);
 	bWorldSpace = true;
-	WorldTransform = InWorldTransform;
+	AppliedWorldTransform = InWorldTransform;
 }
 
 void FTetherShape::ToLocalSpace()

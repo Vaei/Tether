@@ -32,5 +32,6 @@ public:
 	 * @param OutputData Pointer to the output data where the results of the Euler integration will be stored.
 	 * @param DeltaTime  The time step for the simulation, used to calculate the new state.
 	 */
-	virtual void Solve(const FTetherIO* InputData, FTetherIO* OutputData, float DeltaTime) const override;
+	virtual void Solve(const FTetherShape* Shape, const FTetherIO* InputData, FTetherIO* OutputData,
+		float DeltaTime, double WorldTime) const override;
 };

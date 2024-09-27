@@ -41,7 +41,7 @@ FTetherShape_AxisAlignedBoundingBox FTetherShape_BoundingSphere::GetBoundingBox(
 	FVector Min = Center - FVector(Radius);
 	FVector Max = Center + FVector(Radius);
 
-	return FTetherShape_AxisAlignedBoundingBox(Min, Max, IsWorldSpace(), WorldTransform);
+	return FTetherShape_AxisAlignedBoundingBox(Min, Max, IsWorldSpace(), AppliedWorldTransform);
 }
 
 FVector UTetherShapeObject_BoundingSphere::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
@@ -57,7 +57,7 @@ void UTetherShapeObject_BoundingSphere::TransformToWorldSpace(FTetherShape& Shap
 	if (Shape.IsWorldSpace())
 	{
 		// Already in world space
-		if (!Shape.GetWorldTransform().Equals(WorldTransform))
+		if (!Shape.GetAppliedWorldTransform().Equals(WorldTransform))
 		{
 			// Transform has changed, revert to world first
 			TransformToLocalSpace(Shape);

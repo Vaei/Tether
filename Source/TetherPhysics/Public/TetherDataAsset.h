@@ -29,22 +29,7 @@ public:
 		
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Detection.NarrowPhase"))
 	FGameplayTag NarrowPhaseCollisionDetection = FTetherGameplayTags::Tether_Detection_NarrowPhase;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.ActivityState"))
-	FGameplayTag ActivityStateHandler = FTetherGameplayTags::Tether_ActivityState;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Solver.Linear"))
-	FGameplayTag LinearSolver = FTetherGameplayTags::Tether_Solver_Linear;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Solver.Angular"))
-	FGameplayTag AngularSolver = FTetherGameplayTags::Tether_Solver_Angular;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Solver.Integration"))
-	FGameplayTag IntegrationSolver = FTetherGameplayTags::Tether_Solver_Integration_Euler;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Replay"))
-	FGameplayTag ReplaySystem = FTetherGameplayTags::Tether_Replay;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether, meta=(Categories="Tether.Solver.Contact"))
 	FGameplayTag ContactSolver = FTetherGameplayTags::Tether_Solver_Contact;
 
@@ -52,7 +37,7 @@ public:
 	FSpatialHashingInput SpatialHashingInput;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Tether)
-	FTetherActivitySettings ActivitySettings;
+	FActivitySettings ActivitySettings;
 	
 	/** 
 	 * Target frame rate for the physics simulation. This value determines the frequency at which physics calculations

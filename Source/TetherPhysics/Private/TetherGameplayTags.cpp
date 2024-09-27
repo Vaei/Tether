@@ -49,9 +49,9 @@ namespace FTetherGameplayTags
 
 	/** Gameplay tags for tether replay system */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Replay, "Tether.Replay");
-	UE_DEFINE_GAMEPLAY_TAG(Tether_Replay_Mode_Idle, "Tether.Replay.Mode.Idle");
-	UE_DEFINE_GAMEPLAY_TAG(Tether_Replay_Mode_Recording, "Tether.Replay.Mode.Recording");
-	UE_DEFINE_GAMEPLAY_TAG(Tether_Replay_Mode_Replaying, "Tether.Replay.Mode.Replaying");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_ReplayMode_Idle, "Tether.ReplayMode.Idle");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_ReplayMode_Recording, "Tether.ReplayMode.Recording");
+	UE_DEFINE_GAMEPLAY_TAG(Tether_ReplayMode_Replaying, "Tether.ReplayMode.Replaying");
 
 	/** Gameplay tags for tether shapes */
 	UE_DEFINE_GAMEPLAY_TAG(Tether_Shape, "Tether.Shape");

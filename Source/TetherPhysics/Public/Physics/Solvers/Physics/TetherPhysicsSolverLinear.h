@@ -39,17 +39,16 @@ public:
 	 *
 	 * @param InputData  Pointer to the input data containing the current linear state of the physics objects.
 	 * @param OutputData Pointer to the output data where the results of the linear physics calculations will be stored.
-	 * @param Transform  The transformation to be applied during the physics calculations.
 	 * @param DeltaTime  The time step for the simulation, used to calculate time-dependent linear effects.
 	 */
-	virtual void Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const;
+	virtual void Solve(FTetherShape* Shape, const FTetherIO* InputData, FTetherIO* OutputData, float DeltaTime,
+		float WorldTime) const;
 
 	/**
 	 * Visualizes the physics solver's key properties for debugging purposes.
 	 * 
 	 * @param InputData             Pointer to the input data used in the physics solver.
 	 * @param OutputData            Pointer to the output data containing the results of the physics calculations.
-	 * @param ShapeTransforms       The transform representing the object's position and rotation in the world.
 	 * @param PendingDebugText	    Array of Debug Texts that to be drawn by the viewport
 	 * @param LifeTime              The duration for which the debug lines should be visible (negative values mean infinite).
 	 * @param Proxy					Pointer to the animation instance proxy for drawing debug information.
@@ -60,8 +59,7 @@ public:
 	 * @param bPersistentLines      Whether the debug lines should persist beyond a single frame.
 	 * @param Thickness             The thickness of the debug lines.
 	 */
-	virtual void DrawDebug(const FTetherIO* InputData, FTetherIO* OutputData,
-		TMap<const FTetherShape*, const FTransform*> ShapeTransforms,
+	virtual void DrawDebug(const FTetherShape* Shape, const FTetherIO* InputData, FTetherIO* OutputData,
 		TArray<FTetherDebugText>* PendingDebugText = nullptr, float LifeTime = -1.f,
 		FAnimInstanceProxy* Proxy = nullptr, const UWorld* World = nullptr,
 		const FColor& VelocityColor = FColor::Green, const FColor& ForceColor = FColor::Blue,

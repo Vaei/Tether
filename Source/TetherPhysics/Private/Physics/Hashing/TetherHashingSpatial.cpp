@@ -17,8 +17,8 @@ namespace FTether
 	TAutoConsoleVariable<bool> CVarTetherDrawSpatialHashingGrid(TEXT("p.Tether.SpatialHashing.Grid.Draw"), false, TEXT("Draw Tether Spatial Hashing Grid to world"));
 }
 
-void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform,
-	float DeltaTime) const
+void UTetherHashingSpatial::Solve(const TArray<FTetherShape*>* InShapes, const FTetherIO* InputData, FTetherIO* OutputData,
+	const FTransform& Origin, float DeltaTime, double WorldTime) const
 {
 	// Generate shape pairs based on spatial hashing and efficiency rating
 
@@ -39,8 +39,8 @@ void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputD
 	FVector MaxBucketSize { GlobalMinBucketSize };  // Start with a global minimum
 
 	// Loop through all shapes to find the maximum required bucket size
-	const TArray<FTetherShape*> Shapes = *Input->Shapes;
-	for (int32 i = 0; i < Input->Shapes->Num(); i++)
+	const TArray<FTetherShape*> Shapes = *InShapes;
+	for (int32 i = 0; i < Shapes.Num(); i++)
 	{
 		// Get the bounding box for the current shape in world space
 		FTetherShape_AxisAlignedBoundingBox AABB = Shapes[i]->GetTetherShapeObject()->GetBoundingBox(*Shapes[i]);
@@ -66,7 +66,7 @@ void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputD
 	}
 
 	// Now add all shapes to the spatial hash map using the fixed bucket size
-	for (int32 i = 0; i < Input->Shapes->Num(); i++)
+	for (int32 i = 0; i < Shapes.Num(); i++)
 	{
 		// Init debug info string
 		FString DebugString = FString::Printf(TEXT("{ %s }"), *Shapes[i]->GetName());
@@ -93,14 +93,14 @@ void UTetherHashingSpatial::Solve(const FTetherIO* InputData, FTetherIO* OutputD
 				int32 IndexA = Indices[i];
 				int32 IndexB = Indices[j];
 
-				const FTetherShape* ShapeA = Shapes[IndexA];
-				const FTetherShape* ShapeB = Shapes[IndexB];
+				FTetherShape* ShapeA = Shapes[IndexA];
+				FTetherShape* ShapeB = Shapes[IndexB];
 
 				// Check if shapes are in the same or adjacent buckets
 				if (IsInSameOrAdjacentBucket(ShapeA, ShapeB))
 				{
 					// Determine which shape should perform the evaluation based on EfficiencyRating
-					Output->ShapePairs.Add(FTetherShapePair(IndexA, IndexB));
+					Output->ShapePairs.Add(FTetherShapePair(ShapeA, ShapeB));
 				}
 			}
 		}
@@ -120,7 +120,7 @@ FIntVector UTetherHashingSpatial::ComputeSpatialHashKey(const FSpatialHashingInp
 	const FTetherShape* Shape, FString& DebugString)
 {
 	// Get the position of the shape's center
-	FVector Position = Shape->LocalSpaceData->GetCenter();
+	FVector Position = Shape->LocalSpaceData->GetLocalSpaceCenter();
 
 	// Calculate the hash key based on the bucket size and position relative to the new origin
 	return FIntVector(
@@ -162,14 +162,15 @@ void UTetherHashingSpatial::DrawDebugBucket(FAnimInstanceProxy* Proxy, const UWo
 	FVector BucketExtent = (BucketMax - BucketMin) * 0.5f;
 
 	// Draw the box
-	UTetherDrawing::DrawBox(World, Proxy, BucketCenter, BucketExtent, FQuat::Identity, Color, bPersistentLines, LifeTime, Thickness);
+	UTetherDrawing::DrawBox(World, Proxy, BucketCenter, BucketExtent, FQuat::Identity, Color, bPersistentLines,
+		LifeTime, Thickness);
 #endif
 }
 
-void UTetherHashingSpatial::DrawDebug(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
-	const FTransform& Transform, TArray<FTetherDebugText>* PendingDebugText, float LifeTime,
-	 FAnimInstanceProxy* Proxy, const UWorld* World, bool bDrawAll, const FColor& Color,
-	 bool bPersistentLines, float Thickness) const
+void UTetherHashingSpatial::DrawDebug(const TArray<FTetherShape*>* Shapes, const FSpatialHashingInput* Input,
+	const FSpatialHashingOutput* Output, const FTransform& InOrigin, TArray<FTetherDebugText>* PendingDebugText,
+	float LifeTime, FAnimInstanceProxy* Proxy, const UWorld* World, bool bDrawAll,
+	const FColor& Color, bool bPersistentLines, float Thickness) const
 {
 #if ENABLE_DRAW_DEBUG
 	if (!Proxy && !World)
@@ -183,8 +184,8 @@ void UTetherHashingSpatial::DrawDebug(const FSpatialHashingInput* Input, const F
 	}
 
 	// Apply the OriginOffset to the transform
-	const FVector OriginOffset = Transform.TransformPosition(Input->OriginOffset);
-	FTransform Origin = Transform;
+	FTransform Origin = InOrigin;
+	const FVector OriginOffset = Origin.TransformPosition(Input->OriginOffset);
 	Origin.SetLocation(OriginOffset);
 
 	// Draw a box at the center representing the origin of the spatial grid
@@ -201,7 +202,8 @@ void UTetherHashingSpatial::DrawDebug(const FSpatialHashingInput* Input, const F
 	FVector BoxExtent = (BucketMax - BucketMin) * 0.5f;
 
 	// Use the UTetherStatics::DrawBox function to draw the box using the animation proxy
-	UTetherDrawing::DrawBox(World, Proxy, BoxCenter, BoxExtent, FQuat::Identity, OriginColor, bPersistentLines, LifeTime, OriginThickness);
+	UTetherDrawing::DrawBox(World, Proxy, BoxCenter, BoxExtent, FQuat::Identity, OriginColor, bPersistentLines,
+		LifeTime, OriginThickness);
 
 	// Abort if we hashed nothing
 	if (Output->SpatialHashMap.Num() == 0)

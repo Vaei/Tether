@@ -39,17 +39,19 @@ public:
 	 * 
 	 * @param InputData  Pointer to the input data containing objects or data to be hashed.
 	 * @param OutputData Pointer to the output data where the hashing results will be stored.
-	 * @param Transform  The transformation to be applied during the hashing process, if applicable.
+	 * @param Origin	 The center of the spatial hashing grid to be applied during the hashing process, if applicable.
 	 * @param DeltaTime  The time step for the simulation, used for time-dependent hashing calculations, if applicable.
+	 * @param WorldTime	 Current WorldTime appended by TimeTicks
 	 */
-	virtual void Solve(const FTetherIO* InputData, FTetherIO* OutputData, const FTransform& Transform, float DeltaTime) const {}
+	virtual void Solve(const TArray<FTetherShape*>* Shapes, const FTetherIO* InputData, FTetherIO* OutputData,
+		const FTransform& Origin, float DeltaTime, double WorldTime) const {}
 
 	/**
 	 * Visualizes the results of the hashing process for debugging purposes.
 	 * 
 	 * @param Input                Pointer to the input data used in the hashing process.
 	 * @param Output               Pointer to the output data containing the results of the hashing.
-	 * @param Transform			   The transformation to be applied, if applicable.
+	 * @param Origin			   The center of the spatial hashing grid.
 	 * @param PendingDebugText	   Array of Debug Texts that to be drawn by the viewport
 	 * @param LifeTime             The duration for which the debug lines should be visible.
 	 * @param Proxy				   Pointer to the animation instance proxy for drawing debug information.
@@ -59,8 +61,9 @@ public:
 	 * @param bPersistentLines     Whether the debug lines should persist beyond a single frame.
 	 * @param Thickness            The thickness of the debug lines.
 	 */
-	virtual void DrawDebug(const FSpatialHashingInput* Input, const FSpatialHashingOutput* Output,
-		const FTransform& Transform, TArray<FTetherDebugText>* PendingDebugText = nullptr, float LifeTime = -1.f,
+	virtual void DrawDebug(const TArray<FTetherShape*>* Shapes, const FSpatialHashingInput* Input,
+		const FSpatialHashingOutput* Output, const FTransform& Origin,
+		TArray<FTetherDebugText>* PendingDebugText = nullptr, float LifeTime = -1.f,
 		FAnimInstanceProxy* Proxy = nullptr, const UWorld* World = nullptr, bool bDrawAll = true,
 		const FColor& Color = FColor::Green, bool bPersistentLines = false, float Thickness = 1.f) const {}
 };

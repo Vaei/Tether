@@ -37,7 +37,7 @@ namespace FTetherGameplayTags
 
 	/** Gameplay tags for tether contact solvers */
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Contact);
-	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Contact_RigidBody_Standard);
+	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Contact_RigidBody_ImpulseVelocityLevel);
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Contact_RigidBody_ProjectedGaussSeidel);
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Contact_RigidBody_SequentialImpulse);
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Solver_Contact_RigidBody_Iterative);
@@ -48,9 +48,9 @@ namespace FTetherGameplayTags
 
 	/** Gameplay tags for tether replay system */
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Replay);
-	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Replay_Mode_Idle);
-	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Replay_Mode_Recording);
-	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Replay_Mode_Replaying);
+	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_ReplayMode_Idle);
+	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_ReplayMode_Recording);
+	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_ReplayMode_Replaying);
 	
 	/** Gameplay tags for tether shapes */
 	TETHERPHYSICS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Tether_Shape);

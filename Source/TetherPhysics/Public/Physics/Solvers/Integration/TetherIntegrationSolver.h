@@ -29,6 +29,8 @@ public:
 	 * @param InputData  Pointer to the input data for the current physics state.
 	 * @param OutputData Pointer to the output data storing the results of the physics update.
 	 * @param DeltaTime  The time step used for time-dependent calculations.
+	 * @param WorldTime	 Current WorldTime appended by TimeTicks
 	 */
-	virtual void Solve(const FTetherIO* InputData, FTetherIO* OutputData, float DeltaTime) const {}
+	virtual void Solve(const FTetherShape* Shape, const FTetherIO* InputData, FTetherIO* OutputData,
+		float DeltaTime, double WorldTime) const {}
 };

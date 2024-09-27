@@ -28,7 +28,7 @@ FTetherShape_AxisAlignedBoundingBox::FTetherShape_AxisAlignedBoundingBox(const F
 	{
 		// Now cache our world space data
 		bWorldSpace = bInWorldSpace;
-		WorldTransform = InWorldTransform;
+		AppliedWorldTransform = InWorldTransform;
 	}
 }
 
@@ -45,10 +45,27 @@ void FTetherShape_AxisAlignedBoundingBox::ToLocalSpace_Implementation()
 	}
 }
 
+FVector FTetherShape_AxisAlignedBoundingBox::ComputeCenter() const
+{
+	return (Min + Max) * 0.5f;
+}
+
 FVector UTetherShapeObject_AxisAlignedBoundingBox::GetLocalSpaceShapeCenter(const FTetherShape& Shape) const
 {
-	const auto* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
-	return (AABB->Min + AABB->Max) * 0.5f;
+	if (Shape.IsWorldSpace())
+	{
+		if (ensureAlways(Shape.LocalSpaceData.IsValid()))
+		{
+			const auto* LocalAABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(Shape.LocalSpaceData.Get());
+			return LocalAABB->ComputeCenter();
+		}
+	}
+	else
+	{
+		const auto* AABB = FTetherShapeCaster::CastChecked<FTetherShape_AxisAlignedBoundingBox>(&Shape);
+		return AABB->ComputeCenter();
+	}
+	return FVector::ZeroVector;
 }
 
 void UTetherShapeObject_AxisAlignedBoundingBox::TransformToWorldSpace(FTetherShape& Shape, const FTransform& WorldTransform) const
@@ -58,7 +75,7 @@ void UTetherShapeObject_AxisAlignedBoundingBox::TransformToWorldSpace(FTetherSha
 	if (Shape.IsWorldSpace())
 	{
 		// Already in world space
-		if (!Shape.GetWorldTransform().Equals(WorldTransform))
+		if (!Shape.GetAppliedWorldTransform().Equals(WorldTransform))
 		{
 			// Transform has changed, revert to world first
 			TransformToLocalSpace(Shape);

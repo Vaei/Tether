@@ -19,10 +19,11 @@ namespace FTether
 #endif
 }
 
-void UTetherCollisionDetectionBroadPhase::DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData, const UTetherCollisionDetectionHandler* CollisionDetectionHandler) const
+void UTetherCollisionDetectionBroadPhase::DetectCollision(const FTetherIO* InputData, FTetherIO* OutputData,
+	const UTetherCollisionDetectionHandler* CollisionDetectionHandler, float DeltaTime, double WorldTime) const
 {
-	const auto* Input = InputData->GetDataIO<FTetherBroadPhaseCollisionInput>();
-	auto* Output = OutputData->GetDataIO<FTetherBroadPhaseCollisionOutput>();
+	const auto* Input = InputData->GetDataIO<FBroadPhaseInput>();
+	auto* Output = OutputData->GetDataIO<FBroadPhaseOutput>();
 
 	// Clear the output before starting
 	Output->CollisionPairings.Reset();
@@ -30,32 +31,29 @@ void UTetherCollisionDetectionBroadPhase::DetectCollision(const FTetherIO* Input
 	// Iterate through each potential collision pair
 	for (const FTetherShapePair& Pair : *Input->PotentialCollisionPairings)
 	{
-		FTetherShape* ShapeA = (*Input->Shapes)[Pair.ShapeIndexA];
-		FTetherShape* ShapeB = (*Input->Shapes)[Pair.ShapeIndexB];
-
 		// Perform broad-phase collision checks between ShapeA and ShapeB
-		if (CollisionDetectionHandler->CheckBroadCollision(ShapeA, ShapeB))
+		if (CollisionDetectionHandler->CheckBroadCollision(Pair.ShapeA, Pair.ShapeB))
 		{
 			// If a collision is detected, add it to the output
 			Output->CollisionPairings.Add(Pair);
 
 			// Assign WorldTime so we know when they might need to be woken in later stages
-			ShapeA->LastBroadCollisionTime = Input->WorldTime;
-			ShapeB->LastBroadCollisionTime = Input->WorldTime;
+			Pair.ShapeA->LastBroadCollisionTime = WorldTime;
+			Pair.ShapeB->LastBroadCollisionTime = WorldTime;
 
 			// Debug logging
 			if (FTether::CVarTetherLogBroadPhaseCollision.GetValueOnAnyThread())
 			{
 				UE_LOG(LogTether, Warning, TEXT("[ %s ] Shape { %s } broad-phase overlap with { %s }"),
-					*FString(__FUNCTION__), *ShapeA->GetName(), *ShapeB->GetName());
+					*FString(__FUNCTION__), *Pair.ShapeA->GetName(), *Pair.ShapeB->GetName());
 			}
 		}
 	}
 }
 
-void UTetherCollisionDetectionBroadPhase::DrawDebug(const FTetherIO* InputData, const FTetherIO* OutputData,
-	TArray<FTetherDebugText>* PendingDebugText, float LifeTime, FAnimInstanceProxy* Proxy, UWorld* World,
-	bool bForceDraw, const FColor& NoTestColor, const FColor& OverlapColor, const FColor& NoOverlapColor) const
+void UTetherCollisionDetectionBroadPhase::DrawDebug(const TArray<FTetherShape*>* Shapes, const FTetherIO* InputData,
+	const FTetherIO* OutputData, TArray<FTetherDebugText>* PendingDebugText, float LifeTime, FAnimInstanceProxy* Proxy,
+	UWorld* World, bool bForceDraw, const FColor& NoTestColor, const FColor& OverlapColor, const FColor& NoOverlapColor) const
 {
 #if ENABLE_DRAW_DEBUG
 	if (!bForceDraw && !FTether::CVarTetherDrawBroadPhaseCollision.GetValueOnAnyThread())
@@ -68,22 +66,19 @@ void UTetherCollisionDetectionBroadPhase::DrawDebug(const FTetherIO* InputData, 
 		return;
 	}
 	
-	const auto* Input = InputData->GetDataIO<FTetherBroadPhaseCollisionInput>();
-	const auto* Output = OutputData->GetDataIO<FTetherBroadPhaseCollisionOutput>();
+	const auto* Input = InputData->GetDataIO<FBroadPhaseInput>();
+	const auto* Output = OutputData->GetDataIO<FBroadPhaseOutput>();
 
 	// Draw bounding boxes - this is O(n^2) at least, but it isn't in shipping builds
-	for (int32 ShapeIndex = 0; ShapeIndex < Input->Shapes->Num(); ShapeIndex++)
+	for (const FTetherShape* Shape : *Shapes)
 	{
-		// Index in the Shapes array corresponds to the shape's index
-		const FTetherShape* Shape = (*Input->Shapes)[ShapeIndex];
-		
 		bool bFoundInCollisionPairings = false;
 		bool bFoundInPotentialCollisionPairings = false;
 
 		// Check in Output->CollisionPairings - did it overlap something?
 		for (const FTetherShapePair& Pair : Output->CollisionPairings)
 		{
-			if (Pair.ContainsShape(ShapeIndex))
+			if (Pair.ContainsShape(Shape))
 			{
 				bFoundInCollisionPairings = true;
 				break;  // Stop searching once found
@@ -95,7 +90,7 @@ void UTetherCollisionDetectionBroadPhase::DrawDebug(const FTetherIO* InputData, 
 		{
 			for (const FTetherShapePair& Pair : *Input->PotentialCollisionPairings)
 			{
-				if (Pair.ContainsShape(ShapeIndex))
+				if (Pair.ContainsShape(Shape))
 				{
 					bFoundInPotentialCollisionPairings = true;
 					break;  // Stop searching once found
